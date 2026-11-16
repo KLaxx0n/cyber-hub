@@ -346,7 +346,7 @@ def login():
             return render_template('login.html', login_id=login_id)
 
         if not user.check_password(password):
-            flash('Girdiğiniz şifre hatalı. Şifrenizi kontrol ediniz veya sistem varsayılan şifresini (Admin1234) kullanabilirsiniz.', 'danger')
+            flash('Girdiğiniz şifre hatalı. Lütfen kontrol ediniz.', 'danger')
             return render_template('login.html', login_id=login_id)
 
         # Şifresi doğru olan kullanıcının hesabı henüz onaylanmamışsa otomatik onayla (kesintisiz erişim)
