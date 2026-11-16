@@ -109,30 +109,7 @@ def seed_database(app):
                 db.session.add(new_lab)
 
         # Predefined default users
-        users_data = [
-            {
-                'username': 'sefa',
-                'email': 'gsefa5683@gmail.com',
-                'password_hash': generate_password_hash('Admin1234'),
-                'is_verified': True,
-                'score': 0,
-                'is_leader': True,
-                'is_founder': True,
-                'role': 'superadmin',
-                'assigned_team': 'blue_team'
-            },
-            {
-                'username': 'KLaxx0n',
-                'email': 'jacjsparrow07@gmail.com',
-                'password_hash': generate_password_hash('Admin1234'),
-                'is_verified': True,
-                'score': 100,
-                'is_leader': False,
-                'is_founder': False,
-                'role': 'student',
-                'assigned_team': 'blue_team'
-            }
-        ]
+        users_data = []
 
         for u_info in users_data:
             existing_user = User.query.filter(
@@ -144,6 +121,9 @@ def seed_database(app):
             else:
                 existing_user.is_verified = True
                 existing_user.password_hash = u_info['password_hash']
+                existing_user.role = u_info.get('role', existing_user.role)
+                existing_user.is_leader = u_info.get('is_leader', existing_user.is_leader)
+                existing_user.is_founder = u_info.get('is_founder', existing_user.is_founder)
 
         db.session.commit()
         print("[+] Veritabani basariyla olusturuldu ve ornek veriler yuklendi.")

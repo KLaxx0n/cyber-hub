@@ -1,0 +1,15 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # Her 12 dakikada bir Render'ın uykuya dalmasını engellemek için ping atar
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Manuel tetikleme imkanı
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping CyberHub Render Server
+        run: |
+          curl -s -f https://nohu-cyberhub.onrender.com/health || curl -s -f https://nohu-cyberhub.onrender.com/

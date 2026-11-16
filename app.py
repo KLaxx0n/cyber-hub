@@ -129,6 +129,10 @@ def generate_verification_code():
 
 # ----------------- ROUTES ----------------- #
 
+@app.route('/health')
+def health_check():
+    return jsonify(status="healthy", service="cyber-hub"), 200
+
 @app.route('/')
 def index():
     total_users = User.query.filter_by(is_verified=True).count()
