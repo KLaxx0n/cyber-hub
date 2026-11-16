@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Öğrenci Paneli - NÖHÜ Siber Güvenlik Platformu{% endblock %}
+{% block title %}Öğrenci Paneli - CyberHub Platformu{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <!-- Top Profile Header -->
-    <div class="cyber-card p-6 md:p-8 mb-8 border border-slate-800/80 rounded-xl shadow-md">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-6 md:p-8 mb-8 border border-slate-800/80 rounded-xl shadow-md">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center space-x-5 text-center md:text-left">
-                <div class="w-16 h-16 rounded-lg bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-sm">
+                <div class="w-16 h-16 rounded-lg bg-slate-900 border border-slate-700 text-amber-400 flex items-center justify-center text-white text-2xl font-bold shadow-sm">
                     {{ user.username[0]|upper }}
                 </div>
                 <div>
@@ -56,15 +56,15 @@
             </div>
 
             <div class="flex items-center space-x-4 text-center">
-                <div class="p-3 px-5 rounded-lg bg-slate-950 border border-slate-800">
+                <div class="p-3 px-5 rounded-lg bg-slate-900 border border-slate-800">
                     <div class="text-[11px] text-slate-400 uppercase font-mono">Toplam Puan</div>
                     <div class="text-xl font-bold text-blue-400 font-mono">{{ user.score }} P</div>
                 </div>
-                <div class="p-3 px-5 rounded-lg bg-slate-950 border border-slate-800">
+                <div class="p-3 px-5 rounded-lg bg-slate-900 border border-slate-800">
                     <div class="text-[11px] text-slate-400 uppercase font-mono">Genel Sıralama</div>
                     <div class="text-xl font-bold text-amber-400 font-mono">#{{ rank }}</div>
                 </div>
-                <div class="p-3 px-5 rounded-lg bg-slate-950 border border-slate-800">
+                <div class="p-3 px-5 rounded-lg bg-slate-900 border border-slate-800">
                     <div class="text-[11px] text-slate-400 uppercase font-mono">Çözülen Lab</div>
                     <div class="text-xl font-bold text-emerald-400 font-mono">{{ completed_progress|length }}</div>
                 </div>
@@ -74,7 +74,7 @@
 
     <!-- Leader / SuperAdmin Control Quick Banner -->
     {% if user.is_superadmin %}
-    <div class="cyber-card p-5 mb-8 border border-amber-500/50 rounded-xl bg-gradient-to-r from-amber-950/30 via-slate-900/50 to-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-5 mb-8 border border-amber-500/50 rounded-xl bg-gradient-to-r from-amber-950/30 via-slate-900/50 to-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
         <div class="flex items-center space-x-3.5">
             <div class="w-11 h-11 rounded-lg bg-amber-950 border border-amber-600 text-amber-400 flex items-center justify-center text-xl flex-shrink-0 shadow-md">
                 <i class="fa-solid fa-crown"></i>
@@ -95,7 +95,7 @@
         </a>
     </div>
     {% elif user.is_team_leader %}
-    <div class="cyber-card p-5 mb-8 border border-sky-500/40 rounded-xl bg-gradient-to-r from-sky-950/30 to-slate-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-5 mb-8 border border-sky-500/40 rounded-xl bg-gradient-to-r from-sky-950/30 to-slate-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
         <div class="flex items-center space-x-3.5">
             <div class="w-10 h-10 rounded-lg bg-sky-950 border border-sky-700 text-sky-400 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
                 <i class="fa-solid fa-user-shield"></i>
@@ -120,7 +120,7 @@
     <!-- Progress & Competence Tracks -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <!-- Red Team Progress -->
-        <div class="cyber-card p-6 border-slate-800 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-6 border-slate-800 rounded-xl">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-lg bg-red-950 border border-red-800/80 flex items-center justify-center text-red-400 text-sm">
@@ -133,7 +133,7 @@
                 </div>
                 <span class="text-xs font-bold font-mono text-red-400">{{ completed_red }}/{{ total_red }} (%{{ red_percent }})</span>
             </div>
-            <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
+            <div class="w-full bg-slate-900 rounded-full h-2.5 border border-slate-800 overflow-hidden">
                 <div class="bg-red-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ red_percent }}%;"></div>
             </div>
             <div class="mt-4 flex justify-end">
@@ -144,7 +144,7 @@
         </div>
 
         <!-- Blue Team Progress -->
-        <div class="cyber-card p-6 border-slate-800 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-6 border-slate-800 rounded-xl">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-lg bg-blue-950 border border-blue-800/80 flex items-center justify-center text-blue-400 text-sm">
@@ -157,8 +157,8 @@
                 </div>
                 <span class="text-xs font-bold font-mono text-blue-400">{{ completed_blue }}/{{ total_blue }} (%{{ blue_percent }})</span>
             </div>
-            <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden">
-                <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ blue_percent }}%;"></div>
+            <div class="w-full bg-slate-900 rounded-full h-2.5 border border-slate-800 overflow-hidden">
+                <div class="bg-slate-900 border border-slate-700 text-amber-400 h-2.5 rounded-full transition-all duration-500" style="width: {{ blue_percent }}%;"></div>
             </div>
             <div class="mt-4 flex justify-end">
                 <a href="{{ url_for('blue_team') }}" class="text-xs font-medium text-blue-400 hover:text-blue-300">
@@ -169,7 +169,7 @@
     </div>
 
     <!-- Completed Labs Table -->
-    <div class="cyber-card p-6 border-slate-800 rounded-xl">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-6 border-slate-800 rounded-xl">
         <h3 class="text-sm font-bold text-white mb-4 flex items-center">
             <i class="fa-solid fa-clock-rotate-left text-slate-400 mr-2"></i>Tamamlanan Laboratuvarlar Geçmişi
         </h3>
@@ -177,7 +177,7 @@
         {% if completed_progress %}
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs font-mono">
-                <thead class="border-b border-slate-800 text-slate-400 uppercase bg-slate-950/60">
+                <thead class="border-b border-slate-800 text-slate-400 uppercase bg-slate-900/60">
                     <tr>
                         <th class="py-3 px-4">Laboratuvar Başlığı</th>
                         <th class="py-3 px-4">Kategori</th>

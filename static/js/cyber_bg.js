@@ -1,6 +1,7 @@
 /**
- * NÖHÜ Siber Güvenlik Platformu - İnteraktif Ağ Animasyonu
- * Transparan camların arkasında net görünen parlak ağ düğümleri
+ * CyberHub Siber Harekât ve Savunma Merkezi (AEGIS CYBER-OPS v2)
+ * Taktiksel Radar & Koordinat Izgara Arka Plan Motoru
+ * Hafif, yüksek performanslı ve sinematik operasyon ekranı
  */
 
 (function () {
@@ -11,148 +12,95 @@
     let width = canvas.width = window.innerWidth;
     let height = canvas.height = window.innerHeight;
 
-    const NODE_COUNT = Math.floor((width * height) / 10000); // Daha dolgun ağ
-    const MAX_DISTANCE = 140;
-    const MOUSE_RADIUS = 180;
+    let sweepAngle = 0;
+    const GRID_SPACING = 60; // Izgara aralığı
 
-    const particles = [];
-    const pulses = [];
+    // Simüle edilmiş telemetri noktaları (radar pingleri)
+    const pings = [];
+    const PING_COUNT = 14;
 
-    // Parlak ve belirgin renkler (Camın arkasında net görünmesi için)
-    const colors = [
-        { r: 56, g: 189, b: 248 },   // Açık Gökyüzü Mavisi (#38bdf8)
-        { r: 96, g: 165, b: 250 },   // Açık Mavi (#60a5fa)
-        { r: 248, g: 113, b: 113 },  // Açık Kırmızı (#f87171)
-        { r: 52, g: 211, b: 153 }    // Açık Zümrüt Yeşili (#34d399)
-    ];
+    function initPings() {
+        pings.length = 0;
+        for (let i = 0; i < PING_COUNT; i++) {
+            pings.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                type: Math.random() > 0.5 ? 'red' : 'blue',
+                alpha: Math.random() * 0.7,
+                size: 2 + Math.random() * 2,
+                pulse: 0,
+                pulseSpeed: 0.02 + Math.random() * 0.03,
+                label: Math.random() > 0.7 ? (Math.random() > 0.5 ? '10.10.' + Math.floor(Math.random() * 254) : 'NODE-' + Math.floor(Math.random() * 99)) : null
+            });
+        }
+    }
 
-    class Particle {
-        constructor() {
-            this.x = Math.random() * width;
-            this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 0.7;
-            this.vy = (Math.random() - 0.5) * 0.7;
-            this.radius = Math.random() * 2 + 1.5;
-            this.color = colors[Math.floor(Math.random() * colors.length)];
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Koordinat Kesişim Artıları (+)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
+        for (let x = GRID_SPACING; x < width; x += GRID_SPACING) {
+            for (let y = GRID_SPACING; y < height; y += GRID_SPACING) {
+                // Küçük artı işareti
+                ctx.fillRect(x - 3, y, 7, 1);
+                ctx.fillRect(x, y - 3, 1, 7);
+            }
         }
 
-        update() {
-            this.x += this.vx;
-            this.y += this.vy;
+        // 2. Taktiksel Radar Taraması (Merkezden ya da üstten hafif tarama açısı)
+        sweepAngle += 0.008;
+        const centerX = width * 0.5;
+        const centerY = height * 0.35;
+        const radius = Math.max(width, height) * 0.7;
 
-            if (this.x < 0) this.x = width;
-            if (this.x > width) this.x = 0;
-            if (this.y < 0) this.y = height;
-            if (this.y > height) this.y = 0;
-        }
+        const sweepGradient = ctx.createConicGradient(sweepAngle, centerX, centerY);
+        sweepGradient.addColorStop(0, 'rgba(56, 189, 248, 0.04)');
+        sweepGradient.addColorStop(0.08, 'rgba(56, 189, 248, 0.01)');
+        sweepGradient.addColorStop(0.15, 'transparent');
+        sweepGradient.addColorStop(1, 'transparent');
 
-        draw() {
+        ctx.fillStyle = sweepGradient;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. Taktiksel Radar Halkaları
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+        ctx.lineWidth = 1;
+        [180, 360, 540, 720].forEach(r => {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
-            ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.8)`;
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    for (let i = 0; i < NODE_COUNT; i++) {
-        particles.push(new Particle());
-    }
-
-    const mouse = { x: null, y: null };
-
-    window.addEventListener('mousemove', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-    });
-
-    window.addEventListener('mouseleave', () => {
-        mouse.x = null;
-        mouse.y = null;
-    });
-
-    window.addEventListener('click', (e) => {
-        pulses.push({
-            x: e.clientX,
-            y: e.clientY,
-            radius: 5,
-            maxRadius: 220,
-            opacity: 0.85
+            ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+            ctx.stroke();
         });
-    });
+
+        // 4. Telemetri Noktaları & Yanıp Sönen Düğümler
+        pings.forEach(p => {
+            p.pulse += p.pulseSpeed;
+            const currentAlpha = 0.2 + (Math.sin(p.pulse) + 1) * 0.25;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.type === 'red' ? `rgba(244, 63, 94, ${currentAlpha})` : `rgba(56, 189, 248, ${currentAlpha})`;
+            ctx.fill();
+
+            // Etiket varsa yaz
+            if (p.label) {
+                ctx.font = '9px "JetBrains Mono", monospace';
+                ctx.fillStyle = p.type === 'red' ? `rgba(244, 63, 94, ${currentAlpha * 0.8})` : `rgba(56, 189, 248, ${currentAlpha * 0.8})`;
+                ctx.fillText(p.label, p.x + 6, p.y + 3);
+            }
+        });
+
+        requestAnimationFrame(draw);
+    }
 
     window.addEventListener('resize', () => {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
+        initPings();
     });
 
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-
-        // Radar Pulses
-        for (let i = pulses.length - 1; i >= 0; i--) {
-            const p = pulses[i];
-            p.radius += 3.5;
-            p.opacity *= 0.96;
-
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(56, 189, 248, ${p.opacity})`;
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            if (p.opacity <= 0.02 || p.radius >= p.maxRadius) {
-                pulses.splice(i, 1);
-            }
-        }
-
-        // Connections & Nodes
-        for (let i = 0; i < particles.length; i++) {
-            const p1 = particles[i];
-            p1.update();
-
-            for (let j = i + 1; j < particles.length; j++) {
-                const p2 = particles[j];
-                const dx = p1.x - p2.x;
-                const dy = p1.y - p2.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < MAX_DISTANCE) {
-                    // Net ve görünür çizgi parlaklığı
-                    const alpha = (1 - dist / MAX_DISTANCE) * 0.45;
-                    ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(p2.x, p2.y);
-                    ctx.strokeStyle = `rgba(${p1.color.r}, ${p1.color.g}, ${p1.color.b}, ${alpha})`;
-                    ctx.lineWidth = 0.9;
-                    ctx.stroke();
-                }
-            }
-
-            // Mouse Connection
-            if (mouse.x !== null && mouse.y !== null) {
-                const dx = p1.x - mouse.x;
-                const dy = p1.y - mouse.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < MOUSE_RADIUS) {
-                    const alpha = (1 - dist / MOUSE_RADIUS) * 0.75;
-                    ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(mouse.x, mouse.y);
-                    ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
-                    ctx.lineWidth = 1.2;
-                    ctx.stroke();
-                }
-            }
-
-            p1.draw();
-        }
-
-        requestAnimationFrame(animate);
-    }
-
-    animate();
+    initPings();
+    draw();
 })();

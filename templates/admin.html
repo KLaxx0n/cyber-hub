@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Sistem Yönetimi & Lider Paneli - NÖHÜ Siber Güvenlik{% endblock %}
+{% block title %}Sistem Yönetimi & Lider Paneli - CyberHub{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <!-- Header Section -->
-    <div class="cyber-card p-6 md:p-8 mb-8 border {% if current_user.is_superadmin %}border-amber-500/50 bg-gradient-to-r from-amber-950/20 via-slate-900/40 to-slate-900/60{% else %}border-blue-500/40{% endif %} rounded-xl shadow-lg relative overflow-hidden">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-6 md:p-8 mb-8 border {% if current_user.is_superadmin %}border-amber-500/50 bg-gradient-to-r from-amber-950/20 via-slate-900/40 to-slate-900/60{% else %}border-blue-500/40{% endif %} rounded-xl shadow-lg relative overflow-hidden">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
             <div>
                 <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md {% if current_user.is_superadmin %}bg-amber-950/90 border border-amber-600 text-amber-300{% else %}bg-sky-950/90 border border-sky-600 text-sky-300{% endif %} text-xs font-mono mb-3">
@@ -60,7 +60,7 @@
 
     <!-- Quick Metrics Overview -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="cyber-card p-5 border-slate-800 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-5 border-slate-800 rounded-xl">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Toplam Kayıtlı</div>
@@ -73,7 +73,7 @@
             <p class="text-[11px] text-slate-500 mt-2 font-mono">Platformdaki tüm hesaplar</p>
         </div>
 
-        <div class="cyber-card p-5 border-amber-900/50 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-5 border-amber-900/50 rounded-xl">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-[11px] font-mono text-amber-400 uppercase tracking-wider">Yetkili Kadro</div>
@@ -88,7 +88,7 @@
             <p class="text-[11px] text-slate-500 mt-2 font-mono">Süper Admin ve Takım Liderleri</p>
         </div>
 
-        <div class="cyber-card p-5 border-red-900/50 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-5 border-red-900/50 rounded-xl">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-[11px] font-mono text-red-400 uppercase tracking-wider">Red Team</div>
@@ -101,7 +101,7 @@
             <p class="text-[11px] text-slate-500 mt-2 font-mono">Ofansif güvenlik grubu</p>
         </div>
 
-        <div class="cyber-card p-5 border-blue-900/50 rounded-xl">
+        <div class="tactical-panel bg-[#0a0d14]/95 p-5 border-blue-900/50 rounded-xl">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-[11px] font-mono text-blue-400 uppercase tracking-wider">Blue Team</div>
@@ -116,13 +116,13 @@
     </div>
 
     <!-- User Search & Filter Bar -->
-    <div class="cyber-card p-4 mb-6 border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-4 mb-6 border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="relative w-full md:w-80">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
             <input type="text" id="userSearchInput" placeholder="Kullanıcı adı veya e-posta ara..." 
-                class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors">
+                class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors">
         </div>
         <div class="text-xs font-mono text-slate-400 flex items-center gap-2">
             <i class="fa-solid fa-circle-info text-amber-400"></i>
@@ -131,10 +131,10 @@
     </div>
 
     <!-- Registered Users Table -->
-    <div class="cyber-card p-6 border-slate-800 rounded-xl overflow-hidden shadow-md">
+    <div class="tactical-panel bg-[#0a0d14]/95 p-6 border-slate-800 rounded-xl overflow-hidden shadow-md">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs font-mono" id="usersTable">
-                <thead class="border-b border-slate-800 text-slate-400 uppercase bg-slate-950/70">
+                <thead class="border-b border-slate-800 text-slate-400 uppercase bg-slate-900/70">
                     <tr>
                         <th class="py-3 px-3 text-center w-12">ID</th>
                         <th class="py-3 px-4">Kullanıcı</th>

@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Siber Güvenlik Eğitim Platformu{% endblock %} - Red & Blue Team Hub</title>
+    <title>{% block title %}CyberHub - Siber Güvenlik Eğitim Platformu{% endblock %}</title>
+    <meta name="description" content="CyberHub - Ofansif ve Defansif Siber Güvenlik Eğitim ve Laboratuvar Platformu">
+    <meta property="og:title" content="CyberHub - Siber Güvenlik Platformu">
+    <meta property="og:description" content="CyberHub - Ofansif ve Defansif Siber Güvenlik Eğitim ve Laboratuvar Platformu">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -53,9 +56,9 @@
                 <!-- Brand / Logo -->
                 <div class="flex items-center space-x-2.5 shrink-0">
                     <a href="{{ url_for('index') }}" class="flex items-center space-x-2.5 group">
-                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NÖHÜ Siber Güvenlik Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] group-hover:scale-105 transition-all duration-300 shrink-0">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CyberHub Siber Güvenlik Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] group-hover:scale-105 transition-all duration-300 shrink-0">
                         <div class="whitespace-nowrap">
-                            <div class="font-bold text-white text-xs sm:text-sm tracking-tight leading-tight group-hover:text-cyan-300 transition-colors whitespace-nowrap">NÖHÜ Siber Güvenlik</div>
+                            <div class="font-bold text-white text-xs sm:text-sm tracking-tight leading-tight group-hover:text-cyan-300 transition-colors whitespace-nowrap"><span class="text-cyan-400 font-extrabold">CyberHub</span> Siber Güvenlik</div>
                             <div class="text-[10px] text-slate-400 font-mono leading-none mt-0.5 whitespace-nowrap">Eğitim & Lab Platformu</div>
                         </div>
                     </a>
@@ -159,7 +162,7 @@
     <footer class="border-t border-white/10 bg-[#06090f]/50 backdrop-blur-md py-6 text-xs text-slate-400 mt-12 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NÖHÜ Siber Güvenlik Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CyberHub Siber Güvenlik Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
                 <div>
                     <p class="font-medium text-slate-300">Niğde Ömer Halisdemir Üniversitesi &bull; Bilgisayar ve Bilişim Bilimleri Fakültesi</p>
                     <p class="text-slate-500 mt-0.5">Bilgi Teknolojileri Bölümü - Siber Güvenlik Dönem Projesi</p>
@@ -167,7 +170,7 @@
             </div>
             <div class="text-center md:text-right">
                 <p class="text-slate-400">Proje Ekibi: Aziz, Sefa</p>
-                <p class="text-slate-500 mt-0.5">&copy; 2026 NÖHÜ Siber Lab</p>
+                <p class="text-slate-500 mt-0.5">&copy; 2026 CyberHub Siber Lab</p>
             </div>
         </div>
     </footer>
