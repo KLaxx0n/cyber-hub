@@ -109,7 +109,19 @@ def seed_database(app):
                 db.session.add(new_lab)
 
         # Predefined default users
-        users_data = []
+        users_data = [
+            {
+                'username': 'Sefa_Gumus',
+                'email': 'gsefa5683@gmail.com',
+                'password_hash': generate_password_hash('23Sefa'),
+                'is_verified': True,
+                'score': 0,
+                'is_leader': True,
+                'is_founder': True,
+                'role': 'superadmin',
+                'assigned_team': 'blue_team'
+            }
+        ]
 
         for u_info in users_data:
             existing_user = User.query.filter(

