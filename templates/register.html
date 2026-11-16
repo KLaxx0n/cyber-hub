@@ -1,64 +1,56 @@
 {% extends 'base.html' %}
 
-{% block title %}Operatör Kaydı - CyberHub Platformu{% endblock %}
+{% block title %}Kayıt Ol - NÖHÜ Siber Güvenlik Platformu{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto px-4 py-12">
-    <div class="tactical-panel p-8 bg-[#0a0d14]/95 border-slate-700/80 shadow-2xl relative">
-        
-        <div class="text-center mb-6 space-y-2">
-            <div class="inline-flex items-center space-x-1.5 font-mono text-[10px] text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded border border-sky-500/30 uppercase">
-                <i class="fa-solid fa-id-card-clip"></i>
-                <span>YENİ OPERATÖR PROTOKOLÜ // CYBERHUB</span>
+    <div class="cyber-card p-8 border border-slate-800/80 shadow-xl">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="w-16 h-16 object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
             </div>
-            
-            <div class="w-12 h-12 rounded bg-slate-900 border border-slate-700 flex items-center justify-center mx-auto text-sky-400 text-xl shadow-inner">
-                <i class="fa-solid fa-user-plus"></i>
-            </div>
-
-            <h2 class="text-xl font-bold text-white font-heading">Operatör Kaydı</h2>
-            <p class="text-xs text-slate-400 font-mono">Siber güvenlik eğitim ve CTF ortamına katılmak için kaydolun.</p>
+            <h2 class="text-xl font-bold text-white">Öğrenci Kaydı</h2>
+            <p class="text-xs text-slate-400 mt-1">Laboratuvar ortamına katılmak için bilgilerinizi giriniz.</p>
         </div>
 
         <form action="{{ url_for('register') }}" method="POST" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            
             <div>
-                <label class="block text-xs font-mono text-slate-300 mb-1 uppercase">Operatör Çağrı Kodu (Kullanıcı Adı)</label>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Kullanıcı Adı</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-user text-xs"></i>
                     </span>
                     <input type="text" name="username" value="{{ username or '' }}" required placeholder="örn: sefa_sec" 
-                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-sky-400 transition-colors">
+                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-slate-300 mb-1 uppercase">Kurumsal / Öğrenci E-Posta</label>
+                <label class="block text-xs font-medium text-slate-300 mb-1">E-Posta Adresi</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-envelope text-xs"></i>
                     </span>
                     <input type="email" name="email" value="{{ email or '' }}" required placeholder="ogrenci@ohu.edu.tr" 
-                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-sky-400 transition-colors">
+                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
-                <p class="text-[10px] font-mono text-slate-500 mt-1">E-posta adresi hesap kurtarma ve güvenlik için saklanır.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Kayıt sonrası aktivasyon kodu bu adrese gönderilecektir.</p>
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-slate-300 mb-1 uppercase">Güvenlik Parolası</label>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Şifre</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-lock text-xs"></i>
                     </span>
                     <input type="password" id="reg_password" name="password" required placeholder="••••••••" 
-                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-sky-400 transition-colors">
+                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
                 
                 <!-- Regex Password Rules -->
-                <div class="mt-2.5 p-3 rounded bg-slate-950 border border-slate-800 text-[11px] space-y-1 font-mono">
-                    <div class="text-[10px] text-slate-400 font-semibold mb-1 uppercase tracking-wider">Parola Karmaşıklık Kriterleri:</div>
+                <div class="mt-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1.5 font-mono">
+                    <div class="text-[11px] text-slate-400 font-medium mb-1">Şifre Güvenlik Kriterleri:</div>
                     <div id="rule_length" class="text-slate-500 flex items-center">
                         <i class="fa-regular fa-circle mr-2 text-[10px]"></i> En az 6 karakter
                     </div>
@@ -72,24 +64,24 @@
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-slate-300 mb-1 uppercase">Parola Tekrar</label>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Şifre Tekrar</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-check-double text-xs"></i>
                     </span>
                     <input type="password" name="confirm_password" required placeholder="••••••••" 
-                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-sky-400 transition-colors">
+                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
             </div>
 
-            <button type="submit" id="register_btn" disabled class="btn-tactical btn-tactical-blue w-full py-2.5 text-xs font-mono opacity-50 cursor-not-allowed">
-                <i class="fa-solid fa-user-check mr-2"></i>KAYIT PROTOKOLÜNÜ TAMAMLA
+            <button type="submit" id="register_btn" disabled class="w-full py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm shadow-sm opacity-50 cursor-not-allowed hover:bg-blue-700 transition-colors">
+                Kayıt Ol & Onay Kodu Al
             </button>
         </form>
 
-        <div class="text-center mt-6 pt-4 border-t border-white/10 text-xs font-mono text-slate-400">
-            Zaten bir operatör kaydınız var mı? 
-            <a href="{{ url_for('login') }}" class="text-sky-400 hover:text-sky-300 font-bold ml-1">Giriş Yap »</a>
+        <div class="text-center mt-6 pt-4 border-t border-slate-800 text-xs text-slate-400">
+            Zaten hesabınız var mı? 
+            <a href="{{ url_for('login') }}" class="text-blue-400 hover:text-blue-300 font-medium ml-1">Giriş Yap</a>
         </div>
     </div>
 </div>

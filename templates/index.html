@@ -1,361 +1,276 @@
 {% extends 'base.html' %}
 
-{% block title %}Komuta Merkezi - CyberHub Siber Harekât ve Savunma Laboratuvarı{% endblock %}
+{% block title %}Ana Sayfa - NÖHÜ Siber Güvenlik Laboratuvarı{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <!-- 1. HAREKÂT ARENASI (HERO SECTION) -->
-    <div class="tactical-panel p-6 sm:p-10 border border-slate-700/80 bg-[#0a0d14]/95 shadow-2xl relative overflow-hidden">
-        
-        <!-- Üst Taktiksel Başlık & Telemetri -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
-            <div class="inline-flex items-center space-x-2 font-mono text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded border border-amber-500/30">
-                <i class="fa-solid fa-crosshairs text-amber-400"></i>
-                <span class="tracking-wider uppercase font-semibold">CYBERHUB SİBER HAREKÂT VE SAVUNMA MERKEZİ</span>
+    <!-- Hero Section -->
+    <div class="cyber-card p-8 md:p-12 shadow-xl mb-10">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950/80 border border-blue-800 text-blue-300 text-xs font-mono mb-4">
+                <i class="fa-solid fa-graduation-cap mr-1"></i>
+                <span>NÖHÜ BİLGİ TEKNOLOJİLERİ BÖLÜMÜ PROJESİ</span>
             </div>
-            <div class="font-mono text-xs text-slate-400 flex items-center space-x-3">
-                <span>HAREKÂT DÜZEYİ: <strong class="text-emerald-400">AKTİF ARENA</strong></span>
-                <span class="text-slate-600">|</span>
-                <span>SEKTÖR: <strong class="text-slate-200">KAMPÜS-LAB</strong></span>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-8">
-            <div class="lg:col-span-8 space-y-4">
-                <h1 class="text-3xl sm:text-5xl font-black text-white font-heading tracking-tight leading-tight">
-                    GERÇEK ZAMANLI <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-sky-400">SİBER SAVAŞ</span> & LABORATUVAR ARENASI
-                </h1>
-                <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
-                    Ofansif sızma testleri (Red Team) ve defansif güvenlik operasyonları (Blue Team) için tasarlanmış gerçekçi laboratuvar ortamı. Zafiyetleri tespit edin, bayrakları ele geçirin ya da güvenlik duvarı kurallarıyla ağınızı savunun.
-                </p>
-            </div>
+            <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                Siber Güvenlik Eğitim & Laboratuvar Portalı
+            </h1>
             
-            <!-- Hızlı Denge / Oran Kutusu -->
-            <div class="lg:col-span-4 bg-slate-900/90 border border-slate-700/80 p-5 rounded-lg space-y-3 font-mono text-xs">
-                <div class="flex justify-between text-slate-400">
-                    <span class="text-red-400 font-bold"><i class="fa-solid fa-skull mr-1"></i>RED OPS ({{ red_labs }})</span>
-                    <span class="text-sky-400 font-bold"><i class="fa-solid fa-shield mr-1"></i>BLUE DEF ({{ blue_labs }})</span>
-                </div>
-                <div class="duel-balance-bar">
-                    <div class="duel-red-progress" style="width: 50%;"></div>
-                    <div class="duel-blue-progress" style="width: 50%;"></div>
-                </div>
-                <div class="flex justify-between text-[11px] text-slate-500 pt-1">
-                    <span>%50 Ofansif CTF</span>
-                    <span>%50 Defansif SOC</span>
-                </div>
-                <div class="text-[10px] text-center text-slate-400 border-t border-white/5 pt-2">
-                    <i class="fa-solid fa-circle-dot text-emerald-400 mr-1 animate-pulse"></i>Tüm laboratuvar konteynerleri hazır durumda.
-                </div>
-            </div>
-        </div>
+            <p class="mt-4 text-base text-slate-300 leading-relaxed">
+                Bu platform, ofansif (Red Team) ve defansif (Blue Team) siber güvenlik konularında öğrencilerin pratik beceriler kazanması, zafiyet analizleri yapması ve güvenlik kurallarını uygulamalı olarak öğrenmesi amacıyla geliştirilmiştir.
+            </p>
 
-        <!-- İkili Harekât Konsolları (Red Team vs Blue Team) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <!-- Red Team Konsolu -->
-            <div class="cyber-card cyber-card-red p-6 bg-[#0e1017]/90 space-y-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded bg-red-950/80 border border-red-700/80 flex items-center justify-center text-red-400 text-lg">
-                            <i class="fa-solid fa-crosshairs"></i>
-                        </div>
-                        <div>
-                            <span class="badge-tactical badge-tactical-red">OFANSİF HAREKÂT</span>
-                            <h2 class="text-lg font-bold text-white font-heading mt-0.5">Red Team Operasyonları</h2>
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono text-red-400/90 font-semibold">{{ red_labs }} Senaryo</span>
-                </div>
-
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Hedef web sistemleri üzerinde zafiyet tespiti, SQL Enjeksiyonu, oturum ele geçirme ve yetki yükseltme testleri gerçekleştirerek gizli bayrakları (Flag) yakalayın.
-                </p>
-
-                <div class="flex flex-wrap gap-2 text-[11px] font-mono text-slate-400">
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">SQLi Bypass</span>
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">Reverse Shell</span>
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">PrivEsc</span>
-                </div>
-
-                <div class="pt-2">
-                    <a href="{{ url_for('red_team') }}" class="btn-tactical btn-tactical-red w-full">
-                        <i class="fa-solid fa-terminal mr-2"></i>OFANSİF HAREKÂTI BAŞLAT →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Blue Team Konsolu -->
-            <div class="cyber-card cyber-card-blue p-6 bg-[#0e1017]/90 space-y-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded bg-sky-950/80 border border-sky-700/80 flex items-center justify-center text-sky-400 text-lg">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <div>
-                            <span class="badge-tactical badge-tactical-blue">DEFANSİF SAVUNMA</span>
-                            <h2 class="text-lg font-bold text-white font-heading mt-0.5">Blue Team SOC Savunması</h2>
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono text-sky-400/90 font-semibold">{{ blue_labs }} Senaryo</span>
-                </div>
-
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Saldırı altındaki ağları analiz edin, adli bilişim (forensic) log incelemeleri yapın ve güvenlik duvarı (iptables/IDS) kurallarıyla saldırgan paketlerini püskürtün.
-                </p>
-
-                <div class="flex flex-wrap gap-2 text-[11px] font-mono text-slate-400">
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">iptables Kuralı</span>
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">Snort & SIEM</span>
-                    <span class="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded">Log Adli Bilişim</span>
-                </div>
-
-                <div class="pt-2">
-                    <a href="{{ url_for('blue_team') }}" class="btn-tactical btn-tactical-blue w-full">
-                        <i class="fa-solid fa-shield mr-2"></i>SAVUNMA HATTINI KUR →
-                    </a>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- 2. ETKİLEŞİMLİ SİBER KOMUTA TERMİNALİ (LIVE CLI INTERFACE) -->
-    <div class="cyber-terminal-box">
-        <div class="terminal-header">
-            <div class="flex items-center space-x-3">
-                <div class="terminal-dots">
-                    <span class="terminal-dot terminal-dot-red"></span>
-                    <span class="terminal-dot terminal-dot-yellow"></span>
-                    <span class="terminal-dot terminal-dot-green"></span>
-                </div>
-                <span class="text-xs font-mono text-slate-300 font-semibold">operator@cyberhub-lab:~ [SECURE TTY v2.4]</span>
-            </div>
-            <div class="text-[11px] font-mono text-slate-500 hidden sm:block">
-                İnteraktif Komut İstemi: Komut listesi için <span class="text-amber-400">help</span> yazın
-            </div>
-        </div>
-
-        <div class="terminal-body space-y-2">
-            <!-- Terminal Çıktı Alanı -->
-            <div id="quick-terminal-output" class="space-y-1.5 max-h-56 overflow-y-auto pr-2 text-xs font-mono">
-                <div class="text-emerald-400 font-bold">[CYBERHUB DEFENSE OPS TERMINAL v2.4 INITIALIZED]</div>
-                <div class="text-slate-400">Sunucu bağlantısı kuruldu: 10.10.0.1 (AUTH_LEVEL: {{ current_user.username if current_user.is_authenticated else 'GUEST_OPERATOR' }})</div>
-                <div class="text-slate-300">
-                    Terminal hazır. Denemek için <span class="text-cyan-400 font-bold">help</span>, <span class="text-cyan-400 font-bold">scan 10.10.14.5</span>, <span class="text-cyan-400 font-bold">status</span>, <span class="text-cyan-400 font-bold">target</span> veya <span class="text-cyan-400 font-bold">rules</span> yazıp ENTER'a basın.
-                </div>
-            </div>
-
-            <!-- Terminal Girdi Satırı -->
-            <div class="flex items-center space-x-2 pt-2 border-t border-white/10 font-mono text-xs">
-                <span class="text-cyan-400 font-bold shrink-0">operator@cyberhub:~$</span>
-                <input type="text" id="quick-terminal-input" placeholder="Komut yazın (örn: scan, status, help, target)..." class="w-full bg-transparent border-0 text-white font-mono text-xs focus:ring-0 focus:outline-none p-0 !bg-transparent !border-none" autocomplete="off" spellcheck="false">
-                <span class="terminal-cursor shrink-0"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. PLATFORM TELEMETRİ METRİKLERİ -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="tactical-panel p-5 bg-[#0a0d14]/90 text-center">
-            <div class="text-2xl sm:text-3xl font-black font-mono text-white mb-1">{{ total_users }}</div>
-            <div class="text-xs text-slate-400 font-mono uppercase tracking-wider">Kayıtlı Operatör</div>
-        </div>
-        <div class="tactical-panel p-5 bg-[#0a0d14]/90 text-center">
-            <div class="text-2xl sm:text-3xl font-black font-mono text-amber-400 mb-1">{{ total_labs }}</div>
-            <div class="text-xs text-slate-400 font-mono uppercase tracking-wider">Toplam Görev Laboratuvarı</div>
-        </div>
-        <div class="tactical-panel p-5 bg-[#0a0d14]/90 text-center border-l-2 border-l-red-500">
-            <div class="text-2xl sm:text-3xl font-black font-mono text-red-400 mb-1">{{ red_labs }}</div>
-            <div class="text-xs text-slate-400 font-mono uppercase tracking-wider">Red Team Saldırı Labı</div>
-        </div>
-        <div class="tactical-panel p-5 bg-[#0a0d14]/90 text-center border-l-2 border-l-sky-500">
-            <div class="text-2xl sm:text-3xl font-black font-mono text-sky-400 mb-1">{{ blue_labs }}</div>
-            <div class="text-xs text-slate-400 font-mono uppercase tracking-wider">Blue Team Savunma Labı</div>
-        </div>
-    </div>
-
-    <!-- 4. OPERASYONEL BENTO GRID (CANLI OLAYLAR, SIRALAMA, MITRE MATRİSİ) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        <!-- Bento 1: Canlı Başarı Tablosu / Top Operatörler (5 Kolon) -->
-        <div class="lg:col-span-5 tactical-panel p-6 bg-[#0a0d14]/90 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/10">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-trophy text-amber-400"></i>
-                    <h3 class="text-sm font-bold text-white font-mono uppercase tracking-wider">En Başarılı Operatörler</h3>
-                </div>
-                <a href="{{ url_for('leaderboard') }}" class="text-xs font-mono text-amber-400 hover:text-amber-300">Tümü »</a>
-            </div>
-
-            <div class="space-y-2 font-mono text-xs">
-                {% if top_users %}
-                    {% for u in top_users %}
-                    <div class="flex items-center justify-between p-2.5 rounded bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-colors">
-                        <div class="flex items-center space-x-3">
-                            <span class="w-5 text-center font-bold {% if loop.index == 1 %}text-amber-400{% elif loop.index == 2 %}text-slate-300{% elif loop.index == 3 %}text-amber-600{% else %}text-slate-500{% endif %}">
-                                #{{ loop.index }}
-                            </span>
-                            <span class="text-white font-semibold">{{ u.username }}</span>
-                            {% if u.assigned_team == 'red_team' %}
-                                <span class="text-[9px] px-1 py-0.2 rounded bg-red-950 text-red-400 border border-red-800">RED</span>
-                            {% elif u.assigned_team == 'blue_team' %}
-                                <span class="text-[9px] px-1 py-0.2 rounded bg-sky-950 text-sky-400 border border-sky-800">BLUE</span>
-                            {% endif %}
-                        </div>
-                        <span class="text-emerald-400 font-bold">{{ u.score }} Puan</span>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="text-center py-6 text-slate-500">Henüz puan kazanan operatör yok.</div>
-                {% endif %}
-            </div>
-
-            <div class="pt-2">
-                <a href="{{ url_for('leaderboard') }}" class="btn-tactical btn-tactical-ghost w-full text-xs">
-                    <i class="fa-solid fa-list-ol mr-2 text-slate-400"></i>Tam Skor Tablosunu İncele
+            <div class="mt-8 flex flex-wrap gap-3">
+                <a href="{{ url_for('red_team') }}" class="px-5 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <span>Red Team Modülü</span>
+                </a>
+                <a href="{{ url_for('blue_team') }}" class="px-5 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Blue Team Modülü</span>
+                </a>
+                <a href="{{ url_for('leaderboard') }}" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm flex items-center space-x-2 transition-colors">
+                    <i class="fa-solid fa-list-ol text-slate-400"></i>
+                    <span>Sıralama Tablosu</span>
+                </a>
+                <a href="#hakkimizda" class="px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-cyan-300 border border-cyan-800/60 font-medium text-sm flex items-center space-x-2 transition-colors">
+                    <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                    <span>Hakkımızda</span>
                 </a>
             </div>
         </div>
-
-        <!-- Bento 2: Canlı Ağ Telemetrisi & Olay Günlüğü (7 Kolon) -->
-        <div class="lg:col-span-7 tactical-panel p-6 bg-[#0a0d14]/90 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/10">
-                <div class="flex items-center space-x-2">
-                    <span class="pulse-dot-green"></span>
-                    <h3 class="text-sm font-bold text-white font-mono uppercase tracking-wider">Canlı SOC Olay Akışı</h3>
-                </div>
-                <span class="text-[11px] font-mono text-slate-500">CANLI TELEMETRİ GÜNLÜĞÜ</span>
-            </div>
-
-            <div class="space-y-2.5 font-mono text-xs">
-                <div class="p-2.5 rounded bg-slate-900/40 border border-emerald-900/40 flex items-start space-x-3">
-                    <i class="fa-solid fa-shield-halved text-emerald-400 mt-0.5"></i>
-                    <div class="text-slate-300">
-                        <span class="text-emerald-400 font-bold">[BLUE SOC KORUMASI]</span> iptables kuralı ile 45.33.32.156 hedefinden gelen SYN Flood başarıyla engellendi.
-                        <div class="text-[10px] text-slate-500 mt-0.5">Savunma Modülü #1 &bull; 2 dk önce</div>
-                    </div>
-                </div>
-
-                <div class="p-2.5 rounded bg-slate-900/40 border border-red-900/40 flex items-start space-x-3">
-                    <i class="fa-solid fa-flag text-red-400 mt-0.5"></i>
-                    <div class="text-slate-300">
-                        <span class="text-red-400 font-bold">[FLAG YAKALANDI]</span> VulnBank SQLi zafiyeti sömürüldü ve FLAG{sqli_auth_bypass_success} sisteme teslim edildi.
-                        <div class="text-[10px] text-slate-500 mt-0.5">Saldırı Modülü #1 &bull; 6 dk önce</div>
-                    </div>
-                </div>
-
-                <div class="p-2.5 rounded bg-slate-900/40 border border-amber-900/40 flex items-start space-x-3">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5"></i>
-                    <div class="text-slate-300">
-                        <span class="text-amber-400 font-bold">[GÜVENLİK ALARMI]</span> SSH Port 22 üzerinde kaba kuvvet denemesi algılandı. Brute-force koruması devreye alındı.
-                        <div class="text-[10px] text-slate-500 mt-0.5">SOC Güvenlik Duvarı &bull; 14 dk önce</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MITRE ATT&CK Çerçeve Şeridi -->
-            <div class="pt-2 border-t border-white/5">
-                <div class="text-[11px] font-mono text-slate-400 mb-2">MÜFREDAT DÜZEYİ // MITRE ATT&CK MATRİSİ:</div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono text-center">
-                    <div class="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300">TA0001: İlk Erişim</div>
-                    <div class="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300">TA0002: Yürütme</div>
-                    <div class="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300">TA0004: Yetki Yükseltme</div>
-                    <div class="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300">TA0007: Savunma Aşımı</div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- 5. HAKKIMIZDA & BÖLÜM VİZYONU (TAMAMEN ÖZGÜN AKADEMİK & TEKNİK MİSYON) -->
-    <section id="hakkimizda" class="tactical-panel p-6 sm:p-10 bg-[#0a0d14]/95 space-y-8">
-        
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/10">
-            <div>
-                <div class="inline-flex items-center space-x-2 font-mono text-xs text-slate-400 mb-2">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                    <span>AKADEMİK MİSYON & ALTYAPI</span>
-                </div>
-                <h2 class="text-2xl sm:text-3xl font-bold text-white font-heading">
-                    Niğde Ömer Halisdemir Üniversitesi Bilgi Teknolojileri Bölümü
-                </h2>
-                <p class="text-sm text-slate-400 mt-1">
-                    Siber Güvenlik Uygulama & Araştırma Laboratuvarı Projesi
-                </p>
-            </div>
+    <!-- Platform Metrics Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div class="cyber-card p-5 text-center">
+            <div class="text-2xl font-bold font-mono text-white mb-1">{{ total_users }}</div>
+            <div class="text-xs text-slate-400 font-medium">Kayıtlı Öğrenci</div>
+        </div>
+        <div class="cyber-card p-5 text-center">
+            <div class="text-2xl font-bold font-mono text-white mb-1">{{ total_labs }}</div>
+            <div class="text-xs text-slate-400 font-medium">Toplam Laboratuvar</div>
+        </div>
+        <div class="cyber-card p-5 text-center border-l-4 border-red-700">
+            <div class="text-2xl font-bold font-mono text-red-400 mb-1">{{ red_labs }}</div>
+            <div class="text-xs text-slate-400 font-medium">Red Team Labı</div>
+        </div>
+        <div class="cyber-card p-5 text-center border-l-4 border-blue-700">
+            <div class="text-2xl font-bold font-mono text-blue-400 mb-1">{{ blue_labs }}</div>
+            <div class="text-xs text-slate-400 font-medium">Blue Team Labı</div>
+        </div>
+    </div>
 
-            <div class="flex items-center space-x-3 shrink-0">
-                <span class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 font-mono text-xs text-slate-300">
-                    <i class="fa-solid fa-graduation-cap mr-1.5 text-amber-400"></i>Lisans Dönem Projesi
-                </span>
+    <!-- Dual Pillar Comparison -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Red Team Card -->
+        <div class="cyber-card cyber-card-red p-7">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-red-950 border border-red-800/80 flex items-center justify-center text-red-400 text-lg">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Red Team (Saldırı Güvenliği)</h2>
+                    <p class="text-xs text-slate-400">Zafiyet Tespiti & Bayrak Avı (CTF)</p>
+                </div>
             </div>
+            
+            <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                Web uygulamalarındaki yaygın zafiyetleri tespit etme, sömürme ve güvenlik testleri gerçekleştirme becerileri kazandırır.
+            </p>
+
+            <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-red-400 text-xs"></i>
+                    <span>OWASP Top 10 Web Zafiyetleri (SQL Injection, XSS)</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-red-400 text-xs"></i>
+                    <span>Sosyal Mühendislik & Oltalama (Phishing) Simülasyonu</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-red-400 text-xs"></i>
+                    <span>Bayrak Avı (Flag Hunting) Puanlama Sistemi</span>
+                </li>
+            </ul>
+
+            <a href="{{ url_for('red_team') }}" class="inline-flex items-center text-xs font-semibold text-red-400 hover:text-red-300">
+                Red Team Bölümüne Git <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+            </a>
         </div>
 
-        <!-- 3 Sütunlu Akademik Değerler -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-3">
-                <div class="w-9 h-9 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <i class="fa-solid fa-laptop-code"></i>
-                </div>
-                <h3 class="font-bold text-white text-sm font-heading">Uygulamalı Siber Eğitim</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Yalnızca teorik bilgi aktarımı yerine öğrencilerin doğrudan tarayıcı içinden zafiyetleri analiz edebileceği, terminal komutlarını çalıştırabileceği uygulamalı laboratuvar mimarisi.
-                </p>
-            </div>
-
-            <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-3">
-                <div class="w-9 h-9 rounded bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
-                    <i class="fa-solid fa-scale-balanced"></i>
-                </div>
-                <h3 class="font-bold text-white text-sm font-heading">Dengeli Ofansif & Defansif Doktrin</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Saldırıyı anlamadan savunma yapılamaz ilkesiyle; hem sızma testleri (Red Team) hem de olay müdahalesi ve SIEM analitiği (Blue Team) eşit ağırlıkta sunulur.
-                </p>
-            </div>
-
-            <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-3">
-                <div class="w-9 h-9 rounded bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+        <!-- Blue Team Card -->
+        <div class="cyber-card cyber-card-blue p-7">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-blue-950 border border-blue-800/80 flex items-center justify-center text-blue-400 text-lg">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <h3 class="font-bold text-white text-sm font-heading">Akademik CTF Altyapısı</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Geri sayım sayaçları, otomatik bayrak doğrulama ve dinamik skorlama algoritmalarıyla öğrencilerin rekabetçi ortamda gelişimini teşvik eden puanlama motoru.
-                </p>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Blue Team (Savunma Güvenliği)</h2>
+                    <p class="text-xs text-slate-400">Log Analizi & Dijital Adli Bilişim</p>
+                </div>
             </div>
 
-        </div>
+            <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                Sistemleri izleme, şüpheli hareketleri ve saldırı izlerini tespit etme, adli bilişim incelemeleri yapma yetenekleri kazandırır.
+            </p>
 
-        <!-- Proje Ekibi & Gelecek Modül Bilgisi -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+            <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-blue-400 text-xs"></i>
+                    <span>Sunucu Erişim Log Analizi & Anomali Tespiti</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-blue-400 text-xs"></i>
+                    <span>Digital Forensics: Silinmiş Dosya & Hex Analizi</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-blue-400 text-xs"></i>
+                    <span>Güvenlik Duvarı (Firewall) & Kural Yapılandırması</span>
+                </li>
+            </ul>
+
+            <a href="{{ url_for('blue_team') }}" class="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300">
+                Blue Team Bölümüne Git <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== HAKKIMIZDA BÖLÜMÜ (Projeye Özel & NÖHÜ Modeli) ========== -->
+    <section id="hakkimizda" class="cyber-card p-8 md:p-12 mb-10 scroll-mt-24 border-slate-800/80">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            <div class="p-5 rounded-lg bg-slate-900/40 border border-slate-800 font-mono text-xs space-y-2">
-                <div class="text-slate-300 font-bold uppercase tracking-wider text-[11px] text-amber-400">[PROJE KÜNYESİ]</div>
-                <div class="text-slate-400">Proje Adı: <span class="text-white">CyberHub Siber Harekât & Savunma Laboratuvarı</span></div>
-                <div class="text-slate-400">Geliştirici Operatörler: <span class="text-white">Aziz & Sefa</span></div>
-                <div class="text-slate-400">Kurum: <span class="text-white">Niğde Ömer Halisdemir Üniversitesi</span></div>
-                <div class="text-slate-400">Fakülte / Bölüm: <span class="text-white">Bilgisayar ve Bilişim Bilimleri Fakültesi / Bilgi Teknolojileri</span></div>
+            <!-- Sol Taraf: Metin, Başlık, Misyon & Vizyon -->
+            <div class="lg:col-span-6 space-y-6">
+                <div>
+                    <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold tracking-widest uppercase mb-4">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-1"></span>
+                        HAKKIMIZDA
+                    </span>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
+                        Öğrenmeyi pratiğe dönüştüren siber güvenlik platformu
+                    </h2>
+                </div>
+
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    NÖHÜ Bilgi Teknolojileri Siber Güvenlik Portalı, öğrencilerin ofansif (Red Team) ve defansif (Blue Team) alanlarda uygulamalı deneyim kazanması için tasarlanmıştır. Gerçek zafiyet simülasyonları, adli bilişim incelemeleri ve bayrak avı görevleriyle teoriyi pratiğe döküyoruz.
+                </p>
+
+                <!-- Misyon & Vizyon Kartları -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-white/10 mv-item-mission">
+                        <h4 class="text-white font-bold text-sm md:text-base mb-1.5 flex items-center">
+                            <i class="fa-solid fa-bullseye text-cyan-400 mr-2 text-xs"></i>
+                            Misyonumuz
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Öğrencilere siber saldırı ve savunma senaryolarını izole ortamda uygulayarak öğrenebilecekleri dinamik bir altyapı sunmak.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-white/10 mv-item-vision">
+                        <h4 class="text-white font-bold text-sm md:text-base mb-1.5 flex items-center">
+                            <i class="fa-solid fa-compass text-indigo-400 mr-2 text-xs"></i>
+                            Vizyonumuz
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Bölgenin ve üniversitemizin en donanımlı, etik ve yetkin siber güvenlik uzmanlarını yetiştiren öncü platform olmak.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Gelecek Modül (Hazırlanıyor) -->
-            <div class="p-5 rounded-lg bg-slate-900/40 border border-slate-800 font-mono text-xs space-y-2 relative overflow-hidden">
-                <div class="text-slate-300 font-bold uppercase tracking-wider text-[11px] text-purple-400">[GELECEK MODÜL: PURPLE TEAM & ZARARLI YAZILIM]</div>
-                <div class="blurred-content space-y-1">
-                    <p>Zararlı yazılım tersine mühendisliği, bellek adli bilişimi ve C2 (Command & Control) simülasyonları geliştirilmektedir.</p>
+            <!-- Sağ Taraf: 4'lü Özellik Kartları (Projemize Göre Yapılandırılmış) -->
+            <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 1. Red Team (Ofansif Güvenlik) -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/30 text-red-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Red Team (Saldırı)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        OWASP Top 10 web zafiyetleri (SQLi, XSS) ve Sosyal Mühendislik / Phishing simülasyonları.
+                    </p>
                 </div>
-                <div class="flex items-center space-x-2 pt-2">
-                    <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold text-[10px]">
-                        <i class="fa-solid fa-lock mr-1"></i>ÇOK YAKINDA: v3.0 GÜNCELLEMESİ
-                    </span>
-                    <span class="text-[10px] text-slate-500">Müfredat geliştirme süreci devam ediyor</span>
+
+                <!-- 2. Blue Team (Defansif Güvenlik) -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Blue Team (Savunma)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Sunucu log analizi, Digital Forensics (Hex dosya kurtarma) ve aktif Firewall yapılandırması.
+                    </p>
+                </div>
+
+                <!-- 3. CTF & Canlı Sıralama -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Bayrak Avı & Sıralama</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Zaman kısıtlı sayaç eşliğinde bayrak (Flag) yakalama ve canlı öğrenci başarı liderlik tablosu.
+                    </p>
+                </div>
+
+                <!-- 4. Boş Kalan Kutu (Bulanıklaştırılmış / Blurlu Gelecek Modül) -->
+                <div class="relative p-6 rounded-2xl bg-slate-950/40 border border-slate-800/80 overflow-hidden group">
+                    <!-- Blurlu Arka Plan İçeriği -->
+                    <div class="blurred-content space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-bug"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1.5">Purple Team & Malware</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Zararlı yazılım analizi, ileri düzey tersine mühendislik ve siber tehdit istihbaratı.
+                        </p>
+                    </div>
+
+                    <!-- Üzerindeki Kilit ve Çok Yakında Rozeti -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/50 backdrop-blur-[2px] p-4 text-center">
+                        <div class="w-10 h-10 rounded-full bg-slate-900/90 border border-blue-500/40 text-blue-400 flex items-center justify-center mb-2 shadow-lg">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md blurred-lock-badge text-blue-300 font-mono text-[11px] font-semibold tracking-wider uppercase shadow-sm">
+                            Çok Yakında
+                        </span>
+                        <span class="text-[10px] text-slate-400 mt-1 font-mono">Modül Hazırlanıyor</span>
+                    </div>
                 </div>
             </div>
 
         </div>
-
     </section>
+
+    <!-- Features Overview -->
+    <div class="cyber-card p-6 rounded-xl border border-slate-800/80 mb-8">
+        <h3 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider font-mono text-slate-400">Proje Özellikleri ve Güvenlik Altyapısı</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <div class="p-4 rounded-lg bg-slate-950/50 backdrop-blur-sm border border-slate-800/80">
+                <i class="fa-solid fa-lock text-blue-400 text-lg mb-2 block"></i>
+                <h4 class="font-semibold text-white mb-1">Güçlü Kimlik Doğrulama</h4>
+                <p class="text-slate-400">Şifre kuralları (harf + rakam zorunluluğu) ve e-posta onay kodu süreci.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-slate-950/50 backdrop-blur-sm border border-slate-800/80">
+                <i class="fa-solid fa-stopwatch text-amber-400 text-lg mb-2 block"></i>
+                <h4 class="font-semibold text-white mb-1">Zamanlayıcı (Timer)</h4>
+                <p class="text-slate-400">Her laboratuvar için süre kısıtı ve otomatik kilitlenme mekanizması.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-slate-950/50 backdrop-blur-sm border border-slate-800/80">
+                <i class="fa-solid fa-flag text-red-400 text-lg mb-2 block"></i>
+                <h4 class="font-semibold text-white mb-1">Bayrak Avı (CTF)</h4>
+                <p class="text-slate-400">Görevleri başarıyla tamamlayan kullanıcılara dinamik puan kazanımı.</p>
+            </div>
+            <div class="p-4 rounded-lg bg-slate-950/50 backdrop-blur-sm border border-slate-800/80">
+                <i class="fa-solid fa-chart-simple text-emerald-400 text-lg mb-2 block"></i>
+                <h4 class="font-semibold text-white mb-1">Başarı Sıralaması</h4>
+                <p class="text-slate-400">Öğrencilerin çözdüğü labları ve anlık puan durumunu gösteren liste.</p>
+            </div>
+        </div>
+    </div>
 
 </div>
 {% endblock %}

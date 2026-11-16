@@ -1,134 +1,144 @@
 {% extends 'base.html' %}
 
-{% block title %}Operatör Sıralama Tablosu - CyberHub Siber Harekât Merkezi{% endblock %}
+{% block title %}Başarı Sıralaması - NÖHÜ Siber Güvenlik Platformu{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <!-- Başlık & Telemetri -->
-    <div class="text-center max-w-2xl mx-auto space-y-2">
-        <div class="inline-flex items-center space-x-2 font-mono text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded border border-amber-500/30">
-            <i class="fa-solid fa-trophy"></i>
-            <span class="tracking-wider uppercase font-semibold">CANLI SKOR & AKADEMİK BAŞARI TABLOSU</span>
+    <div class="text-center max-w-2xl mx-auto mb-10">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950 border border-blue-800 text-blue-300 text-xs font-mono mb-3">
+            <i class="fa-solid fa-trophy mr-1"></i>
+            <span>AKADEMİK BAŞARI VE SIRALAMA TABLOSU</span>
         </div>
-        <h1 class="text-3xl sm:text-4xl font-black text-white font-heading tracking-tight">
-            Operatör Liderlik Sıralaması
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-400 font-mono">
-            Laboratuvarlarda ele geçirilen bayraklar ve savunulan hedeflere göre anlık puan durumu.
+        <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Öğrenci Liderlik Tablosu</h1>
+        <p class="text-xs text-slate-400 mt-2">
+            Laboratuvarları tamamlayarak bayrak toplayan ve puan kazanan öğrencilerin genel sıralaması.
         </p>
     </div>
 
-    <!-- Podyum (İlk 3 Operatör) -->
+    <!-- Podium (Top 3) -->
     {% if users|length >= 1 %}
-    <div class="flex flex-wrap justify-center items-end gap-5 max-w-4xl mx-auto pt-4">
-        
-        <!-- 2. Sıra -->
+    <div class="flex flex-wrap justify-center items-end gap-5 max-w-3xl mx-auto mb-10">
+        <!-- 2nd Place -->
         {% if users|length >= 2 %}
-        <div class="tactical-panel p-6 text-center bg-[#0e1017]/95 border-slate-700/80 order-2 md:order-1 rounded-lg w-full sm:w-60 shadow-lg">
-            <div class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 font-bold font-mono text-sm flex items-center justify-center mx-auto mb-2 border border-slate-600">
-                #2
+        <div class="cyber-card p-5 text-center border-slate-800/80 order-2 md:order-1 rounded-xl w-full sm:w-60">
+            <div class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 font-bold text-sm flex items-center justify-center mx-auto mb-2 border border-slate-600">
+                2
             </div>
-            <div class="text-slate-400 text-xs font-mono mb-1">GÜMÜŞ DERECESİ</div>
-            <h3 class="text-base font-bold text-white font-mono truncate">{{ users[1].username }}</h3>
+            <div class="text-slate-400 text-xs font-medium mb-1">2. Derece</div>
+            <h3 class="text-base font-bold text-white font-mono">{{ users[1].username }}</h3>
             {% if users[1].assigned_team == 'red_team' %}
-                <span class="badge-tactical badge-tactical-red my-1">RED OPS</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-400 border border-red-800 my-1 font-mono">Red Team</span>
             {% elif users[1].assigned_team == 'blue_team' %}
-                <span class="badge-tactical badge-tactical-blue my-1">BLUE SOC</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-800 my-1 font-mono">Blue Team</span>
             {% endif %}
-            <div class="text-xl font-black text-slate-200 font-mono mt-1">{{ users[1].score }} P</div>
-            <p class="text-[11px] text-slate-500 font-mono mt-1">{{ users[1].completed_labs_count() }} Görev Tamamlandı</p>
+            <div class="text-xl font-bold text-slate-200 font-mono mt-1">{{ users[1].score }} P</div>
+            <p class="text-[11px] text-slate-500 mt-1 font-mono">{{ users[1].completed_labs_count() }} Görev Tamamlandı</p>
         </div>
         {% endif %}
 
-        <!-- 1. Sıra (Şampiyon) -->
-        <div class="tactical-panel p-8 text-center bg-[#101420]/95 border-amber-500/70 order-1 md:order-2 transform md:-translate-y-4 shadow-2xl rounded-lg w-full sm:w-72 relative">
-            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-mono font-bold text-[10px] px-2.5 py-0.5 rounded uppercase tracking-wider shadow">
-                ★ LİDER OPERATÖR
+        <!-- 1st Place -->
+        <div class="cyber-card p-6 text-center border-blue-600/80 order-1 md:order-2 transform md:-translate-y-2 shadow-md rounded-xl w-full sm:w-64">
+            <div class="w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-base flex items-center justify-center mx-auto mb-2 shadow-sm">
+                <i class="fa-solid fa-trophy"></i>
             </div>
-            <div class="w-14 h-14 rounded-full bg-amber-500 text-slate-950 font-black font-mono text-xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
-                #1
-            </div>
-            <div class="text-amber-400 text-xs font-mono font-semibold mb-1">ALTIN DERECESİ</div>
-            <h3 class="text-lg font-bold text-white font-mono truncate">{{ users[0].username }}</h3>
+            <div class="text-blue-400 text-xs font-medium uppercase tracking-wider mb-1">Lider</div>
+            <h3 class="text-lg font-bold text-white font-mono">{{ users[0].username }}</h3>
             {% if users[0].assigned_team == 'red_team' %}
-                <span class="badge-tactical badge-tactical-red my-1">RED OPS</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-400 border border-red-800 my-1 font-mono">Red Team</span>
             {% elif users[0].assigned_team == 'blue_team' %}
-                <span class="badge-tactical badge-tactical-blue my-1">BLUE SOC</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-800 my-1 font-mono">Blue Team</span>
             {% endif %}
-            <div class="text-2xl font-black text-amber-400 font-mono mt-1">{{ users[0].score }} P</div>
-            <p class="text-[11px] text-slate-400 font-mono mt-1">{{ users[0].completed_labs_count() }} Görev Tamamlandı</p>
+            <div class="text-2xl font-bold text-blue-400 font-mono mt-1">{{ users[0].score }} P</div>
+            <p class="text-xs text-slate-400 mt-1 font-mono">{{ users[0].completed_labs_count() }} Görev Tamamlandı</p>
         </div>
 
-        <!-- 3. Sıra -->
+        <!-- 3rd Place -->
         {% if users|length >= 3 %}
-        <div class="tactical-panel p-6 text-center bg-[#0e1017]/95 border-slate-700/80 order-3 md:order-3 rounded-lg w-full sm:w-60 shadow-lg">
-            <div class="w-10 h-10 rounded-full bg-slate-800 text-amber-600 font-bold font-mono text-sm flex items-center justify-center mx-auto mb-2 border border-amber-700/50">
-                #3
+        <div class="cyber-card p-5 text-center border-slate-800/80 order-3 rounded-xl w-full sm:w-60">
+            <div class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 font-bold text-sm flex items-center justify-center mx-auto mb-2 border border-slate-700">
+                3
             </div>
-            <div class="text-slate-400 text-xs font-mono mb-1">BRONZ DERECESİ</div>
-            <h3 class="text-base font-bold text-white font-mono truncate">{{ users[2].username }}</h3>
+            <div class="text-slate-400 text-xs font-medium mb-1">3. Derece</div>
+            <h3 class="text-base font-bold text-white font-mono">{{ users[2].username }}</h3>
             {% if users[2].assigned_team == 'red_team' %}
-                <span class="badge-tactical badge-tactical-red my-1">RED OPS</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-400 border border-red-800 my-1 font-mono">Red Team</span>
             {% elif users[2].assigned_team == 'blue_team' %}
-                <span class="badge-tactical badge-tactical-blue my-1">BLUE SOC</span>
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-800 my-1 font-mono">Blue Team</span>
             {% endif %}
-            <div class="text-xl font-black text-slate-200 font-mono mt-1">{{ users[2].score }} P</div>
-            <p class="text-[11px] text-slate-500 font-mono mt-1">{{ users[2].completed_labs_count() }} Görev Tamamlandı</p>
+            <div class="text-xl font-bold text-slate-200 font-mono mt-1">{{ users[2].score }} P</div>
+            <p class="text-[11px] text-slate-500 mt-1 font-mono">{{ users[2].completed_labs_count() }} Görev Tamamlandı</p>
         </div>
         {% endif %}
-
     </div>
     {% endif %}
 
-    <!-- Tüm Liste Tablosu -->
-    <div class="tactical-panel bg-[#0a0d14]/95 p-6 shadow-xl">
-        <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10 font-mono text-xs text-slate-400">
-            <span class="text-white font-bold uppercase tracking-wider">GENEL OPERATÖR KAYITLARI ({{ users|length }} OPERATÖR)</span>
-            <span>SIRALAMA ALGORİTMASI: PUAN &bullet; ÇÖZÜM TARİHİ</span>
-        </div>
-
+    <!-- Full Table -->
+    <div class="cyber-card p-6 border-slate-800 max-w-4xl mx-auto rounded-xl">
         <div class="overflow-x-auto">
-            <table class="w-full text-left font-mono text-xs">
-                <thead>
-                    <tr class="text-slate-500 uppercase border-b border-white/5 text-[11px]">
-                        <th class="py-3 px-3">Sıra</th>
-                        <th class="py-3 px-3">Operatör Çağrı Kodu</th>
-                        <th class="py-3 px-3">Takım / Rol</th>
-                        <th class="py-3 px-3 text-center">Çözülen Görev</th>
-                        <th class="py-3 px-3 text-right">Toplam Puan</th>
+            <table class="w-full text-left text-xs font-mono">
+                <thead class="border-b border-slate-800 text-slate-400 uppercase bg-slate-950/60">
+                    <tr>
+                        <th class="py-3 px-4 w-16 text-center">Sıra</th>
+                        <th class="py-3 px-4">Öğrenci Adı</th>
+                        <th class="py-3 px-4 text-center">Takım</th>
+                        <th class="py-3 px-4 text-center">Tamamlanan Lab</th>
+                        <th class="py-3 px-4 text-center">Durum</th>
+                        <th class="py-3 px-4 text-right">Puan</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-slate-800/60">
                     {% for u in users %}
-                    <tr class="hover:bg-white/5 transition-colors {% if current_user.is_authenticated and current_user.id == u.id %}bg-amber-500/10 font-bold{% endif %}">
-                        <td class="py-3 px-3 font-bold {% if loop.index == 1 %}text-amber-400{% elif loop.index == 2 %}text-slate-300{% elif loop.index == 3 %}text-amber-600{% else %}text-slate-500{% endif %}">
-                            #{{ loop.index }}
+                    {% set is_me = (current_user and current_user.id == u.id) %}
+                    <tr class="hover:bg-slate-900/60 transition-colors {{ 'bg-blue-950/30 border-l-2 border-blue-500' if is_me else '' }}">
+                        <td class="py-3 px-4 text-center font-bold text-slate-400">
+                            {{ loop.index }}
                         </td>
-                        <td class="py-3 px-3">
-                            <span class="text-white font-semibold">{{ u.username }}</span>
-                            {% if current_user.is_authenticated and current_user.id == u.id %}
-                                <span class="ml-2 text-[10px] text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded font-normal">[SEN]</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-3 px-3">
+                        <td class="py-3 px-4 font-semibold text-white flex items-center space-x-2">
+                            <span>{{ u.username }}</span>
                             {% if u.is_superadmin %}
-                                <span class="badge-tactical badge-tactical-amber">ROOT ADMIN</span>
+                            <span class="text-[10px] bg-amber-950/90 text-amber-300 px-1.5 py-0.5 rounded border border-amber-600 font-mono" title="Süper Yönetici">
+                                <i class="fa-solid fa-crown text-[9px] mr-0.5 text-amber-400"></i>Root
+                            </span>
                             {% elif u.is_team_leader %}
-                                <span class="badge-tactical badge-tactical-blue">TAKIM LİDERİ</span>
-                            {% elif u.assigned_team == 'red_team' %}
-                                <span class="badge-tactical badge-tactical-red">RED TEAM</span>
-                            {% elif u.assigned_team == 'blue_team' %}
-                                <span class="badge-tactical badge-tactical-blue">BLUE TEAM</span>
-                            {% else %}
-                                <span class="text-slate-500 text-[11px]">Bağımsız</span>
+                            <span class="text-[10px] bg-sky-950/90 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600 font-mono" title="Takım Lideri">
+                                <i class="fa-solid fa-user-shield text-[9px] mr-0.5 text-sky-400"></i>Lider
+                            </span>
+                            {% endif %}
+                            {% if is_me %}
+                            <span class="text-[10px] bg-blue-950 text-blue-300 px-1.5 py-0.5 rounded border border-blue-800 font-sans">Sen</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center text-slate-300">
-                            {{ u.completed_labs_count() }} Lab
+                        <td class="py-3 px-4 text-center">
+                            {% if u.assigned_team == 'red_team' %}
+                            <span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-red-950/80 border border-red-800 text-red-400 font-semibold">
+                                <i class="fa-solid fa-crosshairs text-[10px]"></i>Red Team
+                            </span>
+                            {% elif u.assigned_team == 'blue_team' %}
+                            <span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-400 font-semibold">
+                                <i class="fa-solid fa-shield-halved text-[10px]"></i>Blue Team
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-500">
+                                <i class="fa-regular fa-clock text-[10px]"></i>Atanmadı
+                            </span>
+                            {% endif %}
                         </td>
-                        <td class="py-3 px-3 text-right font-black text-emerald-400 text-sm">
+                        <td class="py-3 px-4 text-center text-slate-400">{{ u.completed_labs_count() }} Lab</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="text-emerald-400 text-[11px] bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-900 font-sans">
+                                Aktif
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right font-bold text-white text-sm">
                             {{ u.score }} P
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-500 font-mono">
+                            <i class="fa-solid fa-user-slash text-2xl mb-2 block text-slate-600"></i>
+                            Henüz kayıtlı öğrenci bulunmamaktadır.
                         </td>
                     </tr>
                     {% endfor %}

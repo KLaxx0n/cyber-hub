@@ -15,10 +15,10 @@ def send_via_resend_api(api_key, to_email, subject, html_body):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "User-Agent": "CyberHub/1.0"
+        "User-Agent": "NOHU-CyberHub/1.0"
     }
     payload = {
-        "from": "CyberHub Siber Lab <onboarding@resend.dev>",
+        "from": "NÖHÜ Siber Lab <onboarding@resend.dev>",
         "to": [to_email],
         "subject": subject,
         "html": html_body
@@ -40,7 +40,7 @@ def send_verification_email(to_email, username, verification_code):
     HTML doğrulama kodu gönderir.
     Önce Resend REST API (varsa), ardından standart SMTP dener.
     """
-    subject = f"🛡️ CyberHub - Hesap Doğrulama Kodunuz: {verification_code}"
+    subject = f"🛡️ NÖHÜ Siber Lab - Hesap Doğrulama Kodunuz: {verification_code}"
 
     try:
         html_body = f"""
@@ -60,7 +60,7 @@ def send_verification_email(to_email, username, verification_code):
                             <tr>
                                 <td style="background-color: #030712; padding: 26px 20px; text-align: center; border-bottom: 1px solid #1e293b; border-top: 3px solid #2563eb;">
                                     <div style="font-size: 11px; font-family: 'Courier New', monospace; color: #38bdf8; letter-spacing: 2px; margin-bottom: 6px; text-transform: uppercase;">
-                                        [ CYBERHUB SİBER GÜVENLİK LABORATUVARI ]
+                                        [ NÖHÜ SİBER GÜVENLİK LABORATUVARI ]
                                     </div>
                                     <h1 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">
                                         Kimlik Doğrulama Servisi
@@ -109,7 +109,7 @@ def send_verification_email(to_email, username, verification_code):
                             <!-- Footer -->
                             <tr>
                                 <td style="background-color: #030712; padding: 18px 20px; text-align: center; font-size: 11px; color: #475569; border-top: 1px solid #1e293b; font-family: 'Courier New', monospace;">
-                                    &copy; 2026 Niğde Ömer Halisdemir Üniversitesi &bull; CyberHub Siber Lab
+                                    &copy; 2026 Niğde Ömer Halisdemir Üniversitesi &bull; NÖHÜ Siber Lab
                                 </td>
                             </tr>
 
@@ -140,7 +140,7 @@ def send_verification_email(to_email, username, verification_code):
 
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = f"CyberHub Siber Güvenlik Lab <{mail_username}>"
+        msg['From'] = f"NÖHÜ Siber Güvenlik Lab <{mail_username}>"
         msg['To'] = to_email
         msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
