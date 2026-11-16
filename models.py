@@ -52,8 +52,8 @@ class User(db.Model):
 
     @property
     def is_superadmin(self):
-        # 1. Aktif rolü 'superadmin' olan her kullanıcı tam yetkili Süper Yöneticidir
-        if self.role == 'superadmin':
+        # 1. Aktif rolü 'superadmin' veya 'root' olan her kullanıcı tam yetkili Süper Yöneticidir
+        if self.role in ['superadmin', 'root']:
             return True
         # 2. Ana root hesabı her zaman korunur
         if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:

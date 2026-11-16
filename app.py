@@ -576,35 +576,42 @@ def admin_set_role(user_id):
     current_u = User.query.get(session.get('user_id'))
     new_role = request.form.get('role', 'student')
     
-    if new_role not in ['student', 'leader', 'manager', 'superadmin']:
+    if new_role not in ['student', 'leader', 'manager', 'superadmin', 'root']:
         flash('Geçersiz rol seçimi.', 'danger')
         return redirect(url_for('admin_panel'))
         
-    if target_user.id == current_u.id and new_role != 'superadmin':
-        flash('Kendi Süper Yönetici yetkinizi kaldıramazsınız.', 'danger')
-        return redirect(url_for('admin_panel'))
-
-    # Süper Yönetici rolü değiştirdiğinde tüm bayraklar senkronize edilir
-    target_user.role = new_role
-    if new_role == 'superadmin':
+    # Root rolünü normalize et
+    if new_role in ['superadmin', 'root']:
+        canonical_role = 'root'
+        target_user.role = 'root'
         target_user.is_leader = True
         target_user.is_founder = True
-    elif new_role in ['manager', 'leader']:
+    elif new_role == 'manager':
+        canonical_role = 'manager'
+        target_user.role = 'manager'
+        target_user.is_leader = True
+        target_user.is_founder = False
+    elif new_role == 'leader':
+        canonical_role = 'leader'
+        target_user.role = 'leader'
         target_user.is_leader = True
         target_user.is_founder = False
     else: # student
+        canonical_role = 'student'
+        target_user.role = 'student'
         target_user.is_leader = False
         target_user.is_founder = False
 
     db.session.commit()
     
     role_names = {
-        'superadmin': 'Süper Yönetici (Root)',
+        'root': 'Root (Süper Yönetici)',
+        'superadmin': 'Root (Süper Yönetici)',
         'manager': 'Takım Yöneticisi',
         'leader': 'Takım Lideri',
         'student': 'Öğrenci'
     }
-    flash(f"'{target_user.username}' kullanıcısının rolü '{role_names.get(new_role)}' olarak başarıyla güncellendi.", 'success')
+    flash(f"'{target_user.username}' kullanıcısının rolü '{role_names.get(canonical_role)}' olarak başarıyla güncellendi.", 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/adjust-score/<int:user_id>', methods=['POST'])

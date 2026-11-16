@@ -217,7 +217,7 @@
 
                         <!-- Sistem Rolü Sütunu -->
                         <td class="py-3.5 px-4 text-center">
-                            {% if current_user.is_superadmin and u.id != current_user.id %}
+                            {% if current_user.is_superadmin %}
                             <!-- Süper Yönetici için Rol Değiştirme Formu -->
                             <form action="{{ url_for('admin_set_role', user_id=u.id) }}" method="POST" class="inline-block">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -234,17 +234,11 @@
                                     <option value="student" {% if u.role == 'student' or not u.role %}selected{% endif %}>🎓 Öğrenci</option>
                                     <option value="leader" {% if u.role == 'leader' %}selected{% endif %}>🛡️ Takım Lideri</option>
                                     <option value="manager" {% if u.role in ['manager', 'team_manager'] %}selected{% endif %}>👔 Takım Yöneticisi</option>
-                                    <option value="superadmin" {% if u.role == 'superadmin' %}selected{% endif %}>👑 Süper Yönetici</option>
+                                    <option value="root" {% if u.role in ['root', 'superadmin'] %}selected{% endif %}>👑 Root (Süper Yönetici)</option>
                                 </select>
                             </form>
-                            {% elif u.id == current_user.id %}
-                            <!-- Kendi Hesabınız İçin Rozet -->
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border {{ u.role_badge.class }}" title="Oturum açtığınız kendi hesabınız">
-                                <i class="{{ u.role_badge.icon }}"></i>
-                                <span>{{ u.role_badge.name }} (Siz)</span>
-                            </span>
                             {% else %}
-                            <!-- Liderler veya Yöneticiler için Salt Okunur Rozet -->
+                            <!-- Liderler veya Öğrenciler için Salt Okunur Rozet -->
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border {{ u.role_badge.class }}">
                                 <i class="{{ u.role_badge.icon }}"></i>
                                 <span>{{ u.role_badge.name }}</span>
