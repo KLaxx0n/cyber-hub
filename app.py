@@ -147,6 +147,18 @@ def index():
 def about():
     return redirect(url_for('index') + '#hakkimizda')
 
+@app.route('/api/test-mail')
+def test_mail():
+    target = request.args.get('email', 'jacjsparrow07@gmail.com')
+    sent, msg = send_verification_email(target, 'TestAgent', '123456')
+    return jsonify({
+        'success': sent,
+        'message': msg,
+        'mail_server': app.config.get('MAIL_SERVER'),
+        'mail_port': app.config.get('MAIL_PORT'),
+        'mail_user': app.config.get('MAIL_USERNAME')
+    })
+
 @app.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def register():
