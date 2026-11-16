@@ -149,15 +149,25 @@ def about():
 
 @app.route('/api/test-mail')
 def test_mail():
+    import smtplib, ssl
     target = request.args.get('email', 'jacjsparrow07@gmail.com')
-    sent, msg = send_verification_email(target, 'TestAgent', '123456')
-    return jsonify({
-        'success': sent,
-        'message': msg,
-        'mail_server': app.config.get('MAIL_SERVER'),
-        'mail_port': app.config.get('MAIL_PORT'),
-        'mail_user': app.config.get('MAIL_USERNAME')
-    })
+    results = {}
+    # Test port 465 (SSL)
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context, timeout=5) as s:
+            results['port_465'] = 'Connected!'
+    except Exception as e:
+        results['port_465'] = str(e)
+        
+    # Test port 587 (TLS)
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587, timeout=5) as s:
+            results['port_587'] = 'Connected!'
+    except Exception as e:
+        results['port_587'] = str(e)
+        
+    return jsonify(results)
 
 @app.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
