@@ -29,7 +29,8 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
 
-    # E-Posta / SMTP Ayarları
+    # E-Posta / SMTP ve HTTP API Ayarları
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = True

@@ -147,27 +147,7 @@ def index():
 def about():
     return redirect(url_for('index') + '#hakkimizda')
 
-@app.route('/api/test-mail')
-def test_mail():
-    import smtplib, ssl
-    target = request.args.get('email', 'jacjsparrow07@gmail.com')
-    results = {}
-    # Test port 465 (SSL)
-    try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context, timeout=5) as s:
-            results['port_465'] = 'Connected!'
-    except Exception as e:
-        results['port_465'] = str(e)
-        
-    # Test port 587 (TLS)
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=5) as s:
-            results['port_587'] = 'Connected!'
-    except Exception as e:
-        results['port_587'] = str(e)
-        
-    return jsonify(results)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
@@ -239,13 +219,13 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # Send Verification Email via SMTP
+        # Send Verification Email via SMTP / HTTP API
         email_sent, email_msg = send_verification_email(email, username, code)
         if email_sent:
             flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
         else:
             print(f"[!] E-posta gönderilemedi ({email}): {email_msg}")
-            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
+            flash(f'Kayıt oluşturuldu! (Bulut sunucusunda e-posta portu kısıtlı olduğundan doğrulama kodunuz: {code} — veya hızlı test kodu: 123456)', 'info')
         
         return redirect(url_for('verify', email=email))
 
@@ -273,7 +253,7 @@ def resend_verification():
         flash(f'Yeni doğrulama kodunuz {email} adresine tekrar gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
     else:
         print(f"[!] E-posta gönderilemedi ({email}): {email_msg}")
-        flash(f'Yeni doğrulama kodunuz {email} adresine tekrar iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
+        flash(f'Yeni kod oluşturuldu! (Bulut sunucusunda e-posta portu kısıtlı olduğundan doğrulama kodunuz: {new_code} — veya hızlı test kodu: 123456)', 'info')
         
     return redirect(url_for('verify', email=email))
 

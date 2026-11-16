@@ -1,28 +1,48 @@
+import os
+import json
+import urllib.request
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import current_app
 
+def send_via_resend_api(api_key, to_email, subject, html_body):
+    """
+    Render Free Tier gibi harici SMTP portlarının (587/465) engellendiği bulut
+    ortamlarında HTTPS Port 443 üzerinden Resend REST API ile e-posta gönderir.
+    """
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "NOHU-CyberHub/1.0"
+    }
+    payload = {
+        "from": "NÖHÜ Siber Lab <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body
+    }
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=8) as response:
+            if response.getcode() in [200, 201]:
+                print(f"[+] Resend REST API üzerinden e-posta başarıyla iletildi: {to_email}")
+                return True, "Doğrulama kodu başarıyla e-posta adresinize gönderildi."
+            return False, f"Resend API HTTP {response.getcode()}"
+    except Exception as e:
+        print(f"[!] Resend API Hatası: {e}")
+        return False, str(e)
+
 def send_verification_email(to_email, username, verification_code):
     """
     Kullanıcının e-posta adresine siber güvenlik temalı (Dark Mode / Terminal)
     HTML doğrulama kodu gönderir.
+    Önce Resend REST API (varsa), ardından standart SMTP dener.
     """
-    mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
-    mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
-    mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
-    mail_port = int(current_app.config.get('MAIL_PORT', 587))
-    use_tls = current_app.config.get('MAIL_USE_TLS', True)
-
-    if not mail_username or not mail_password:
-        return False, "SMTP e-posta bilgileri (MAIL_USERNAME / MAIL_PASSWORD) henüz girilmemiş."
+    subject = f"🛡️ NÖHÜ Siber Lab - Hesap Doğrulama Kodunuz: {verification_code}"
 
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"🛡️ NÖHÜ Siber Lab - Hesap Doğrulama Kodunuz: {verification_code}"
-        msg['From'] = f"NÖHÜ Siber Güvenlik Lab <{mail_username}>"
-        msg['To'] = to_email
-
         html_body = f"""
         <!DOCTYPE html>
         <html lang="tr">
@@ -101,9 +121,31 @@ def send_verification_email(to_email, username, verification_code):
         </html>
         """
 
+        # 1. Öncelik: Resend REST API (HTTPS Port 443 - Bulut ve Render kısıtlamalarına takılmaz)
+        resend_key = os.environ.get('RESEND_API_KEY') or current_app.config.get('RESEND_API_KEY')
+        if resend_key:
+            sent, api_msg = send_via_resend_api(resend_key, to_email, subject, html_body)
+            if sent:
+                return True, api_msg
+
+        # 2. Öncelik: Standart SMTP (Localhost veya engellenmemiş sunucularda çalışır)
+        mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
+        mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
+        mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
+        mail_port = int(current_app.config.get('MAIL_PORT', 587))
+        use_tls = current_app.config.get('MAIL_USE_TLS', True)
+
+        if not mail_username or not mail_password:
+            return False, "SMTP e-posta bilgileri (MAIL_USERNAME / MAIL_PASSWORD) yapılandırılmamış."
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"NÖHÜ Siber Güvenlik Lab <{mail_username}>"
+        msg['To'] = to_email
         msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
-        with smtplib.SMTP(mail_server, mail_port, timeout=12) as server:
+        # Timeout 4 sn tutuldu (bulut güvenlik duvarında isteklerin askıda kalmaması için)
+        with smtplib.SMTP(mail_server, mail_port, timeout=4) as server:
             if use_tls:
                 server.starttls()
             server.login(mail_username, mail_password)
