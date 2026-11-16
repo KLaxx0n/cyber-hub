@@ -480,12 +480,14 @@ def admin_panel():
     student_count = sum(1 for u in all_users if u.role == 'student' or not u.role)
     total_completed = UserLabProgress.query.filter_by(is_completed=True).count()
     total_score = sum(u.score for u in all_users)
+    suspended_count = sum(1 for u in all_users if u.is_suspended)
     
     return render_template('admin.html',
                            users=all_users,
                            total_users=total_users,
                            verified_users=verified_users,
                            unverified_users=unverified_users,
+                           suspended_count=suspended_count,
                            red_count=red_count,
                            blue_count=blue_count,
                            superadmin_count=superadmin_count,
@@ -542,6 +544,29 @@ def admin_delete_user(user_id):
     db.session.delete(target_user)
     db.session.commit()
     flash(f"'{username}' kullanıcısı ve tüm kayıtları Süper Yönetici yetkisiyle silindi.", 'info')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/toggle-suspend/<int:user_id>', methods=['POST'])
+@superadmin_required
+def admin_toggle_suspend(user_id):
+    current_u = User.query.get(session.get('user_id'))
+    target_user = User.query.get_or_404(user_id)
+
+    if target_user.id == current_u.id and not target_user.is_suspended:
+        flash('Kendi yönetici hesabınızı askıya alamazsınız.', 'warning')
+        return redirect(url_for('admin_panel'))
+
+    if target_user.is_suspended:
+        target_user.is_suspended = False
+        target_user.failed_login_attempts = 0
+        db.session.commit()
+        flash(f"'{target_user.username}' kullanıcısının hesap askısı Süper Yönetici tarafından kaldırıldı. Kullanıcı artık sisteme giriş yapabilir.", 'success')
+    else:
+        target_user.is_suspended = True
+        target_user.failed_login_attempts = 3
+        db.session.commit()
+        flash(f"'{target_user.username}' hesabı Süper Yönetici tarafından askıya alındı.", 'warning')
+
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/set-role/<int:user_id>', methods=['POST'])

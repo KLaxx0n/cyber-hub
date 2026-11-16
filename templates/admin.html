@@ -63,7 +63,24 @@
     </div>
 
     <!-- Quick Metrics Overview -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    {% if suspended_count and suspended_count > 0 %}
+    <div class="mb-6 p-4 rounded-xl bg-red-950/80 border border-red-600/80 shadow-lg flex items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 text-red-200">
+            <div class="w-10 h-10 rounded-lg bg-red-900 border border-red-700 flex items-center justify-center text-red-300 text-lg shrink-0">
+                <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+            </div>
+            <div>
+                <div class="font-bold text-sm text-white font-mono flex items-center gap-2">
+                    <span>GÜVENLİK ALARMI: {{ suspended_count }} HESAP ASKIYA ALINDI</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-red-600 text-white font-sans uppercase">Kilitli</span>
+                </div>
+                <div class="text-xs text-red-300/80 mt-0.5">3 kez üst üste hatalı şifre girişi nedeniyle askıya alınan hesapların kilidini aşağıdaki listeden "Askıyı Kaldır" butonuna basarak açabilirsiniz.</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <div class="cyber-card p-5 border-slate-800 rounded-xl">
             <div class="flex items-center justify-between">
                 <div>
@@ -116,6 +133,19 @@
                 </div>
             </div>
             <p class="text-[11px] text-slate-500 mt-2 font-mono">Defansif güvenlik grubu</p>
+        </div>
+
+        <div class="cyber-card p-5 {% if suspended_count and suspended_count > 0 %}border-red-700/80 bg-red-950/30{% else %}border-slate-800{% endif %} rounded-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-mono {% if suspended_count and suspended_count > 0 %}text-red-400 font-bold{% else %}text-slate-400{% endif %} uppercase tracking-wider">Askıya Alınan</div>
+                    <div class="text-2xl font-bold font-mono {% if suspended_count and suspended_count > 0 %}text-red-400{% else %}text-white{% endif %} mt-1">{{ suspended_count or 0 }}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg {% if suspended_count and suspended_count > 0 %}bg-red-950 border border-red-700 text-red-400{% else %}bg-slate-900 border border-slate-700 text-slate-400{% endif %} flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 font-mono">3 hatalı şifre girişi</p>
         </div>
     </div>
 
@@ -170,7 +200,11 @@
                             {{ u.email }}
                         </td>
                         <td class="py-3.5 px-3 text-center">
-                            {% if u.is_verified %}
+                            {% if u.is_suspended %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-red-950/90 border border-red-700 text-red-400 font-bold animate-pulse" title="{{ u.failed_login_attempts or 3 }} kez hatalı şifre denendi">
+                                <i class="fa-solid fa-lock text-[10px] mr-1"></i>Askıda ({{ u.failed_login_attempts or 3 }}/3)
+                            </span>
+                            {% elif u.is_verified %}
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-emerald-950 border border-emerald-800 text-emerald-400">
                                 <i class="fa-solid fa-check text-[10px] mr-1"></i>Onaylı
                             </span>
@@ -262,8 +296,34 @@
                         <!-- Yetkili İşlemleri -->
                         <td class="py-3.5 px-4 text-right">
                             <div class="flex items-center justify-end space-x-2">
+                                <!-- Hesap Askısını Kaldır (YALNIZCA Süper Yönetici yapabilir) -->
+                                {% if u.is_suspended %}
+                                    {% if current_user.is_superadmin %}
+                                    <form action="{{ url_for('admin_toggle_suspend', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ u.username }} kullanıcısının hesap askısını kaldırmak ve şifre haklarını sıfırlamak istiyor musunuz?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                                        <button type="submit" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-all flex items-center shadow-lg shadow-emerald-950/60" title="Hesap Askısını Kaldır">
+                                            <i class="fa-solid fa-lock-open mr-1"></i>Askıyı Kaldır
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="px-2 py-1 rounded bg-red-950/60 border border-red-800 text-red-400 text-[10px] flex items-center cursor-not-allowed" title="Askıyı yalnızca Süper Yönetici kaldırabilir">
+                                        <i class="fa-solid fa-lock text-[9px] mr-1"></i>Askıda
+                                    </span>
+                                    {% endif %}
+                                {% else %}
+                                    <!-- Manuel Askıya Al Butonu (Süper Yönetici diğer kullanıcılar için gerekirse kullanabilir) -->
+                                    {% if current_user.is_superadmin and not u.is_superadmin and u.id != current_user.id %}
+                                    <form action="{{ url_for('admin_toggle_suspend', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ u.username }} kullanıcısını askıya almak istiyor musunuz? Kullanıcı şifre girse dahi sisteme erişemeyecektir.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                                        <button type="submit" class="p-1 px-2 rounded bg-slate-900 hover:bg-red-950 border border-slate-700 hover:border-red-800 text-slate-400 hover:text-red-300 text-[11px] transition-colors" title="Hesabı Askıya Al">
+                                            <i class="fa-solid fa-user-slash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+
                                 <!-- Manuel Onay (Lider ve Süper Admin yapabilir) -->
-                                {% if not u.is_verified %}
+                                {% if not u.is_verified and not u.is_suspended %}
                                 <form action="{{ url_for('admin_verify_user', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('Bu öğrencinin hesabını manuel olarak onaylamak istiyor musunuz?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
                                     <button type="submit" class="px-2 py-1 rounded bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-700 text-emerald-300 text-[11px] transition-colors" title="Manuel Onayla">
