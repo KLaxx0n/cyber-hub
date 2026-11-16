@@ -139,12 +139,14 @@ def index():
     total_labs = Lab.query.count()
     red_labs = Lab.query.filter_by(category='red_team').count()
     blue_labs = Lab.query.filter_by(category='blue_team').count()
+    purple_labs = Lab.query.filter_by(category='purple_team').count()
     top_users = User.query.filter_by(is_verified=True).order_by(User.score.desc()).limit(5).all()
     return render_template('index.html', 
                            total_users=total_users, 
                            total_labs=total_labs,
                            red_labs=red_labs,
                            blue_labs=blue_labs,
+                           purple_labs=purple_labs,
                            top_users=top_users)
 
 @app.route('/about')
@@ -351,9 +353,35 @@ def login():
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('login.html', login_id=login_id)
 
+        # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ
+        if user.is_suspended:
+            # Kurucu / Süper Yönetici doğru şifre girerse sistem kilitlenmesini önlemek için otomatik çöz
+            if user.is_founder and user.check_password(password):
+                user.is_suspended = False
+                user.failed_login_attempts = 0
+                db.session.commit()
+            else:
+                flash('🚨 Bu hesap üst üste 3 kez hatalı şifre denemesi nedeniyle ASKIYA ALINMIŞTIR! Hesabınızı açtırmak için lütfen Süper Yönetici ile iletişime geçiniz.', 'danger')
+                return render_template('login.html', login_id=login_id)
+
+        # 2. ŞİFRE DOĞRULAMA & 3 HATALI GİRİŞ KONTROLÜ
         if not user.check_password(password):
-            flash('Girdiğiniz şifre hatalı. Lütfen kontrol ediniz.', 'danger')
+            user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+            if user.failed_login_attempts >= 3:
+                user.is_suspended = True
+                db.session.commit()
+                flash('🚨 Şifrenizi 3 kez üst üste hatalı girdiniz! Güvenlik protokolü gereği hesabınız ASKIYA ALINDI. Giriş yapabilmek için lütfen Süper Yönetici ile iletişime geçiniz.', 'danger')
+            else:
+                remaining = 3 - user.failed_login_attempts
+                db.session.commit()
+                flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}. (3 hatalı denemede hesabınız askıya alınır)', 'danger')
             return render_template('login.html', login_id=login_id)
+
+        # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla
+        if (user.failed_login_attempts or 0) > 0 or user.is_suspended:
+            user.failed_login_attempts = 0
+            user.is_suspended = False
+            db.session.commit()
 
         # Şifresi doğru olan kullanıcının hesabı henüz onaylanmamışsa otomatik onayla (kesintisiz erişim)
         if not user.is_verified:
@@ -447,8 +475,9 @@ def admin_panel():
     red_count = sum(1 for u in all_users if u.assigned_team == 'red_team')
     blue_count = sum(1 for u in all_users if u.assigned_team == 'blue_team')
     superadmin_count = sum(1 for u in all_users if u.is_superadmin)
-    leader_count = sum(1 for u in all_users if u.is_team_leader and not u.is_superadmin)
-    student_count = sum(1 for u in all_users if not u.is_team_leader)
+    manager_count = sum(1 for u in all_users if u.role == 'manager')
+    leader_count = sum(1 for u in all_users if u.role == 'leader' and not u.is_superadmin)
+    student_count = sum(1 for u in all_users if u.role == 'student' or not u.role)
     total_completed = UserLabProgress.query.filter_by(is_completed=True).count()
     total_score = sum(u.score for u in all_users)
     
@@ -460,6 +489,7 @@ def admin_panel():
                            red_count=red_count,
                            blue_count=blue_count,
                            superadmin_count=superadmin_count,
+                           manager_count=manager_count,
                            leader_count=leader_count,
                            student_count=student_count,
                            total_completed=total_completed,
@@ -470,7 +500,7 @@ def admin_panel():
 def admin_set_team(user_id):
     target_user = User.query.get_or_404(user_id)
     new_team = request.form.get('team', 'unassigned')
-    if new_team not in ['red_team', 'blue_team', 'unassigned']:
+    if new_team not in ['red_team', 'blue_team', 'purple_team', 'unassigned']:
         flash('Geçersiz takım seçimi.', 'danger')
         return redirect(url_for('admin_panel'))
     
@@ -480,6 +510,7 @@ def admin_set_team(user_id):
     team_labels = {
         'red_team': 'Red Team (Saldırı)',
         'blue_team': 'Blue Team (Savunma)',
+        'purple_team': 'Purple Team (Karma)',
         'unassigned': 'Atanmamış'
     }
     flash(f"'{target_user.username}' öğrencisi başarıyla {team_labels.get(new_team)} grubuna atandı.", 'success')
@@ -520,7 +551,7 @@ def admin_set_role(user_id):
     current_u = User.query.get(session.get('user_id'))
     new_role = request.form.get('role', 'student')
     
-    if new_role not in ['student', 'leader', 'superadmin']:
+    if new_role not in ['student', 'leader', 'manager', 'superadmin']:
         flash('Geçersiz rol seçimi.', 'danger')
         return redirect(url_for('admin_panel'))
         
@@ -533,11 +564,12 @@ def admin_set_role(user_id):
         return redirect(url_for('admin_panel'))
         
     target_user.role = new_role
-    target_user.is_leader = (new_role in ['leader', 'superadmin'])
+    target_user.is_leader = (new_role in ['leader', 'manager', 'superadmin'])
     db.session.commit()
     
     role_names = {
         'superadmin': 'Süper Yönetici (Root)',
+        'manager': 'Takım Yöneticisi',
         'leader': 'Takım Lideri',
         'student': 'Öğrenci'
     }
@@ -604,6 +636,14 @@ def blue_team():
     if 'user_id' in session:
         user_completed_ids = [p.lab_id for p in UserLabProgress.query.filter_by(user_id=session['user_id'], is_completed=True).all()]
     return render_template('blue_team.html', labs=labs, user_completed_ids=user_completed_ids)
+
+@app.route('/purple-team')
+def purple_team():
+    labs = Lab.query.filter_by(category='purple_team').all()
+    user_completed_ids = []
+    if 'user_id' in session:
+        user_completed_ids = [p.lab_id for p in UserLabProgress.query.filter_by(user_id=session['user_id'], is_completed=True).all()]
+    return render_template('purple_team.html', labs=labs, user_completed_ids=user_completed_ids)
 
 @app.route('/lab/<slug>')
 @login_required

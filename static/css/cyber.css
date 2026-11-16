@@ -84,6 +84,10 @@ body {
   border-color: rgba(56, 189, 248, 0.5) !important;
 }
 
+.cyber-card-purple:hover {
+  border-color: rgba(168, 85, 247, 0.5) !important;
+}
+
 /* Buton Standartları */
 .btn-primary {
   background-color: var(--brand-primary);

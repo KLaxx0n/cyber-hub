@@ -30,6 +30,10 @@
                     <i class="fa-solid fa-shield-halved"></i>
                     <span>Blue Team Modülü</span>
                 </a>
+                <a href="{{ url_for('purple_team') }}" class="px-5 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Purple Team Modülü</span>
+                </a>
                 <a href="{{ url_for('leaderboard') }}" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm flex items-center space-x-2 transition-colors">
                     <i class="fa-solid fa-list-ol text-slate-400"></i>
                     <span>Sıralama Tablosu</span>
@@ -43,7 +47,7 @@
     </div>
 
     <!-- Platform Metrics Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
         <div class="cyber-card p-5 text-center">
             <div class="text-2xl font-bold font-mono text-white mb-1">{{ total_users }}</div>
             <div class="text-xs text-slate-400 font-medium">Kayıtlı Öğrenci</div>
@@ -60,10 +64,14 @@
             <div class="text-2xl font-bold font-mono text-blue-400 mb-1">{{ blue_labs }}</div>
             <div class="text-xs text-slate-400 font-medium">Blue Team Labı</div>
         </div>
+        <div class="cyber-card p-5 text-center border-l-4 border-purple-700 col-span-2 sm:col-span-1">
+            <div class="text-2xl font-bold font-mono text-purple-400 mb-1">{{ purple_labs }}</div>
+            <div class="text-xs text-slate-400 font-medium">Purple Team Labı</div>
+        </div>
     </div>
 
-    <!-- Dual Pillar Comparison -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <!-- Team Comparison (Red, Blue, Purple) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
         <!-- Red Team Card -->
         <div class="cyber-card cyber-card-red p-7">
             <div class="flex items-center space-x-3 mb-4">
@@ -133,6 +141,42 @@
 
             <a href="{{ url_for('blue_team') }}" class="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300">
                 Blue Team Bölümüne Git <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+            </a>
+        </div>
+
+        <!-- Purple Team Card -->
+        <div class="cyber-card cyber-card-purple p-7">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-purple-950 border border-purple-800/80 flex items-center justify-center text-purple-400 text-lg">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Purple Team (Hibrit Güvenlik)</h2>
+                    <p class="text-xs text-slate-400">Zararlı Yazılım & Tehdit Emülasyonu</p>
+                </div>
+            </div>
+
+            <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                Saldırı ve savunma ekiplerinin güçlerini birleştirerek gerçek dünya tehdit aktörlerini emüle ettiği ve güvenlik mekanizmalarını test ettiği modül.
+            </p>
+
+            <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-purple-400 text-xs"></i>
+                    <span>Zararlı Yazılım (Malware) Statik & Tersine Mühendislik</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-purple-400 text-xs"></i>
+                    <span>Atomic Red Team Tehdit Emülasyonu & Testi</span>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <i class="fa-solid fa-check text-purple-400 text-xs"></i>
+                    <span>MITRE ATT&CK Taktik Eşleştirme & SIEM Doğrulama</span>
+                </li>
+            </ul>
+
+            <a href="{{ url_for('purple_team') }}" class="inline-flex items-center text-xs font-semibold text-purple-400 hover:text-purple-300">
+                Purple Team Bölümüne Git <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
             </a>
         </div>
     </div>
@@ -216,30 +260,22 @@
                     </p>
                 </div>
 
-                <!-- 4. Boş Kalan Kutu (Bulanıklaştırılmış / Blurlu Gelecek Modül) -->
-                <div class="relative p-6 rounded-2xl bg-slate-950/40 border border-slate-800/80 overflow-hidden group">
-                    <!-- Blurlu Arka Plan İçeriği -->
-                    <div class="blurred-content space-y-2">
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl mb-4">
-                            <i class="fa-solid fa-bug"></i>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1.5">Purple Team & Malware</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Zararlı yazılım analizi, ileri düzey tersine mühendislik ve siber tehdit istihbaratı.
-                        </p>
+                <!-- 4. Purple Team (Hibrit Tehdit Emülasyonu & Zararlı Yazılım) -->
+                <a href="{{ url_for('purple_team') }}" class="p-6 rounded-2xl bg-slate-950/50 border border-purple-500/30 hover:border-purple-500/70 about-feature-card group block transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bolt"></i>
                     </div>
-
-                    <!-- Üzerindeki Kilit ve Çok Yakında Rozeti -->
-                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/50 backdrop-blur-[2px] p-4 text-center">
-                        <div class="w-10 h-10 rounded-full bg-slate-900/90 border border-blue-500/40 text-blue-400 flex items-center justify-center mb-2 shadow-lg">
-                            <i class="fa-solid fa-lock text-sm"></i>
-                        </div>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md blurred-lock-badge text-blue-300 font-mono text-[11px] font-semibold tracking-wider uppercase shadow-sm">
-                            Çok Yakında
-                        </span>
-                        <span class="text-[10px] text-slate-400 mt-1 font-mono">Modül Hazırlanıyor</span>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <h3 class="text-base font-bold text-white">Purple Team & Malware</h3>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Aktif</span>
                     </div>
-                </div>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                        Zararlı yazılım analizi, tersine mühendislik, Atomic Red Team emülasyonları ve savunma optimizasyonu.
+                    </p>
+                    <span class="text-xs font-semibold text-purple-400 group-hover:text-purple-300 flex items-center">
+                        Purple Team Modülüne Git <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+                    </span>
+                </a>
             </div>
 
         </div>

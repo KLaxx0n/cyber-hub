@@ -5,6 +5,21 @@ def seed_database(app):
     with app.app_context():
         db.create_all()
 
+        # Otomatik Tablo Sütun Migrasyonu (SQLite ALTER TABLE)
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            if 'users' in inspector.get_table_names():
+                columns = [c['name'] for c in inspector.get_columns('users')]
+                with db.engine.connect() as conn:
+                    if 'failed_login_attempts' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
+                    if 'is_suspended' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT 0"))
+                    conn.commit()
+        except Exception as mig_err:
+            print(f"[!] Sütun migrasyon kontrolü: {mig_err}")
+
         # Predefined Labs based on project report
         labs_data = [
             # RED TEAM LABS
@@ -99,6 +114,37 @@ def seed_database(app):
                 'hint': 'iptables -A INPUT -s <IP> -j DROP ve SSH için port 22 rate-limiting kuralları kullanılmalıdır.',
                 'flag': 'FLAG{f1r3w4ll_d3f3nd_blu3_t34m}',
                 'lab_type': 'firewall'
+            },
+            # PURPLE TEAM LABS
+            {
+                'slug': 'purple-malware-analysis',
+                'title': 'Zararlı Yazılım Analizi & Statik Tersine Mühendislik',
+                'category': 'purple_team',
+                'sub_category': 'Malware Analysis & Reverse Engineering',
+                'difficulty': 'İleri',
+                'points': 200,
+                'time_limit_sec': 600,
+                'description': 'Zararlı yazılım örneklerini (malware binary) statik analiz ve dizgi ayıklama yöntemiyle inceleyin, C2 komuta kontrol sunucusunu ve bayrağı ortaya çıkarın.',
+                'scenario': 'Ağda tespit edilen şüpheli arka kapı yazılımı (updater_agent.bin) güvenlik ortamına alındı. Kodun bağlantı kurduğu C2 alan adı ve gömülü bayrak deşifre edilmelidir.',
+                'instructions': 'Zararlı yazılımın ikili (binary) verisi içerisindeki fonksiyon imzalarını ve Base64/XOR ile gizlenmiş dizgileri inceleyerek gizli FLAG değerine ulaşın.',
+                'hint': 'Statik analiz araçlarında dizgileri tarayarak FLAG{...} formatındaki gizli bayrağı arayın.',
+                'flag': 'FLAG{purpl3_m4lw4r3_r3v3rs3_4n4lys1s}',
+                'lab_type': 'standard'
+            },
+            {
+                'slug': 'purple-atomic-emulation',
+                'title': 'Atomic Tehdit Emülasyonu & Tespit Doğrulama',
+                'category': 'purple_team',
+                'sub_category': 'Adversary Emulation & MITRE ATT&CK',
+                'difficulty': 'Orta',
+                'points': 150,
+                'time_limit_sec': 540,
+                'description': 'MITRE ATT&CK T1059 (Komut ve Betik Yorumlayıcı) tekniği simülasyonunu çalıştırarak savunma katmanının (SIEM/EDR) saldırıyı yakalayıp yakalamadığını test edin.',
+                'scenario': 'Saldırganlar sistem üzerinde PowerShell ile dosyasız zararlı çalıştırmaktadır. Purple Team testinde saldırı ve savunma telemetrileri eş zamanlı analiz edilir.',
+                'instructions': 'Purple Team senaryosunda saldırı adımlarını emüle edin, ardından SIEM tespit günlüğünü inceleyerek oluşturulan telemetri bayrağını teslim edin.',
+                'hint': 'PowerShell Script Block Logging (Event ID 4104) olay kaydını inceleyin.',
+                'flag': 'FLAG{purpl3_4t0m1c_t3st_c2_d3t3ct}',
+                'lab_type': 'standard'
             }
         ]
 

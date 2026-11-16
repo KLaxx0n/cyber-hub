@@ -43,17 +43,21 @@
 
         <!-- Role Hierarchy Explanation Pill -->
         <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center gap-3 text-xs font-mono">
-            <span class="text-slate-400 font-semibold">Rol Dengesi:</span>
+            <span class="text-slate-400 font-semibold">Rol Hiyerarşisi:</span>
             <span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-600/80 text-amber-300 flex items-center gap-1">
-                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Süper Yönetici (Tam Yetki)
+                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Süper Yönetici (Root)
+            </span>
+            <span class="text-slate-600">&gt;</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-600/80 text-emerald-300 flex items-center gap-1">
+                <i class="fa-solid fa-user-tie text-[10px] text-emerald-400"></i> Takım Yöneticisi (Yönetim & Koordinasyon)
             </span>
             <span class="text-slate-600">&gt;</span>
             <span class="px-2 py-0.5 rounded bg-sky-950/80 border border-sky-600/80 text-sky-300 flex items-center gap-1">
-                <i class="fa-solid fa-user-shield text-[10px] text-sky-400"></i> Takım Lideri (Takım Atama & Onay)
+                <i class="fa-solid fa-user-shield text-[10px] text-sky-400"></i> Takım Lideri (Takım İçi Liderlik)
             </span>
             <span class="text-slate-600">&gt;</span>
             <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400 flex items-center gap-1">
-                <i class="fa-solid fa-user-graduate text-[10px]"></i> Öğrenci (Lab & Puan)
+                <i class="fa-solid fa-user-graduate text-[10px]"></i> Öğrenci
             </span>
         </div>
     </div>
@@ -186,6 +190,8 @@
                                 <select name="role" onchange="this.form.submit()" class="text-xs py-1 px-2.5 rounded-lg border font-mono font-medium focus:outline-none cursor-pointer transition-all
                                     {% if u.is_superadmin %}
                                         bg-amber-950/80 text-amber-300 border-amber-600
+                                    {% elif u.role in ['manager', 'team_manager'] %}
+                                        bg-emerald-950/80 text-emerald-300 border-emerald-600
                                     {% elif u.is_team_leader %}
                                         bg-sky-950/80 text-sky-300 border-sky-600
                                     {% else %}
@@ -193,6 +199,7 @@
                                     {% endif %}">
                                     <option value="student" {% if u.role == 'student' or not u.role %}selected{% endif %}>🎓 Öğrenci</option>
                                     <option value="leader" {% if u.role == 'leader' %}selected{% endif %}>🛡️ Takım Lideri</option>
+                                    <option value="manager" {% if u.role in ['manager', 'team_manager'] %}selected{% endif %}>👔 Takım Yöneticisi</option>
                                     <option value="superadmin" {% if u.role == 'superadmin' %}selected{% endif %}>👑 Süper Yönetici</option>
                                 </select>
                             </form>
@@ -214,12 +221,15 @@
                                         bg-red-950/80 text-red-300 border-red-700 hover:border-red-500
                                     {% elif u.assigned_team == 'blue_team' %}
                                         bg-blue-950/80 text-blue-300 border-blue-700 hover:border-blue-500
+                                    {% elif u.assigned_team == 'purple_team' %}
+                                        bg-purple-950/80 text-purple-300 border-purple-700 hover:border-purple-500
                                     {% else %}
                                         bg-slate-900/80 text-slate-400 border-slate-700 hover:border-slate-500
                                     {% endif %}">
                                     <option value="unassigned" {% if u.assigned_team == 'unassigned' %}selected{% endif %}>⚪ Atanmadı</option>
                                     <option value="red_team" {% if u.assigned_team == 'red_team' %}selected{% endif %}>🔴 Red Team (Saldırı)</option>
                                     <option value="blue_team" {% if u.assigned_team == 'blue_team' %}selected{% endif %}>🔵 Blue Team (Savunma)</option>
+                                    <option value="purple_team" {% if u.assigned_team == 'purple_team' %}selected{% endif %}>🟣 Purple Team (Karma)</option>
                                 </select>
                             </form>
                         </td>

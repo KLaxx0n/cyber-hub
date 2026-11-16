@@ -7,8 +7,8 @@
 
     <!-- Top Breadcrumb & Status -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <a href="{{ url_for('red_team' if lab.category == 'red_team' else 'blue_team') }}" class="text-xs font-mono text-slate-400 hover:text-white flex items-center">
-            <i class="fa-solid fa-arrow-left mr-2"></i>{{ 'Red Team' if lab.category == 'red_team' else 'Blue Team' }} Lablarına Dön
+        <a href="{{ url_for('red_team' if lab.category == 'red_team' else ('blue_team' if lab.category == 'blue_team' else 'purple_team')) }}" class="text-xs font-mono text-slate-400 hover:text-white flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i>{{ 'Red Team' if lab.category == 'red_team' else ('Blue Team' if lab.category == 'blue_team' else 'Purple Team') }} Lablarına Dön
         </a>
 
         <!-- Lab Timer Display (setInterval) -->
@@ -44,7 +44,7 @@
             <!-- Lab Overview Card -->
             <div class="cyber-card p-6 border-slate-800">
                 <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <span class="text-xs font-mono px-2.5 py-0.5 rounded-full {{ 'bg-red-950 text-red-400 border border-red-800' if lab.category == 'red_team' else 'bg-cyan-950 text-cyan-400 border border-cyan-800' }}">
+                    <span class="text-xs font-mono px-2.5 py-0.5 rounded-full {{ 'bg-red-950 text-red-400 border border-red-800' if lab.category == 'red_team' else ('bg-purple-950 text-purple-400 border border-purple-800' if lab.category == 'purple_team' else 'bg-cyan-950 text-cyan-400 border border-cyan-800') }}">
                         {{ lab.sub_category }}
                     </span>
                     <span class="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
