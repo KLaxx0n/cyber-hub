@@ -12,3 +12,11 @@ services:
         value: "False"
       - key: PYTHON_VERSION
         value: 3.12.0
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false

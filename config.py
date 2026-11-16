@@ -3,7 +3,7 @@ import secrets
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 class Config:
     # Güçlü gizli anahtar (Varsayılan tahmin edilebilir anahtar kaldırıldı)

@@ -222,6 +222,7 @@ def register():
         if email_sent:
             flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu kontrol ediniz.', 'success')
         else:
+            print(f"[!] E-posta gönderilemedi ({email}): {email_msg}")
             flash(f'Kayıt oluşturuldu! (E-posta sunucusu bağlı olmadığı için doğrulama kodunuz: {code})', 'info')
         
         return redirect(url_for('verify', email=email))
