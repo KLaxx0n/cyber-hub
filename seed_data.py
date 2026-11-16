@@ -123,7 +123,7 @@ def seed_database(app):
             },
             {
                 'username': 'KLaxx0n',
-                'email': 'jajcsparrow07@gmail.com',
+                'email': 'jacjsparrow07@gmail.com',
                 'password_hash': 'scrypt:32768:8:1$xmrIjst1M06BQEOB$c82bc097ffcf318b6d8f84cf4dc010a66826c9f4a9a1f80fc49b2eb6240349b53e75d8cb7d5de76133c35578b0f3f055fb0ac004eeb743442facd005c11a949a',
                 'is_verified': True,
                 'score': 100,
