@@ -217,10 +217,10 @@
 
                         <!-- Sistem Rolü Sütunu -->
                         <td class="py-3.5 px-4 text-center">
-                            {% if current_user.is_superadmin and not u.is_founder and u.id != current_user.id %}
-                            <!-- Süper Yönetici için Rol Seçim Formu -->
+                            {% if current_user.is_superadmin and u.id != current_user.id %}
+                            <!-- Süper Yönetici için Rol Değiştirme Formu -->
                             <form action="{{ url_for('admin_set_role', user_id=u.id) }}" method="POST" class="inline-block">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <select name="role" onchange="this.form.submit()" class="text-xs py-1 px-2.5 rounded-lg border font-mono font-medium focus:outline-none cursor-pointer transition-all
                                     {% if u.is_superadmin %}
                                         bg-amber-950/80 text-amber-300 border-amber-600
@@ -230,15 +230,21 @@
                                         bg-sky-950/80 text-sky-300 border-sky-600
                                     {% else %}
                                         bg-slate-900/80 text-slate-400 border-slate-700
-                                    {% endif %}">
+                                    {% endif %}" title="Rolü değiştirmek için seçiniz">
                                     <option value="student" {% if u.role == 'student' or not u.role %}selected{% endif %}>🎓 Öğrenci</option>
                                     <option value="leader" {% if u.role == 'leader' %}selected{% endif %}>🛡️ Takım Lideri</option>
                                     <option value="manager" {% if u.role in ['manager', 'team_manager'] %}selected{% endif %}>👔 Takım Yöneticisi</option>
                                     <option value="superadmin" {% if u.role == 'superadmin' %}selected{% endif %}>👑 Süper Yönetici</option>
                                 </select>
                             </form>
+                            {% elif u.id == current_user.id %}
+                            <!-- Kendi Hesabınız İçin Rozet -->
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border {{ u.role_badge.class }}" title="Oturum açtığınız kendi hesabınız">
+                                <i class="{{ u.role_badge.icon }}"></i>
+                                <span>{{ u.role_badge.name }} (Siz)</span>
+                            </span>
                             {% else %}
-                            <!-- Sabit Rol Rozeti (Liderler veya Kurucular için) -->
+                            <!-- Liderler veya Yöneticiler için Salt Okunur Rozet -->
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border {{ u.role_badge.class }}">
                                 <i class="{{ u.role_badge.icon }}"></i>
                                 <span>{{ u.role_badge.name }}</span>

@@ -52,17 +52,22 @@ class User(db.Model):
 
     @property
     def is_superadmin(self):
-        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz']:
+        # 1. Aktif rolü 'superadmin' olan her kullanıcı tam yetkili Süper Yöneticidir
+        if self.role == 'superadmin':
             return True
-        return self.role == 'superadmin' or bool(self.is_founder)
+        # 2. Ana root hesabı her zaman korunur
+        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
+            return True
+        # 3. Founder bayrağı yalnızca öğrenci/lider/yöneticiye düşürülmemişse superadmin sayılır
+        return bool(self.is_founder and self.role not in ['student', 'leader', 'manager'])
 
     @property
     def is_manager(self):
-        return self.role in ['manager', 'team_manager', 'superadmin'] or self.is_superadmin
+        return self.role in ['manager', 'team_manager'] or self.is_superadmin
 
     @property
     def is_team_leader(self):
-        return self.role in ['leader', 'manager', 'team_manager', 'superadmin'] or bool(self.is_leader) or self.is_superadmin
+        return self.role in ['leader', 'manager', 'team_manager'] or bool(self.is_leader) or self.is_superadmin
 
     @property
     def role_badge(self):

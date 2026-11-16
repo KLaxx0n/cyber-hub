@@ -584,12 +584,18 @@ def admin_set_role(user_id):
         flash('Kendi Süper Yönetici yetkinizi kaldıramazsınız.', 'danger')
         return redirect(url_for('admin_panel'))
 
-    if target_user.is_founder and new_role != 'superadmin':
-        flash('Kurucu hesapların Süper Yönetici rolü düşürülemez.', 'warning')
-        return redirect(url_for('admin_panel'))
-        
+    # Süper Yönetici rolü değiştirdiğinde tüm bayraklar senkronize edilir
     target_user.role = new_role
-    target_user.is_leader = (new_role in ['leader', 'manager', 'superadmin'])
+    if new_role == 'superadmin':
+        target_user.is_leader = True
+        target_user.is_founder = True
+    elif new_role in ['manager', 'leader']:
+        target_user.is_leader = True
+        target_user.is_founder = False
+    else: # student
+        target_user.is_leader = False
+        target_user.is_founder = False
+
     db.session.commit()
     
     role_names = {
@@ -598,7 +604,7 @@ def admin_set_role(user_id):
         'leader': 'Takım Lideri',
         'student': 'Öğrenci'
     }
-    flash(f"'{target_user.username}' kullanıcısının rolü '{role_names.get(new_role)}' olarak güncellendi.", 'success')
+    flash(f"'{target_user.username}' kullanıcısının rolü '{role_names.get(new_role)}' olarak başarıyla güncellendi.", 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/adjust-score/<int:user_id>', methods=['POST'])
