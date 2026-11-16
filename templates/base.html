@@ -47,74 +47,74 @@
     <div class="cyber-overlay"></div>
 
     <!-- Top Navigation Bar -->
-    <nav class="border-b border-white/10 bg-[#06090f]/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+    <nav class="border-b border-white/10 bg-[#06090f]/70 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14 sm:h-16 flex-nowrap gap-2 sm:gap-4">
                 <!-- Brand / Logo -->
-                <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('index') }}" class="flex items-center space-x-3 group">
-                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NÖHÜ Siber Güvenlik Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] group-hover:scale-110 group-hover:drop-shadow-[0_0_12px_rgba(239,68,68,0.45)] transition-all duration-300">
-                        <div>
-                            <div class="font-bold text-white text-sm sm:text-base tracking-tight leading-tight group-hover:text-cyan-300 transition-colors">NÖHÜ Siber Güvenlik</div>
-                            <div class="text-[11px] text-slate-400 font-mono">Eğitim & Lab Platformu</div>
+                <div class="flex items-center space-x-2.5 shrink-0">
+                    <a href="{{ url_for('index') }}" class="flex items-center space-x-2.5 group">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NÖHÜ Siber Güvenlik Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] group-hover:scale-105 transition-all duration-300 shrink-0">
+                        <div class="whitespace-nowrap">
+                            <div class="font-bold text-white text-xs sm:text-sm tracking-tight leading-tight group-hover:text-cyan-300 transition-colors whitespace-nowrap">NÖHÜ Siber Güvenlik</div>
+                            <div class="text-[10px] text-slate-400 font-mono leading-none mt-0.5 whitespace-nowrap">Eğitim & Lab Platformu</div>
                         </div>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden md:flex items-center space-x-2 text-sm font-medium">
-                    <a href="{{ url_for('index') }}" class="text-slate-300 hover:text-white hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors">
+                <div class="hidden md:flex items-center space-x-1 lg:space-x-1.5 text-xs lg:text-sm font-medium flex-nowrap shrink-0">
+                    <a href="{{ url_for('index') }}" class="text-slate-300 hover:text-white hover:bg-slate-800/60 px-2 lg:px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap">
                         Ana Sayfa
                     </a>
-                    <a href="{{ url_for('red_team') }}" class="text-slate-300 hover:text-red-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>Red Team
+                    <a href="{{ url_for('red_team') }}" class="text-slate-300 hover:text-red-400 hover:bg-slate-800/60 px-2 lg:px-2.5 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 shrink-0"></span>Red Team
                     </a>
-                    <a href="{{ url_for('blue_team') }}" class="text-slate-300 hover:text-blue-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>Blue Team
+                    <a href="{{ url_for('blue_team') }}" class="text-slate-300 hover:text-blue-400 hover:bg-slate-800/60 px-2 lg:px-2.5 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 shrink-0"></span>Blue Team
                     </a>
-                    <a href="{{ url_for('leaderboard') }}" class="text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors">
+                    <a href="{{ url_for('leaderboard') }}" class="text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 px-2 lg:px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap">
                         Sıralama Tablosu
                     </a>
-                    <a href="{{ url_for('index') }}#hakkimizda" class="text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors">
+                    <a href="{{ url_for('index') }}#hakkimizda" class="text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60 px-2 lg:px-2.5 py-1.5 rounded-md transition-colors whitespace-nowrap">
                         Hakkımızda
                     </a>
                     {% if current_user and current_user.is_team_leader %}
-                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-3 py-1.5 rounded-md transition-colors flex items-center border text-xs font-mono shadow-sm">
+                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-2 lg:px-2.5 py-1.5 rounded-md transition-colors flex items-center border text-[11px] lg:text-xs font-mono shadow-sm whitespace-nowrap shrink-0">
                         {% if current_user.is_superadmin %}
-                            <i class="fa-solid fa-crown mr-1.5 text-amber-400 text-xs"></i>Sistem Yönetimi
+                            <i class="fa-solid fa-crown mr-1.5 text-amber-400 text-xs shrink-0"></i>Sistem Yönetimi
                         {% else %}
-                            <i class="fa-solid fa-user-shield mr-1.5 text-sky-400 text-xs"></i>Lider Paneli
+                            <i class="fa-solid fa-user-shield mr-1.5 text-sky-400 text-xs shrink-0"></i>Lider Paneli
                         {% endif %}
                     </a>
                     {% endif %}
                 </div>
 
                 <!-- Auth Buttons / User Profile -->
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2 shrink-0 flex-nowrap">
                     {% if current_user %}
-                        <a href="{{ url_for('dashboard') }}" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 hover:border-blue-500 transition-all text-sm font-mono">
-                            <i class="fa-solid fa-user text-blue-400 text-xs"></i>
-                            <span class="text-slate-200">{{ current_user.username }}</span>
+                        <a href="{{ url_for('dashboard') }}" class="flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 hover:border-blue-500 transition-all text-xs font-mono whitespace-nowrap shrink-0">
+                            <i class="fa-solid fa-user text-blue-400 text-xs shrink-0"></i>
+                            <span class="text-slate-200 font-semibold truncate max-w-[100px] sm:max-w-[130px] whitespace-nowrap">{{ current_user.username }}</span>
                             {% if current_user.is_superadmin %}
-                                <span class="bg-amber-950/90 text-amber-300 border border-amber-600 text-[10px] px-1.5 py-0.5 rounded font-bold font-mono">👑 Root</span>
+                                <span class="bg-amber-950/90 text-amber-300 border border-amber-600 text-[10px] px-1.5 py-0.5 rounded font-bold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">👑 Root</span>
                             {% elif current_user.is_team_leader %}
-                                <span class="bg-sky-950/90 text-sky-300 border border-sky-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono">🛡️ Lider</span>
+                                <span class="bg-sky-950/90 text-sky-300 border border-sky-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">🛡️ Lider</span>
                             {% endif %}
                             {% if current_user.assigned_team == 'red_team' %}
-                                <span class="bg-red-950 text-red-400 border border-red-800 text-[10px] px-1.5 py-0.5 rounded font-semibold">Red</span>
+                                <span class="bg-red-950 text-red-400 border border-red-800 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">Red</span>
                             {% elif current_user.assigned_team == 'blue_team' %}
-                                <span class="bg-blue-950 text-blue-400 border border-blue-800 text-[10px] px-1.5 py-0.5 rounded font-semibold">Blue</span>
+                                <span class="bg-blue-950 text-blue-400 border border-blue-800 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">Blue</span>
                             {% endif %}
-                            <span class="bg-blue-900/60 text-blue-300 text-xs px-2 py-0.5 rounded font-semibold">{{ current_user.score }} P</span>
+                            <span class="bg-blue-900/60 text-blue-300 text-[11px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">{{ current_user.score }} P</span>
                         </a>
-                        <a href="{{ url_for('logout') }}" title="Çıkış Yap" class="p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-red-400 transition-colors">
-                            <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                        <a href="{{ url_for('logout') }}" title="Çıkış Yap" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-red-400 transition-colors shrink-0">
+                            <i class="fa-solid fa-right-from-bracket text-xs sm:text-sm"></i>
                         </a>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 transition-colors">
+                        <a href="{{ url_for('login') }}" class="text-xs sm:text-sm font-medium text-slate-300 hover:text-white px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0">
                             Giriş Yap
                         </a>
-                        <a href="{{ url_for('register') }}" class="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors">
+                        <a href="{{ url_for('register') }}" class="text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors whitespace-nowrap shrink-0">
                             Kayıt Ol
                         </a>
                     {% endif %}
