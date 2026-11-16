@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: cyber-hub
+    name: nohu-cyberhub
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
@@ -10,3 +10,5 @@ services:
         generateValue: true
       - key: FLASK_DEBUG
         value: "False"
+      - key: PYTHON_VERSION
+        value: 3.12.0
