@@ -143,6 +143,10 @@ def index():
                            blue_labs=blue_labs,
                            top_users=top_users)
 
+@app.route('/about')
+def about():
+    return redirect(url_for('index') + '#hakkimizda')
+
 @app.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def register():
@@ -218,7 +222,7 @@ def register():
         if email_sent:
             flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu kontrol ediniz.', 'success')
         else:
-            flash(f'Kayıt oluşturuldu fakat e-posta iletilemedi: {email_msg}', 'warning')
+            flash(f'Kayıt oluşturuldu! (E-posta sunucusu bağlı olmadığı için doğrulama kodunuz: {code})', 'info')
         
         return redirect(url_for('verify', email=email))
 
@@ -245,7 +249,7 @@ def resend_verification():
     if email_sent:
         flash(f'Yeni doğrulama kodunuz {email} adresine tekrar gönderildi.', 'success')
     else:
-        flash(f'Yeni kod oluşturuldu fakat e-posta iletilemedi: {email_msg}', 'warning')
+        flash(f'Yeni kod oluşturuldu! (E-posta sunucusu bağlı olmadığı için doğrulama kodunuz: {new_code})', 'info')
         
     return redirect(url_for('verify', email=email))
 
@@ -743,7 +747,7 @@ def lab_action(slug):
     return jsonify({'success': False, 'message': 'Bilinmeyen simülasyon türü.'})
 
 if __name__ == '__main__':
-    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1')
+    debug_mode = os.environ.get('FLASK_DEBUG', 'True').lower() in ('true', '1')
     port = int(os.environ.get('PORT', 5000))
     host = os.environ.get('HOST', '0.0.0.0')
     print(f"[*] Siber Güvenlik Eğitim Platformu Başlatılıyor... (Debug Modu: {debug_mode})")

@@ -108,6 +108,38 @@ def seed_database(app):
                 new_lab = Lab(**lab_info)
                 db.session.add(new_lab)
 
+        # Predefined default users
+        users_data = [
+            {
+                'username': 'sefa',
+                'email': 'gsefa5683@gmail.com',
+                'password_hash': 'scrypt:32768:8:1$wGtXe6gXF9pTFL2j$777c665f7194f45ebd5946f43472ff6473407eaadeb31d65950aa7c5764c0c9bf573706e575b02a5fe42f1742491728bff4d7a2d16fd42e708d7048139d7f55f',
+                'is_verified': True,
+                'score': 0,
+                'is_leader': True,
+                'is_founder': True,
+                'role': 'superadmin',
+                'assigned_team': 'blue_team'
+            },
+            {
+                'username': 'KLaxx0n',
+                'email': 'jajcsparrow07@gmail.com',
+                'password_hash': 'scrypt:32768:8:1$xmrIjst1M06BQEOB$c82bc097ffcf318b6d8f84cf4dc010a66826c9f4a9a1f80fc49b2eb6240349b53e75d8cb7d5de76133c35578b0f3f055fb0ac004eeb743442facd005c11a949a',
+                'is_verified': True,
+                'score': 100,
+                'is_leader': False,
+                'is_founder': False,
+                'role': 'student',
+                'assigned_team': 'blue_team'
+            }
+        ]
+
+        for u_info in users_data:
+            existing_user = User.query.filter_by(username=u_info['username']).first()
+            if not existing_user:
+                new_user = User(**u_info)
+                db.session.add(new_user)
+
         db.session.commit()
         print("[+] Veritabani basariyla olusturuldu ve ornek veriler yuklendi.")
 

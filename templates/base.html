@@ -72,6 +72,9 @@
                     <a href="{{ url_for('leaderboard') }}" class="text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors">
                         Sıralama Tablosu
                     </a>
+                    <a href="{{ url_for('index') }}#hakkimizda" class="text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-colors">
+                        Hakkımızda
+                    </a>
                     {% if current_user and current_user.is_team_leader %}
                     <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-3 py-1.5 rounded-md transition-colors flex items-center border text-xs font-mono shadow-sm">
                         {% if current_user.is_superadmin %}

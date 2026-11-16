@@ -34,6 +34,10 @@
                     <i class="fa-solid fa-list-ol text-slate-400"></i>
                     <span>Sıralama Tablosu</span>
                 </a>
+                <a href="#hakkimizda" class="px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-cyan-300 border border-cyan-800/60 font-medium text-sm flex items-center space-x-2 transition-colors">
+                    <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                    <span>Hakkımızda</span>
+                </a>
             </div>
         </div>
     </div>
@@ -132,6 +136,114 @@
             </a>
         </div>
     </div>
+
+    <!-- ========== HAKKIMIZDA BÖLÜMÜ (Projeye Özel & NÖHÜ Modeli) ========== -->
+    <section id="hakkimizda" class="cyber-card p-8 md:p-12 mb-10 scroll-mt-24 border-slate-800/80">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            <!-- Sol Taraf: Metin, Başlık, Misyon & Vizyon -->
+            <div class="lg:col-span-6 space-y-6">
+                <div>
+                    <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold tracking-widest uppercase mb-4">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-1"></span>
+                        HAKKIMIZDA
+                    </span>
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
+                        Öğrenmeyi pratiğe dönüştüren siber güvenlik platformu
+                    </h2>
+                </div>
+
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    NÖHÜ Bilgi Teknolojileri Siber Güvenlik Portalı, öğrencilerin ofansif (Red Team) ve defansif (Blue Team) alanlarda uygulamalı deneyim kazanması için tasarlanmıştır. Gerçek zafiyet simülasyonları, adli bilişim incelemeleri ve bayrak avı görevleriyle teoriyi pratiğe döküyoruz.
+                </p>
+
+                <!-- Misyon & Vizyon Kartları -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-white/10 mv-item-mission">
+                        <h4 class="text-white font-bold text-sm md:text-base mb-1.5 flex items-center">
+                            <i class="fa-solid fa-bullseye text-cyan-400 mr-2 text-xs"></i>
+                            Misyonumuz
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Öğrencilere siber saldırı ve savunma senaryolarını izole ortamda uygulayarak öğrenebilecekleri dinamik bir altyapı sunmak.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-white/10 mv-item-vision">
+                        <h4 class="text-white font-bold text-sm md:text-base mb-1.5 flex items-center">
+                            <i class="fa-solid fa-compass text-indigo-400 mr-2 text-xs"></i>
+                            Vizyonumuz
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Bölgenin ve üniversitemizin en donanımlı, etik ve yetkin siber güvenlik uzmanlarını yetiştiren öncü platform olmak.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Taraf: 4'lü Özellik Kartları (Projemize Göre Yapılandırılmış) -->
+            <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 1. Red Team (Ofansif Güvenlik) -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/30 text-red-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Red Team (Saldırı)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        OWASP Top 10 web zafiyetleri (SQLi, XSS) ve Sosyal Mühendislik / Phishing simülasyonları.
+                    </p>
+                </div>
+
+                <!-- 2. Blue Team (Defansif Güvenlik) -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-blue-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Blue Team (Savunma)</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Sunucu log analizi, Digital Forensics (Hex dosya kurtarma) ve aktif Firewall yapılandırması.
+                    </p>
+                </div>
+
+                <!-- 3. CTF & Canlı Sıralama -->
+                <div class="p-6 rounded-2xl bg-slate-950/50 border border-white/10 about-feature-card group">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1.5">Bayrak Avı & Sıralama</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Zaman kısıtlı sayaç eşliğinde bayrak (Flag) yakalama ve canlı öğrenci başarı liderlik tablosu.
+                    </p>
+                </div>
+
+                <!-- 4. Boş Kalan Kutu (Bulanıklaştırılmış / Blurlu Gelecek Modül) -->
+                <div class="relative p-6 rounded-2xl bg-slate-950/40 border border-slate-800/80 overflow-hidden group">
+                    <!-- Blurlu Arka Plan İçeriği -->
+                    <div class="blurred-content space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl mb-4">
+                            <i class="fa-solid fa-bug"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1.5">Purple Team & Malware</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Zararlı yazılım analizi, ileri düzey tersine mühendislik ve siber tehdit istihbaratı.
+                        </p>
+                    </div>
+
+                    <!-- Üzerindeki Kilit ve Çok Yakında Rozeti -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/50 backdrop-blur-[2px] p-4 text-center">
+                        <div class="w-10 h-10 rounded-full bg-slate-900/90 border border-blue-500/40 text-blue-400 flex items-center justify-center mb-2 shadow-lg">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md blurred-lock-badge text-blue-300 font-mono text-[11px] font-semibold tracking-wider uppercase shadow-sm">
+                            Çok Yakında
+                        </span>
+                        <span class="text-[10px] text-slate-400 mt-1 font-mono">Modül Hazırlanıyor</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
 
     <!-- Features Overview -->
     <div class="cyber-card p-6 rounded-xl border border-slate-800/80 mb-8">
