@@ -744,6 +744,8 @@ def lab_action(slug):
 
 if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1')
+    port = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '0.0.0.0')
     print(f"[*] Siber Güvenlik Eğitim Platformu Başlatılıyor... (Debug Modu: {debug_mode})")
-    print("[*] Adres: http://127.0.0.1:5000")
-    app.run(host='127.0.0.1', port=5000, debug=debug_mode)
+    print(f"[*] Adres: http://{host}:{port}")
+    app.run(host=host, port=port, debug=debug_mode)
