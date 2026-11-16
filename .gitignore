@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+*.db
+cyberhub.db
+.venv/
+venv/
+ENV/
+.idea/
+.vscode/

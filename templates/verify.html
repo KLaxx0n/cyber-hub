@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Hesap Doğrulama - NÖHÜ Siber Güvenlik Platformu{% endblock %}
+
+{% block extra_head %}
+<style>
+    #verification_input::placeholder {
+        letter-spacing: normal !important;
+        text-transform: none !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        font-size: 13px !important;
+        color: #64748b !important;
+        opacity: 0.8 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-12">
+    <div class="cyber-card p-8 border border-slate-800/80 text-center shadow-xl">
+        <div class="w-12 h-12 rounded-lg bg-blue-950 border border-blue-800/80 flex items-center justify-center text-blue-400 text-lg mx-auto mb-4">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+        <h2 class="text-xl font-bold text-white">E-Posta Doğrulama Kodu</h2>
+        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Hesabınızı aktifleştirmek için <span class="text-slate-200 font-mono font-medium">{{ email or 'e-posta' }}</span> adresine gönderilen 6 haneli doğrulama kodunu giriniz.
+        </p>
+
+        <form action="{{ url_for('verify') }}" method="POST" class="mt-6 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="email" value="{{ email or '' }}">
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-2">6 Haneli Doğrulama Kodu</label>
+                <input type="text" id="verification_input" name="code" value="" maxlength="8" required autofocus placeholder="Örn: 9F2A8K" 
+                    class="w-full text-center text-xl tracking-[0.3em] uppercase py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-blue-500 font-mono transition-colors">
+            </div>
+
+            <p class="text-[11px] text-slate-500">
+                <i class="fa-solid fa-circle-info mr-1"></i>Lütfen gelen kutunuzu (veya Spam klasörünü) kontrol ediniz.
+            </p>
+
+            <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-sm">
+                Hesabı Doğrula ve Girişe Geç
+            </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <form action="{{ url_for('resend_verification') }}" method="POST" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="email" value="{{ email or '' }}">
+                <button type="submit" class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                    <i class="fa-solid fa-rotate-right mr-1"></i>Kodu Tekrar Gönder
+                </button>
+            </form>
+            <a href="{{ url_for('register') }}" class="text-slate-400 hover:text-white transition-colors">Farklı E-Posta</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

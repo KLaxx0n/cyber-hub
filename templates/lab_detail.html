@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lab.title }} - Laboratuvar{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Top Breadcrumb & Status -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <a href="{{ url_for('red_team' if lab.category == 'red_team' else 'blue_team') }}" class="text-xs font-mono text-slate-400 hover:text-white flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i>{{ 'Red Team' if lab.category == 'red_team' else 'Blue Team' }} Lablarına Dön
+        </a>
+
+        <!-- Lab Timer Display (setInterval) -->
+        <div class="flex items-center space-x-3 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-stopwatch text-slate-400"></i>
+            <span class="text-xs font-mono text-slate-400 uppercase">Kalan Süre:</span>
+            <input type="hidden" id="lab-time-limit" value="{{ lab.time_limit_sec }}">
+            <span id="lab-timer-display" class="font-mono text-lg font-bold text-cyan-400 tracking-wider">
+                --:--
+            </span>
+        </div>
+    </div>
+
+    <!-- Timeout Banner (Initially Hidden) -->
+    <div id="lab-timeout-banner" class="hidden mb-6 p-4 rounded-xl bg-red-950/90 border border-red-500 text-red-200 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-red-400 animate-pulse"></i>
+            <div>
+                <h4 class="font-bold text-white">SÜRE DOLDU!</h4>
+                <p class="text-xs text-red-300">Bu laboratuvarın süresi tamamlandı ve kilitlendi. Yeniden denemek için sayfayı yenileyebilirsiniz.</p>
+            </div>
+        </div>
+        <button onclick="window.location.reload()" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-mono font-bold">
+            <i class="fa-solid fa-rotate-right mr-1"></i>Yeniden Başlat
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2 Cols: Scenario, Lab Mission & Interactive Sandbox -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Lab Overview Card -->
+            <div class="cyber-card p-6 border-slate-800">
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="text-xs font-mono px-2.5 py-0.5 rounded-full {{ 'bg-red-950 text-red-400 border border-red-800' if lab.category == 'red_team' else 'bg-cyan-950 text-cyan-400 border border-cyan-800' }}">
+                        {{ lab.sub_category }}
+                    </span>
+                    <span class="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        Zorluk: {{ lab.difficulty }}
+                    </span>
+                    <span class="text-xs font-mono text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800 font-bold">
+                        +{{ lab.points }} Puan
+                    </span>
+                    {% if is_solved %}
+                    <span class="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700 font-bold ml-auto flex items-center">
+                        <i class="fa-solid fa-circle-check mr-1"></i>ÇÖZÜLDÜ
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="text-2xl font-bold text-white mb-3">{{ lab.title }}</h1>
+                <p class="text-sm text-slate-300 leading-relaxed mb-4">{{ lab.description }}</p>
+
+                <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-3 font-mono">
+                    <div>
+                        <span class="text-cyan-400 font-bold uppercase block mb-1"><i class="fa-solid fa-bullseye mr-1.5"></i>Senaryo:</span>
+                        <p class="text-slate-300">{{ lab.scenario }}</p>
+                    </div>
+                    <div>
+                        <span class="text-emerald-400 font-bold uppercase block mb-1"><i class="fa-solid fa-list-check mr-1.5"></i>Görev Talimatları:</span>
+                        <p class="text-slate-300">{{ lab.instructions }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Sandbox Simulation Area -->
+            <div id="lab-interactive-area" class="cyber-card p-6 border-slate-800">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                    <h3 class="text-base font-bold text-white flex items-center font-mono">
+                        <i class="fa-solid fa-desktop text-cyan-400 mr-2"></i>İnteraktif Laboratuvar Simülatörü
+                    </h3>
+                    <span class="text-xs font-mono text-emerald-400 flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1.5"></span>Canlı Sandbox
+                    </span>
+                </div>
+
+                <!-- Simulation Component based on lab_type -->
+                {% if lab.lab_type == 'sqli' %}
+                <!-- SQLi Sandbox -->
+                <div class="space-y-4">
+                    <p class="text-xs text-slate-400">Hedef veritabanındaki zafiyetli arama çubuğunu test edin. İpucu: SQL mantık filtrelerini manipüle edin.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="sim_sqli_input" placeholder="Ürün adı ara (Örn: ' OR '1'='1)" 
+                            class="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-red-500">
+                        <button onclick="runSqliSim()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold rounded-lg transition-colors">
+                            <i class="fa-solid fa-magnifying-glass mr-1.5"></i>Sorgula
+                        </button>
+                    </div>
+                    <div id="sqli_output" class="terminal-window p-4 text-xs font-mono text-slate-300 min-h-[140px] overflow-auto">
+                        <span class="text-slate-500">// SQL sorgu sonuçları burada listelenecektir...</span>
+                    </div>
+                </div>
+
+                {% elif lab.lab_type == 'xss' %}
+                <!-- XSS Sandbox -->
+                <div class="space-y-4">
+                    <p class="text-xs text-slate-400">Geri bildirim formuna XSS payload'ı yerleştirerek simüle edilmiş oturum çerezini yakalayın.</p>
+                    <div class="space-y-2">
+                        <textarea id="sim_xss_input" rows="3" placeholder="<script>alert(document.cookie)</script>"
+                            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-red-500"></textarea>
+                        <button onclick="runXssSim()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold rounded-lg transition-colors">
+                            <i class="fa-solid fa-bug mr-1.5"></i>DOM'a Enjekte Et
+                        </button>
+                    </div>
+                    <div id="xss_output" class="terminal-window p-4 text-xs font-mono text-slate-300 min-h-[120px]">
+                        <span class="text-slate-500">// Enjeksiyon çıktısı burada görüntülenecektir...</span>
+                    </div>
+                </div>
+
+                {% elif lab.lab_type == 'phishing' %}
+                <!-- Phishing Analysis Sandbox -->
+                <div class="space-y-4">
+                    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono space-y-2">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                            <span class="text-red-400 font-bold"><i class="fa-solid fa-envelope mr-1.5"></i>Gelen Şüpheli E-Posta</span>
+                            <button onclick="inspectPhishingHeaders()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs">
+                                <i class="fa-solid fa-code mr-1"></i>Header Analizi Yap
+                            </button>
+                        </div>
+                        <div class="text-slate-300"><span class="text-slate-500">Kimden:</span> security-alert@micr0s0ft-security-auth.net</div>
+                        <div class="text-slate-300"><span class="text-slate-500">Konu:</span> ACIL: Şifreniz Askıya Alınacak!</div>
+                        <div class="mt-3 p-3 bg-slate-900/60 rounded text-slate-300">
+                            "Sayın Kullanıcı, Microsoft kurumsal parolanızın süresi 2 saat içerisinde dolacaktır. Lütfen aşağıdaki bağlantıya tıklayarak şifrenizi yenileyin: <span class="text-red-400 underline">http://login.micr0s0ft-security-auth.net/verify</span>"
+                        </div>
+                    </div>
+                    <div id="phishing_output" class="terminal-window p-4 text-xs font-mono text-slate-300 min-h-[120px] hidden"></div>
+                </div>
+
+                {% elif lab.lab_type == 'log_analysis' %}
+                <!-- Log Analysis Sandbox -->
+                <div class="space-y-4">
+                    <p class="text-xs text-slate-400">Sunucu erişim loglarında filtreleme yapın (Örn: HTTP durum kodları, dizin isimleri, dosya uzantıları).</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="sim_log_filter" placeholder="Loglarda filtrele (Örn: zip, 404, admin, 45.33)" 
+                            class="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-cyan-500">
+                        <button onclick="runLogFilter()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold rounded-lg transition-colors">
+                            <i class="fa-solid fa-filter mr-1.5"></i>Filtrele
+                        </button>
+                    </div>
+                    <div id="log_output" class="terminal-window p-4 text-xs font-mono text-slate-300 min-h-[160px] overflow-auto max-h-[300px]">
+                        <span class="text-slate-500">// Filtreleme butonuna tıklayarak logları inceleyin...</span>
+                    </div>
+                </div>
+
+                {% elif lab.lab_type == 'forensics' %}
+                <!-- Digital Forensics Sandbox -->
+                <div class="space-y-4">
+                    <p class="text-xs text-slate-400">Bellek dökümündeki silinmiş dosya parçalarını ve Hex değerlerini inceleyin.</p>
+                    <button onclick="runForensicsDump()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold rounded-lg transition-colors">
+                        <i class="fa-solid fa-microchip mr-1.5"></i>Hex Dökümünü Getir (Carve File)
+                    </button>
+                    <div id="forensics_output" class="terminal-window p-4 text-xs font-mono text-cyan-300 min-h-[160px] overflow-auto max-h-[300px]">
+                        <span class="text-slate-500">// Hex verisi yüklenmeyi bekliyor...</span>
+                    </div>
+                </div>
+
+                {% elif lab.lab_type == 'firewall' %}
+                <!-- Firewall Defense Sandbox -->
+                <div class="space-y-4">
+                    <p class="text-xs text-slate-400">Sunucuya gelen saldırı trafiğini engellemek için doğru iptables kuralını yazın.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="sim_firewall_input" placeholder="Örn: iptables -A INPUT -s 45.33.32.156 -j DROP" 
+                            class="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-cyan-500">
+                        <button onclick="runFirewallRule()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-bold rounded-lg transition-colors">
+                            <i class="fa-solid fa-shield-virus mr-1.5"></i>Kuralı Uygula
+                        </button>
+                    </div>
+                    <div id="firewall_output" class="terminal-window p-4 text-xs font-mono text-slate-300 min-h-[120px]">
+                        <span class="text-slate-500">// Güvenlik duvarı konsolu hazır...</span>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <!-- Right 1 Col: Flag Submission & Hint Box -->
+        <div class="space-y-6">
+
+            <!-- Flag Submission Card (Flag Hunting) -->
+            <div class="cyber-card p-6 border-slate-700 sticky top-20">
+                <div class="flex items-center space-x-2 text-white font-bold mb-4 font-mono">
+                    <i class="fa-solid fa-flag text-red-500 text-lg"></i>
+                    <h3 class="text-base">Bayrak Avı (Flag Hunting)</h3>
+                </div>
+
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Laboratuvarı çözdükten sonra elde ettiğiniz <span class="text-red-400 font-mono">FLAG{...}</span> formatındaki bayrağı buraya giriniz.
+                </p>
+
+                <!-- Feedback Message Container -->
+                <div id="flag-feedback" class="hidden p-3.5 rounded-lg border text-xs font-mono mb-4"></div>
+
+                <form id="flag-form" class="space-y-3">
+                    <input type="hidden" id="lab-id" value="{{ lab.id }}">
+                    <div>
+                        <label class="block text-[11px] font-mono text-slate-400 uppercase mb-1">Elde Edilen Flag</label>
+                        <input type="text" id="flag-input" placeholder="FLAG{...}" required
+                            class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white font-mono focus:outline-none focus:border-cyan-500 transition-colors">
+                    </div>
+
+                    <button type="submit" id="flag-submit-btn" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-mono font-bold text-xs shadow-md shadow-red-900/30 transition-all">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Bayrağı Gönder
+                    </button>
+                </form>
+
+                <!-- Hint Accordion -->
+                {% if lab.hint %}
+                <div class="mt-6 pt-4 border-t border-slate-800">
+                    <details class="group cursor-pointer">
+                        <summary class="flex items-center justify-between text-xs font-mono text-amber-400 hover:text-amber-300">
+                            <span><i class="fa-solid fa-lightbulb mr-1.5"></i>İpucu Görüntüle</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+                        </summary>
+                        <div class="mt-3 p-3 rounded-lg bg-amber-950/40 border border-amber-800/60 text-xs text-amber-200/90 font-mono">
+                            {{ lab.hint }}
+                        </div>
+                    </details>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Simulator interactions
+const labSlug = "{{ lab.slug }}";
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+function escapeHtml(unsafe) {
+    return (unsafe || '').replace(/[&<>"']/g, function(m) {
+        switch (m) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#039;';
+            default: return m;
+        }
+    });
+}
+
+async function runSqliSim() {
+    const input = document.getElementById('sim_sqli_input').value;
+    const output = document.getElementById('sqli_output');
+    output.innerHTML = '<span class="text-cyan-400">Sorgu çalıştırılıyor...</span>';
+
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ payload: input })
+    });
+    const data = await res.json();
+    if (data.success) {
+        let rows = data.output.map(item => `
+            <div class="py-1 border-b border-slate-800 flex justify-between">
+                <span>[ID: ${item.id}] ${escapeHtml(item.name)}</span>
+                <span class="${item.price.includes('FLAG') ? 'text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded' : 'text-slate-400'}">${escapeHtml(item.price)}</span>
+            </div>
+        `).join('');
+
+        output.innerHTML = `
+            <div class="text-amber-400 text-[11px] mb-2">${escapeHtml(data.log)}</div>
+            <div class="space-y-1">${rows}</div>
+        `;
+    }
+}
+
+async function runXssSim() {
+    const input = document.getElementById('sim_xss_input').value;
+    const output = document.getElementById('xss_output');
+
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ payload: input })
+    });
+    const data = await res.json();
+    if (data.triggered) {
+        output.innerHTML = `
+            <div class="p-3 bg-red-950/80 border border-red-500 rounded text-red-200">
+                <div class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${escapeHtml(data.alert_message)}</div>
+                <div class="text-[11px] text-slate-400">Ham DOM Render: &lt;${escapeHtml(data.raw_render)}&gt;</div>
+            </div>
+        `;
+    } else {
+        output.innerHTML = `<div class="text-slate-400">${escapeHtml(data.message)}</div>`;
+    }
+}
+
+async function inspectPhishingHeaders() {
+    const output = document.getElementById('phishing_output');
+    output.classList.remove('hidden');
+    output.innerHTML = '<span class="text-cyan-400">Header bilgileri analiz ediliyor...</span>';
+
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.headers) {
+        let headersHtml = Object.entries(data.headers).map(([k, v]) => `
+            <div class="py-1 border-b border-slate-800">
+                <span class="text-cyan-400 font-bold">${escapeHtml(k)}:</span> 
+                <span class="${v.includes('FLAG') ? 'text-emerald-400 font-bold bg-emerald-950 px-1 rounded' : 'text-slate-300'}">${escapeHtml(v)}</span>
+            </div>
+        `).join('');
+        output.innerHTML = headersHtml;
+    }
+}
+
+async function runLogFilter() {
+    const filter = document.getElementById('sim_log_filter').value;
+    const output = document.getElementById('log_output');
+
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ payload: filter })
+    });
+    const data = await res.json();
+    if (data.logs) {
+        let lines = data.logs.map(line => `
+            <div class="py-0.5 ${line.includes('FLAG') ? 'text-emerald-400 font-bold bg-emerald-950/60 p-1 rounded' : 'text-slate-300'}">
+                ${escapeHtml(line)}
+            </div>
+        `).join('');
+        output.innerHTML = lines || '<span class="text-slate-500">Eşleşen log kaydı bulunamadı.</span>';
+    }
+}
+
+async function runForensicsDump() {
+    const output = document.getElementById('forensics_output');
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.hex_view) {
+        output.innerHTML = `
+            <div class="text-amber-400 text-xs mb-2">// ${escapeHtml(data.note)}</div>
+            <pre class="font-mono text-xs text-slate-300 leading-relaxed">${escapeHtml(data.hex_view.join('\n'))}</pre>
+        `;
+    }
+}
+
+async function runFirewallRule() {
+    const input = document.getElementById('sim_firewall_input').value;
+    const output = document.getElementById('firewall_output');
+    const res = await fetch(`/api/lab-action/${labSlug}`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ payload: input })
+    });
+    const data = await res.json();
+    if (data.blocked) {
+        output.innerHTML = `<div class="p-3 bg-emerald-950 border border-emerald-500 text-emerald-300 rounded font-bold">${escapeHtml(data.message)}</div>`;
+    } else {
+        output.innerHTML = `<div class="p-3 bg-red-950 border border-red-500 text-red-300 rounded">${escapeHtml(data.message)}</div>`;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,134 @@
+/* ============================================================
+   NÖHÜ Bilgi Teknolojileri - Siber Güvenlik Eğitim Platformu
+   Transparan / Cam Efektli (Glassmorphism) Koyu Tema
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg-main: #06090f;
+  --bg-card: rgba(15, 23, 42, 0.35); /* Gerçekten şeffaf cam rengi */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-focus: #3b82f6;
+  --brand-primary: #2563eb;
+  --brand-hover: #1d4ed8;
+  --red-team: #dc2626;
+  --blue-team: #0284c7;
+  --success: #10b981;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: #e2e8f0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Arka Plan Ağı */
+#bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#cyber-bg-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cyber-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle at 50% 30%, transparent 20%, rgba(6, 9, 15, 0.6) 95%);
+}
+
+/* Transparan Buzlu Cam Kartlar (Glassmorphism - Arkası Net Görünür) */
+.cyber-card {
+  background-color: rgba(15, 23, 42, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.cyber-card:hover {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+}
+
+.cyber-card-red:hover {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.cyber-card-blue:hover {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+}
+
+/* Buton Standartları */
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-hover);
+}
+
+/* Form Girdi Alanları (Yarı Transparan) */
+input, select, textarea {
+  background-color: rgba(13, 19, 31, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f1f5f9 !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 1px var(--border-focus) !important;
+}
+
+/* Sayaç Uyarısı */
+.timer-critical {
+  color: #ef4444 !important;
+  font-weight: 700;
+}
+
+/* Kaydırma Çubuğu */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #06090f;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
