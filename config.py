@@ -42,6 +42,6 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'gsefa5683@gmail.com'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'cybergubsecurity.tr@gmail.com'
     import base64
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('cXp1eHZncWxibmZmbXVmaQ==').decode()
