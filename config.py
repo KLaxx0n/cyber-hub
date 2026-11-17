@@ -19,8 +19,11 @@ class Config:
     
     # Veritabanı Yapılandırması (PostgreSQL veya SQLite)
     _db_url = os.environ.get('DATABASE_URL')
-    if _db_url and _db_url.startswith('postgres://'):
-        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    if _db_url:
+        if _db_url.startswith('postgres://'):
+            _db_url = _db_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+        elif _db_url.startswith('postgresql://') and not _db_url.startswith('postgresql+'):
+            _db_url = _db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
     
     _sqlite_custom_path = os.environ.get('SQLITE_PATH')
     if _sqlite_custom_path:
