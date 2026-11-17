@@ -1,3 +1,9 @@
+databases:
+  - name: cyberhub-db
+    databaseName: cyberhub
+    user: cyberhub_user
+    plan: free
+
 services:
   - type: web
     name: nohu-cyberhub
@@ -6,8 +12,12 @@ services:
     startCommand: gunicorn app:app
     plan: free
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cyberhub-db
+          property: connectionString
       - key: SECRET_KEY
-        generateValue: true
+        value: "94c7a6f23b12850d754162e24e1d90479b422116da3e58fa266850bbdb7a7407"
       - key: FLASK_DEBUG
         value: "False"
       - key: PYTHON_VERSION

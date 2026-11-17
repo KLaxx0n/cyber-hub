@@ -87,6 +87,11 @@ def superadmin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Kalıcı Oturum Denetimi (Kullanıcı hesaplarının kapanmaması için 365 gün kalıcı oturum)
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+
 # Context Processor for Nav and Auth State
 @app.context_processor
 def inject_user():

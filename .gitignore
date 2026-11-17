@@ -9,4 +9,9 @@ venv/
 ENV/
 .idea/
 .vscode/
+# Database
+*.db
+*.sqlite3
+cyberhub.db
+
 chunk_page.js

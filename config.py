@@ -1,13 +1,22 @@
 import os
 import secrets
+from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 class Config:
-    # Güçlü gizli anahtar (Varsayılan tahmin edilebilir anahtar kaldırıldı)
-    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+    # Kalıcı ve sabit gizli anahtar (Oturumların deploylarda düşmesini önler)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or "94c7a6f23b12850d754162e24e1d90479b422116da3e58fa266850bbdb7a7407"
+    
+    # Oturumların Kapanmaması İçin Kalıcı Oturum Ayarları (1 Yıl)
+    PERMANENT_SESSION_LIFETIME = timedelta(days=365)
+    SESSION_COOKIE_NAME = 'cyberhub_session'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    REMEMBER_COOKIE_DURATION = timedelta(days=365)
+    
     # Veritabanı Yapılandırması (PostgreSQL veya SQLite)
     _db_url = os.environ.get('DATABASE_URL')
     if _db_url and _db_url.startswith('postgres://'):
@@ -20,10 +29,6 @@ class Config:
         SQLALCHEMY_DATABASE_URI = _db_url or f'sqlite:///{os.path.join(BASE_DIR, "cyberhub.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TEMPLATES_AUTO_RELOAD = True
-    
-    # Çerez Güvenlik Ayarları
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
     
     # CSRF Koruma Ayarları
     WTF_CSRF_ENABLED = True

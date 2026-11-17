@@ -178,7 +178,8 @@ def seed_database(app):
                 db.session.add(new_user)
             else:
                 existing_user.is_verified = True
-                existing_user.password_hash = u_info['password_hash']
+                if not existing_user.password_hash:
+                    existing_user.password_hash = u_info['password_hash']
                 existing_user.role = u_info.get('role', existing_user.role)
                 existing_user.is_leader = u_info.get('is_leader', existing_user.is_leader)
                 existing_user.is_founder = u_info.get('is_founder', existing_user.is_founder)
