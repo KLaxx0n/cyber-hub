@@ -73,6 +73,11 @@ def login_required(f):
         if 'user_id' not in session:
             flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
             return redirect(url_for('login', next=request.url))
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            flash('Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.', 'warning')
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -84,7 +89,11 @@ def leader_required(f):
             flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
             return redirect(url_for('login', next=request.url))
         user = User.query.get(session['user_id'])
-        if not user or not user.is_team_leader:
+        if not user:
+            session.clear()
+            flash('Oturum geçersiz. Lütfen tekrar giriş yapınız.', 'warning')
+            return redirect(url_for('login'))
+        if not user.is_team_leader:
             flash('Bu sayfaya erişim yetkiniz bulunmamaktadır. Yalnızca Takım Liderleri ve Süper Yöneticiler görüntüleyebilir.', 'danger')
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
@@ -98,7 +107,11 @@ def superadmin_required(f):
             flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
             return redirect(url_for('login', next=request.url))
         user = User.query.get(session['user_id'])
-        if not user or not user.is_superadmin:
+        if not user:
+            session.clear()
+            flash('Oturum geçersiz. Lütfen tekrar giriş yapınız.', 'warning')
+            return redirect(url_for('login'))
+        if not user.is_superadmin:
             flash('Bu kritik işlem için yetkiniz yetersiz. Yalnızca Süper Yönetici (Root) gerçekleştirebilir.', 'danger')
             return redirect(url_for('admin_panel'))
         return f(*args, **kwargs)
@@ -115,6 +128,8 @@ def inject_user():
     current_user = None
     if 'user_id' in session:
         current_user = User.query.get(session['user_id'])
+        if not current_user:
+            session.clear()
     return dict(current_user=current_user)
 
 # HTTP Güvenlik Başlıkları (Security Headers)
@@ -181,7 +196,11 @@ def about():
 @limiter.limit("5 per minute")
 def register():
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        user = User.query.get(session['user_id'])
+        if user:
+            return redirect(url_for('dashboard'))
+        else:
+            session.clear()
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -352,7 +371,11 @@ def verify():
 @limiter.limit("30 per minute")
 def login():
     if 'user_id' in session:
-        return redirect(url_for('dashboard'))
+        user = User.query.get(session['user_id'])
+        if user:
+            return redirect(url_for('dashboard'))
+        else:
+            session.clear()
 
     if request.method == 'POST':
         login_id = request.form.get('login_id', '').strip()
@@ -702,7 +725,11 @@ def reset_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user = User.query.get(session['user_id'])
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        session.clear()
+        flash('Oturum süreniz doldu veya hesap bulunamadı. Lütfen tekrar giriş yapınız.', 'warning')
+        return redirect(url_for('login'))
     
     # Calculate user rank among verified active users
     rank = User.query.filter(User.is_verified == True, User.score > user.score).count() + 1
