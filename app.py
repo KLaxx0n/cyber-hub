@@ -273,11 +273,9 @@ def register():
         email_sent, email_msg = send_verification_email(email, username, code)
         session['pending_verify_email'] = email
         if email_sent:
-            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen kodu girerek hesabınızı aktifleştiriniz.', 'success')
-            session.pop('dev_fallback_code', None)
+            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ederek kodu giriniz.', 'success')
         else:
-            flash(f'Kaydınız alındı! Doğrulama kodunuz {email} adresine iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'info')
-            session['dev_fallback_code'] = code
+            flash(f'Kaydınız alındı! 6 haneli doğrulama kodunuz {email} adresine iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'info')
 
         # Kullanıcı doğrulanmadan KESİNLİKLE otomatik oturum açılmaz ve doğrudan panele gönderilmez
         return redirect(url_for('verify', email=email))
@@ -305,10 +303,8 @@ def resend_verification():
     session['pending_verify_email'] = email
     if email_sent:
         flash(f'Yeni doğrulama kodunuz {email} adresine tekrar gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
-        session.pop('dev_fallback_code', None)
     else:
-        flash(f'Yeni doğrulama kodu oluşturuldu. Lütfen gelen kutunuzu kontrol ediniz.', 'info')
-        session['dev_fallback_code'] = new_code
+        flash(f'Yeni doğrulama kodunuz oluşturuldu. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'info')
 
     return redirect(url_for('verify', email=email))
 
@@ -354,7 +350,6 @@ def verify():
             
             # Doğrulama başarılı - Oturumu güvenle aç ve kullanıcıyı panele al
             session.pop('pending_verify_email', None)
-            session.pop('dev_fallback_code', None)
             session.clear()
             session.permanent = True
             session['user_id'] = user.id
