@@ -84,6 +84,56 @@
             </div>
         </form>
     </div>
+
+    <!-- Admin / Leader Edit Event Modal (Popup Overlay) -->
+    <div id="editEventModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 hidden">
+        <div class="cyber-card p-6 border border-emerald-500/50 rounded-xl bg-slate-950 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-emerald-300 font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Etkinliği Düzenle
+                </h3>
+                <button type="button" onclick="closeEditEventModal()" class="text-slate-400 hover:text-white text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="editEventForm" action="" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="md:col-span-2">
+                    <label class="block text-slate-300 mb-1">Etkinlik Başlığı *</label>
+                    <input type="text" id="edit_title" name="title" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Kategori / Tür *</label>
+                    <select id="edit_event_type" name="event_type" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                        <option value="CTF">🚩 Canlı CTF Yarışması</option>
+                        <option value="Workshop">🛠️ Uygulamalı Workshop</option>
+                        <option value="Seminer">🎤 Uzman Semineri / Konferans</option>
+                        <option value="Yarışma">🏆 Harici Yarışma / Hackathon</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Tarih & Saat *</label>
+                    <input type="datetime-local" id="edit_event_date" name="event_date" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Konum / Platform</label>
+                    <input type="text" id="edit_location" name="location" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Kayıt / Yarışma Linki (İsteğe Bağlı)</label>
+                    <input type="url" id="edit_external_link" name="external_link" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-slate-300 mb-1">Etkinlik Açıklaması *</label>
+                    <textarea id="edit_description" name="description" rows="3" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditEventModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">İptal</button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
     {% endif %}
 
     <!-- Next Urgent Event Countdown Widget -->
@@ -156,12 +206,27 @@
                             {{ ev.event_type }}
                         </span>
                         {% if current_user and current_user.is_team_leader %}
-                        <form action="{{ url_for('admin_delete_event', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Bu etkinliği silmek istiyor musunuz?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="text-slate-600 hover:text-red-400 text-xs transition-colors" title="Etkinliği Sil">
-                                <i class="fa-solid fa-trash-can"></i>
+                        <div class="flex items-center gap-2">
+                            <button type="button" 
+                                    data-event-id="{{ ev.id }}"
+                                    data-title="{{ ev.title }}"
+                                    data-type="{{ ev.event_type }}"
+                                    data-date="{{ ev.event_date.strftime('%Y-%m-%dT%H:%M') }}"
+                                    data-location="{{ ev.location or '' }}"
+                                    data-link="{{ ev.external_link or '' }}"
+                                    data-desc="{{ ev.description or '' }}"
+                                    onclick="openEditModalFromButton(this)"
+                                    class="text-slate-400 hover:text-emerald-400 text-xs transition-colors p-1" 
+                                    title="Etkinliği Düzenle">
+                                <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                        </form>
+                            <form action="{{ url_for('admin_delete_event', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Bu etkinliği silmek istiyor musunuz?');" class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-slate-500 hover:text-red-400 text-xs transition-colors p-1" title="Etkinliği Sil">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </form>
+                        </div>
                         {% endif %}
                     </div>
                     <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
@@ -212,7 +277,30 @@
             <div class="p-4 rounded-lg bg-slate-950/60 border border-slate-800/80 text-slate-400">
                 <div class="flex items-center justify-between text-[11px] mb-1">
                     <span class="text-slate-500">{{ ev.event_type }}</span>
-                    <span>{{ ev.event_date.strftime('%d.%m.%Y') }}</span>
+                    <div class="flex items-center gap-2">
+                        <span>{{ ev.event_date.strftime('%d.%m.%Y') }}</span>
+                        {% if current_user and current_user.is_team_leader %}
+                        <button type="button" 
+                                data-event-id="{{ ev.id }}"
+                                data-title="{{ ev.title }}"
+                                data-type="{{ ev.event_type }}"
+                                data-date="{{ ev.event_date.strftime('%Y-%m-%dT%H:%M') }}"
+                                data-location="{{ ev.location or '' }}"
+                                data-link="{{ ev.external_link or '' }}"
+                                data-desc="{{ ev.description or '' }}"
+                                onclick="openEditModalFromButton(this)"
+                                class="text-slate-500 hover:text-emerald-400 text-xs transition-colors p-0.5" 
+                                title="Etkinliği Düzenle">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <form action="{{ url_for('admin_delete_event', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Bu etkinliği silmek istiyor musunuz?');" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="text-slate-600 hover:text-red-400 text-xs transition-colors p-0.5" title="Etkinliği Sil">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="font-semibold text-slate-300">{{ ev.title }}</div>
             </div>
@@ -256,6 +344,52 @@
 
         updateCountdown();
         setInterval(updateCountdown, 1000);
+    });
+
+    function openEditModalFromButton(btn) {
+        const id = btn.getAttribute('data-event-id');
+        const title = btn.getAttribute('data-title') || '';
+        const type = btn.getAttribute('data-type') || 'CTF';
+        const date = btn.getAttribute('data-date') || '';
+        const location = btn.getAttribute('data-location') || '';
+        const link = btn.getAttribute('data-link') || '';
+        const desc = btn.getAttribute('data-desc') || '';
+
+        const form = document.getElementById('editEventForm');
+        if (form) {
+            form.action = `/admin/event/edit/${id}`;
+        }
+        const titleEl = document.getElementById('edit_title');
+        if (titleEl) titleEl.value = title;
+        const typeEl = document.getElementById('edit_event_type');
+        if (typeEl) typeEl.value = type;
+        const dateEl = document.getElementById('edit_event_date');
+        if (dateEl) dateEl.value = date;
+        const locEl = document.getElementById('edit_location');
+        if (locEl) locEl.value = location;
+        const linkEl = document.getElementById('edit_external_link');
+        if (linkEl) linkEl.value = link;
+        const descEl = document.getElementById('edit_description');
+        if (descEl) descEl.value = desc;
+
+        const modal = document.getElementById('editEventModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    function closeEditEventModal() {
+        const modal = document.getElementById('editEventModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    window.addEventListener('click', function(e) {
+        const editModal = document.getElementById('editEventModal');
+        if (editModal && e.target === editModal) {
+            closeEditEventModal();
+        }
     });
 </script>
 {% endblock %}

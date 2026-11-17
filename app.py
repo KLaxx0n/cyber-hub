@@ -1037,6 +1037,7 @@ def events_page():
 
 @app.route('/admin/event/add', methods=['POST'])
 @leader_required
+@csrf.exempt
 def admin_add_event():
     title = request.form.get('title', '').strip()
     description = request.form.get('description', '').strip()
@@ -1073,8 +1074,47 @@ def admin_add_event():
     flash(f"'{title}' etkinliği başarıyla takvime eklendi.", 'success')
     return redirect(url_for('events_page'))
 
-@app.route('/admin/event/delete/<int:event_id>', methods=['POST'])
+@app.route('/admin/event/edit/<int:event_id>', methods=['POST'])
 @leader_required
+@csrf.exempt
+def admin_edit_event(event_id):
+    ev = CyberEvent.query.get_or_404(event_id)
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    event_type = request.form.get('event_type', 'CTF')
+    location = request.form.get('location', '').strip() or 'NÖHÜ Siber Lab'
+    date_str = request.form.get('event_date', '')
+    external_link = request.form.get('external_link', '').strip() or None
+    organizer = request.form.get('organizer', '').strip() or 'NÖHÜ Siber Güvenlik Kulübü'
+
+    if not title or not description or not date_str:
+        flash('Lütfen etkinlik başlığı, açıklaması ve tarihini eksiksiz doldurunuz.', 'danger')
+        return redirect(url_for('events_page'))
+
+    try:
+        event_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+    except ValueError:
+        try:
+            event_date = datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            flash('Geçersiz tarih formatı.', 'danger')
+            return redirect(url_for('events_page'))
+
+    ev.title = title
+    ev.description = description
+    ev.event_type = event_type
+    ev.location = location
+    ev.event_date = event_date
+    ev.external_link = external_link
+    ev.organizer = organizer
+
+    db.session.commit()
+    flash(f"'{title}' etkinliği başarıyla güncellendi.", 'success')
+    return redirect(url_for('events_page'))
+
+@app.route('/admin/event/delete/<int:event_id>', methods=['GET', 'POST'])
+@leader_required
+@csrf.exempt
 def admin_delete_event(event_id):
     ev = CyberEvent.query.get_or_404(event_id)
     title = ev.title
