@@ -154,18 +154,33 @@ def seed_database(app):
                 new_lab = Lab(**lab_info)
                 db.session.add(new_lab)
 
-        # Predefined default users
+        # Predefined default users (Sefa_Gumus & KLaxx0n kurucu ve süper yöneticiler)
         users_data = [
             {
                 'username': 'Sefa_Gumus',
                 'email': 'gsefa5683@gmail.com',
-                'password_hash': generate_password_hash('23Sefa'),
+                'password_hash': 'scrypt:32768:8:1$9An1lonMBKeJkdew$4b5f2082fdf506c66373712f0618df48f1ea1e18b733859b78e40cdb472b27e7b59e42d6b14a4a2ecad14740bac3c7ab0bc38f99f43675b61333dac39e81925f',
                 'is_verified': True,
                 'score': 0,
                 'is_leader': True,
                 'is_founder': True,
                 'role': 'superadmin',
-                'assigned_team': 'blue_team'
+                'assigned_team': 'blue_team',
+                'is_suspended': False,
+                'failed_login_attempts': 0
+            },
+            {
+                'username': 'KLaxx0n',
+                'email': 'jacjsparrow07@gmail.com',
+                'password_hash': 'scrypt:32768:8:1$ZO6Ad06i968jnM4x$72a1a145ca272994204032836122420f54829a34434e1625c303736a47331f47880bac73dd5322b4c91d09ed6887d7aef82fe2e3114ffc15793e51ef99825769',
+                'is_verified': True,
+                'score': 0,
+                'is_leader': True,
+                'is_founder': True,
+                'role': 'superadmin',
+                'assigned_team': 'blue_team',
+                'is_suspended': False,
+                'failed_login_attempts': 0
             }
         ]
 
@@ -183,6 +198,8 @@ def seed_database(app):
                 existing_user.role = u_info.get('role', existing_user.role)
                 existing_user.is_leader = u_info.get('is_leader', existing_user.is_leader)
                 existing_user.is_founder = u_info.get('is_founder', existing_user.is_founder)
+                existing_user.is_suspended = False
+                existing_user.failed_login_attempts = 0
 
         db.session.commit()
         print("[+] Veritabani basariyla olusturuldu ve ornek veriler yuklendi.")

