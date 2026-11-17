@@ -56,18 +56,14 @@ class User(db.Model):
         if self.role in ['superadmin', 'root']:
             return True
         # 2. Ana root hesabı her zaman korunur
-        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
+        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'klaxx0n']:
             return True
-        # 3. Founder bayrağı yalnızca öğrenci/lider/yöneticiye düşürülmemişse superadmin sayılır
-        return bool(self.is_founder and self.role not in ['student', 'leader', 'manager'])
-
-    @property
-    def is_manager(self):
-        return self.role in ['manager', 'team_manager'] or self.is_superadmin
+        # 3. Founder bayrağı yalnızca öğrenci/lidere düşürülmemişse superadmin sayılır
+        return bool(self.is_founder and self.role not in ['student', 'leader'])
 
     @property
     def is_team_leader(self):
-        return self.role in ['leader', 'manager', 'team_manager'] or bool(self.is_leader) or self.is_superadmin
+        return self.role == 'leader' or bool(self.is_leader) or self.is_superadmin
 
     @property
     def role_badge(self):
@@ -78,14 +74,6 @@ class User(db.Model):
                 'short': 'Süper Admin',
                 'class': 'text-amber-300 bg-amber-950/90 border-amber-600/80',
                 'icon': 'fa-solid fa-crown text-amber-400'
-            }
-        elif self.role in ['manager', 'team_manager']:
-            return {
-                'key': 'manager',
-                'name': 'Takım Yöneticisi',
-                'short': 'Yönetici',
-                'class': 'text-emerald-300 bg-emerald-950/90 border-emerald-600/80',
-                'icon': 'fa-solid fa-user-tie text-emerald-400'
             }
         elif self.is_team_leader:
             return {
@@ -150,7 +138,6 @@ class User(db.Model):
             'failed_login_attempts': self.failed_login_attempts or 0,
             'assigned_team': self.assigned_team,
             'role': self.role,
-            'is_manager': self.is_manager,
             'is_leader': self.is_team_leader,
             'is_superadmin': self.is_superadmin,
             'completed_labs': self.completed_labs_count()

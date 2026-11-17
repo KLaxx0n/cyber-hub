@@ -495,7 +495,6 @@ def admin_panel():
     red_count = sum(1 for u in all_users if u.assigned_team == 'red_team')
     blue_count = sum(1 for u in all_users if u.assigned_team == 'blue_team')
     superadmin_count = sum(1 for u in all_users if u.is_superadmin)
-    manager_count = sum(1 for u in all_users if u.role == 'manager')
     leader_count = sum(1 for u in all_users if u.role == 'leader' and not u.is_superadmin)
     student_count = sum(1 for u in all_users if u.role == 'student' or not u.role)
     total_completed = UserLabProgress.query.filter_by(is_completed=True).count()
@@ -511,7 +510,6 @@ def admin_panel():
                            red_count=red_count,
                            blue_count=blue_count,
                            superadmin_count=superadmin_count,
-                           manager_count=manager_count,
                            leader_count=leader_count,
                            student_count=student_count,
                            total_completed=total_completed,
@@ -540,7 +538,7 @@ def admin_set_team(user_id):
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/verify/<int:user_id>', methods=['GET', 'POST'])
-@leader_required
+@superadmin_required
 @csrf.exempt
 def admin_verify_user(user_id):
     target_user = User.query.get_or_404(user_id)
@@ -548,7 +546,7 @@ def admin_verify_user(user_id):
     target_user.verification_code = None
     target_user.verification_code_expires_at = None
     db.session.commit()
-    flash(f"'{target_user.username}' kullanıcısı lider onayıyla başarıyla doğrulandı.", 'success')
+    flash(f"'{target_user.username}' kullanıcısı başarıyla doğrulandı.", 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/delete/<int:user_id>', methods=['GET', 'POST'])
@@ -601,7 +599,7 @@ def admin_set_role(user_id):
     current_u = User.query.get(session.get('user_id'))
     new_role = request.form.get('role', 'student')
     
-    if new_role not in ['student', 'leader', 'manager', 'superadmin', 'root']:
+    if new_role not in ['student', 'leader', 'superadmin', 'root']:
         flash('Geçersiz rol seçimi.', 'danger')
         return redirect(url_for('admin_panel'))
         
@@ -611,11 +609,6 @@ def admin_set_role(user_id):
         target_user.role = 'root'
         target_user.is_leader = True
         target_user.is_founder = True
-    elif new_role == 'manager':
-        canonical_role = 'manager'
-        target_user.role = 'manager'
-        target_user.is_leader = True
-        target_user.is_founder = False
     elif new_role == 'leader':
         canonical_role = 'leader'
         target_user.role = 'leader'
@@ -632,7 +625,6 @@ def admin_set_role(user_id):
     role_names = {
         'root': 'Root (Süper Yönetici)',
         'superadmin': 'Root (Süper Yönetici)',
-        'manager': 'Takım Yöneticisi',
         'leader': 'Takım Lideri',
         'student': 'Öğrenci'
     }

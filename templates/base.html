@@ -82,11 +82,9 @@
                         Hakkımızda
                     </a>
                     {% if current_user and current_user.is_team_leader %}
-                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% elif current_user.role in ['manager', 'team_manager'] %}text-emerald-300 hover:text-emerald-200 bg-emerald-950/40 hover:bg-emerald-950/70 border-emerald-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-2 lg:px-2.5 py-1.5 rounded-md transition-colors flex items-center border text-[11px] lg:text-xs font-mono shadow-sm whitespace-nowrap shrink-0">
+                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-2 lg:px-2.5 py-1.5 rounded-md transition-colors flex items-center border text-[11px] lg:text-xs font-mono shadow-sm whitespace-nowrap shrink-0">
                         {% if current_user.is_superadmin %}
                             <i class="fa-solid fa-crown mr-1.5 text-amber-400 text-xs shrink-0"></i>Sistem Yönetimi
-                        {% elif current_user.role in ['manager', 'team_manager'] %}
-                            <i class="fa-solid fa-user-tie mr-1.5 text-emerald-400 text-xs shrink-0"></i>Yönetici Paneli
                         {% else %}
                             <i class="fa-solid fa-user-shield mr-1.5 text-sky-400 text-xs shrink-0"></i>Lider Paneli
                         {% endif %}
@@ -102,8 +100,6 @@
                             <span class="text-slate-200 font-semibold truncate max-w-[100px] sm:max-w-[130px] whitespace-nowrap">{{ current_user.username }}</span>
                             {% if current_user.is_superadmin %}
                                 <span class="bg-amber-950/90 text-amber-300 border border-amber-600 text-[10px] px-1.5 py-0.5 rounded font-bold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">👑 Root</span>
-                            {% elif current_user.role in ['manager', 'team_manager'] %}
-                                <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">👔 Yönetici</span>
                             {% elif current_user.is_team_leader %}
                                 <span class="bg-sky-950/90 text-sky-300 border border-sky-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">🛡️ Lider</span>
                             {% endif %}

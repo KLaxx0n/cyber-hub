@@ -24,10 +24,6 @@
                         <span class="px-2.5 py-0.5 rounded-full bg-amber-950/90 border border-amber-500 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-crown text-[11px] text-amber-400"></i>Süper Yönetici (Root)
                         </span>
-                        {% elif user.role in ['manager', 'team_manager'] %}
-                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-950/90 border border-emerald-500 text-emerald-300 font-mono text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-user-tie text-[11px] text-emerald-400"></i>Takım Yöneticisi
-                        </span>
                         {% elif user.is_team_leader %}
                         <span class="px-2.5 py-0.5 rounded-full bg-sky-950/90 border border-sky-600 text-sky-300 font-mono text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-user-shield text-[11px] text-sky-400"></i>Takım Lideri
@@ -100,27 +96,6 @@
         <a href="{{ url_for('admin_panel') }}" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs font-mono flex items-center space-x-2 transition-all shadow-md flex-shrink-0">
             <i class="fa-solid fa-crown"></i>
             <span>Süper Yönetici Paneline Git &rarr;</span>
-        </a>
-    </div>
-    {% elif user.role in ['manager', 'team_manager'] %}
-    <div class="cyber-card p-5 mb-8 border border-emerald-500/40 rounded-xl bg-gradient-to-r from-emerald-950/30 to-slate-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div class="flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-lg bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
-                <i class="fa-solid fa-user-tie"></i>
-            </div>
-            <div>
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    Takım Yöneticisi Yetkisi
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-300 font-mono">Takım & Operasyon Yönetimi</span>
-                </h3>
-                <p class="text-xs text-slate-300 mt-0.5">
-                    Platform üyelerini <strong>Red Team</strong>, <strong>Blue Team</strong> ve <strong>Purple Team</strong> takımlarına atayabilir, üye durumlarını koordine edebilirsiniz.
-                </p>
-            </div>
-        </div>
-        <a href="{{ url_for('admin_panel') }}" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono flex items-center space-x-2 transition-all shadow-md flex-shrink-0">
-            <i class="fa-solid fa-users-gear"></i>
-            <span>Yönetici Paneline Git &rarr;</span>
         </a>
     </div>
     {% elif user.is_team_leader %}

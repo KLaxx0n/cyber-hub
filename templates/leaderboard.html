@@ -106,10 +106,6 @@
                             <span class="text-[10px] bg-amber-950/90 text-amber-300 px-1.5 py-0.5 rounded border border-amber-600 font-mono" title="Süper Yönetici">
                                 <i class="fa-solid fa-crown text-[9px] mr-0.5 text-amber-400"></i>Root
                             </span>
-                            {% elif u.role in ['manager', 'team_manager'] %}
-                            <span class="text-[10px] bg-emerald-950/90 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-600 font-mono" title="Takım Yöneticisi">
-                                <i class="fa-solid fa-user-tie text-[9px] mr-0.5 text-emerald-400"></i>Yönetici
-                            </span>
                             {% elif u.is_team_leader %}
                             <span class="text-[10px] bg-sky-950/90 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600 font-mono" title="Takım Lideri">
                                 <i class="fa-solid fa-user-shield text-[9px] mr-0.5 text-sky-400"></i>Lider

@@ -23,9 +23,9 @@
                 </h1>
                 <p class="text-xs md:text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed">
                     {% if current_user.is_superadmin %}
-                        Platformun en üst düzey <strong>Süper Yönetici (Root)</strong> yetkisine sahipsiniz. Öğrencileri Red/Blue takımlarına atayabilir, <strong>Takım Lideri</strong> rolü tanımlayabilir, skor düzenleyebilir veya hesapları yönetebilirsiniz.
+                        Platformun en üst düzey <strong>Süper Yönetici (Root)</strong> yetkisine sahipsiniz. Öğrencileri Red/Blue/Purple takımlarına atayabilir, <strong>Takım Lideri</strong> rolü tanımlayabilir, skor düzenleyebilir veya hesapları yönetebilirsiniz.
                     {% else %}
-                        <strong>Takım Lideri</strong> yetkisiyle öğrencileri Red Team veya Blue Team gruplarına atayabilir ve e-posta aktivasyonlarını onaylayabilirsiniz. Rol ve hesap silme işlemleri Süper Yönetici onayına bağlıdır.
+                        <strong>Takım Lideri</strong> yetkisiyle öğrencileri <strong>Red Team</strong>, <strong>Blue Team</strong> veya <strong>Purple Team</strong> gruplarına atayabilirsiniz. Öğrenci e-posta adresleri ve sistem ayarları liderler için gizlidir.
                     {% endif %}
                 </p>
             </div>
@@ -46,10 +46,6 @@
             <span class="text-slate-400 font-semibold">Rol Hiyerarşisi:</span>
             <span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-600/80 text-amber-300 flex items-center gap-1">
                 <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Süper Yönetici (Root)
-            </span>
-            <span class="text-slate-600">&gt;</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-600/80 text-emerald-300 flex items-center gap-1">
-                <i class="fa-solid fa-user-tie text-[10px] text-emerald-400"></i> Takım Yöneticisi (Yönetim & Koordinasyon)
             </span>
             <span class="text-slate-600">&gt;</span>
             <span class="px-2 py-0.5 rounded bg-sky-950/80 border border-sky-600/80 text-sky-300 flex items-center gap-1">
@@ -155,7 +151,7 @@
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
-            <input type="text" id="userSearchInput" placeholder="Kullanıcı adı veya e-posta ara..." 
+            <input type="text" id="userSearchInput" placeholder="{% if current_user.is_superadmin %}Kullanıcı adı veya e-posta ara...{% else %}Kullanıcı adı ara...{% endif %}" 
                 class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors">
         </div>
         <div class="text-xs font-mono text-slate-400 flex items-center gap-2">
@@ -172,12 +168,18 @@
                     <tr>
                         <th class="py-3 px-3 text-center w-12">ID</th>
                         <th class="py-3 px-4">Kullanıcı</th>
+                        {% if current_user.is_superadmin %}
                         <th class="py-3 px-4">E-Posta Adresi</th>
+                        {% else %}
+                        <th class="py-3 px-4 text-slate-500">E-Posta (Gizli)</th>
+                        {% endif %}
                         <th class="py-3 px-3 text-center">Durum</th>
                         <th class="py-3 px-4 text-center">Sistem Rolü</th>
-                        <th class="py-3 px-4 text-center">Takım (Red / Blue)</th>
+                        <th class="py-3 px-4 text-center">Takım Ataması (Red / Blue / Purple)</th>
                         <th class="py-3 px-3 text-center">Puan / Lab</th>
+                        {% if current_user.is_superadmin %}
                         <th class="py-3 px-4 text-right">Yetkili İşlemleri</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/60" id="usersTableBody">
@@ -197,7 +199,14 @@
                             </div>
                         </td>
                         <td class="py-3.5 px-4 text-slate-300 user-email">
-                            {{ u.email }}
+                            {% if current_user.is_superadmin or current_user.id == u.id %}
+                                {{ u.email }}
+                            {% else %}
+                                <span class="text-slate-500 text-xs flex items-center gap-1.5 font-mono" title="E-posta adresleri Takım Liderlerine gizlidir.">
+                                    <i class="fa-solid fa-eye-slash text-slate-600 text-[10px]"></i>
+                                    <span class="text-slate-600 tracking-wider">••••••••••••••••</span>
+                                </span>
+                            {% endif %}
                         </td>
                         <td class="py-3.5 px-3 text-center">
                             {% if u.is_suspended %}
@@ -224,8 +233,6 @@
                                 <select name="role" onchange="this.form.submit()" class="text-xs py-1 px-2.5 rounded-lg border font-mono font-medium focus:outline-none cursor-pointer transition-all
                                     {% if u.is_superadmin %}
                                         bg-amber-950/80 text-amber-300 border-amber-600
-                                    {% elif u.role in ['manager', 'team_manager'] %}
-                                        bg-emerald-950/80 text-emerald-300 border-emerald-600
                                     {% elif u.is_team_leader %}
                                         bg-sky-950/80 text-sky-300 border-sky-600
                                     {% else %}
@@ -233,7 +240,6 @@
                                     {% endif %}" title="Rolü değiştirmek için seçiniz">
                                     <option value="student" {% if u.role == 'student' or not u.role %}selected{% endif %}>🎓 Öğrenci</option>
                                     <option value="leader" {% if u.role == 'leader' %}selected{% endif %}>🛡️ Takım Lideri</option>
-                                    <option value="manager" {% if u.role in ['manager', 'team_manager'] %}selected{% endif %}>👔 Takım Yöneticisi</option>
                                     <option value="root" {% if u.role in ['root', 'superadmin'] %}selected{% endif %}>👑 Root (Süper Yönetici)</option>
                                 </select>
                             </form>
@@ -295,24 +301,19 @@
 
                         <!-- Yetkili İşlemleri -->
                         <td class="py-3.5 px-4 text-right">
+                            {% if current_user.is_superadmin %}
                             <div class="flex items-center justify-end space-x-2">
                                 <!-- Hesap Askısını Kaldır (YALNIZCA Süper Yönetici yapabilir) -->
                                 {% if u.is_suspended %}
-                                    {% if current_user.is_superadmin %}
                                     <form action="{{ url_for('admin_toggle_suspend', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ u.username }} kullanıcısının hesap askısını kaldırmak ve şifre haklarını sıfırlamak istiyor musunuz?');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
                                         <button type="submit" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-all flex items-center shadow-lg shadow-emerald-950/60" title="Hesap Askısını Kaldır">
                                             <i class="fa-solid fa-lock-open mr-1"></i>Askıyı Kaldır
                                         </button>
                                     </form>
-                                    {% else %}
-                                    <span class="px-2 py-1 rounded bg-red-950/60 border border-red-800 text-red-400 text-[10px] flex items-center cursor-not-allowed" title="Askıyı yalnızca Süper Yönetici kaldırabilir">
-                                        <i class="fa-solid fa-lock text-[9px] mr-1"></i>Askıda
-                                    </span>
-                                    {% endif %}
                                 {% else %}
                                     <!-- Manuel Askıya Al Butonu (Süper Yönetici diğer kullanıcılar için gerekirse kullanabilir) -->
-                                    {% if current_user.is_superadmin and not u.is_superadmin and u.id != current_user.id %}
+                                    {% if not u.is_superadmin and u.id != current_user.id %}
                                     <form action="{{ url_for('admin_toggle_suspend', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('{{ u.username }} kullanıcısını askıya almak istiyor musunuz? Kullanıcı şifre girse dahi sisteme erişemeyecektir.');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
                                         <button type="submit" class="p-1 px-2 rounded bg-slate-900 hover:bg-red-950 border border-slate-700 hover:border-red-800 text-slate-400 hover:text-red-300 text-[11px] transition-colors" title="Hesabı Askıya Al">
@@ -322,7 +323,7 @@
                                     {% endif %}
                                 {% endif %}
 
-                                <!-- Manuel Onay (Lider ve Süper Admin yapabilir) -->
+                                <!-- Manuel Onay (Yalnızca Süper Yönetici yapabilir) -->
                                 {% if not u.is_verified and not u.is_suspended %}
                                 <form action="{{ url_for('admin_verify_user', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('Bu öğrencinin hesabını manuel olarak onaylamak istiyor musunuz?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
@@ -333,22 +334,22 @@
                                 {% endif %}
 
                                 <!-- Kullanıcı Silme (Yalnızca Süper Yönetici yapabilir) -->
-                                {% if current_user.is_superadmin %}
-                                    {% if not u.is_superadmin and u.id != current_user.id %}
-                                    <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('DİKKAT: {{ u.username }} kullanıcısını ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz?');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
-                                        <button type="submit" class="p-1 px-2 rounded bg-red-950 hover:bg-red-900 border border-red-800 text-red-400 text-[11px] transition-colors" title="Kullanıcıyı Kalıcı Sil">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                {% else %}
-                                    <!-- Lider için Kilitli Silme Butonu -->
-                                    <span class="p-1 px-2 rounded bg-slate-900/60 border border-slate-800 text-slate-600 text-[11px] cursor-not-allowed" title="Silme yetkisi yalnızca Süper Yöneticiye aittir.">
-                                        <i class="fa-solid fa-lock text-[10px]"></i>
-                                    </span>
+                                {% if not u.is_superadmin and u.id != current_user.id %}
+                                <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" class="inline" onsubmit="return confirm('DİKKAT: {{ u.username }} kullanıcısını ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                                    <button type="submit" class="p-1 px-2 rounded bg-red-950 hover:bg-red-900 border border-red-800 text-red-400 text-[11px] transition-colors" title="Kullanıcıyı Kalıcı Sil">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
                                 {% endif %}
                             </div>
+                            {% else %}
+                            <div class="text-right">
+                                <span class="text-slate-500 text-[11px] font-mono italic" title="Takım Liderleri yalnızca Takım ataması yapabilir.">
+                                    <i class="fa-solid fa-lock text-[10px] text-slate-600 mr-1"></i>Yetki Yok (Yalnızca Takım)
+                                </span>
+                            </div>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
