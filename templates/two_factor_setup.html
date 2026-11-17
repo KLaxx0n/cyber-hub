@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}2FA İki Adımlı Doğrulama Kurulumu - NÖHÜ Siber Güvenlik{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+    <div class="cyber-card p-6 sm:p-8 rounded-2xl border border-cyan-500/40 bg-gradient-to-b from-slate-900/90 via-slate-950 to-[#030712] shadow-2xl relative overflow-hidden">
+        
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-950 border border-cyan-600 text-cyan-400 flex items-center justify-center text-2xl mb-4 shadow-lg shadow-cyan-950/60">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-cyan-950/90 border border-cyan-700 text-cyan-300 text-xs font-mono mb-2">
+                <i class="fa-solid fa-lock"></i>
+                <span>GÜVENLİK KATMANI 2 (TOTP)</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">İki Adımlı Doğrulama (2FA) Kurulumu</h1>
+            <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">
+                Hesabınızı yetkisiz erişimlere ve şifre sızıntılarına karşı Google Authenticator ile zırhlayın.
+            </p>
+        </div>
+
+        <!-- 3 Adım Talimatı -->
+        <div class="space-y-6 text-xs font-mono">
+            <!-- Adım 1 -->
+            <div class="flex items-start space-x-3 p-3.5 rounded-lg bg-slate-900/70 border border-slate-800">
+                <span class="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-600 text-cyan-400 flex items-center justify-center font-bold text-[11px] shrink-0">1</span>
+                <div>
+                    <h3 class="font-bold text-slate-200">Uygulamayı Açın</h3>
+                    <p class="text-slate-400 mt-0.5">Telefonunuzda <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong> veya <strong>Aegis</strong> uygulamasını açın.</p>
+                </div>
+            </div>
+
+            <!-- Adım 2: QR Kod ve Manuel Anahtar -->
+            <div class="flex items-start space-x-3 p-3.5 rounded-lg bg-slate-900/70 border border-slate-800">
+                <span class="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-600 text-cyan-400 flex items-center justify-center font-bold text-[11px] shrink-0">2</span>
+                <div class="w-full">
+                    <h3 class="font-bold text-slate-200">Karekodu Tarayın</h3>
+                    <p class="text-slate-400 mt-0.5">Uygulamanızdaki "+" butonuna basıp aşağıdaki karekodu kameranızla okutun:</p>
+                    
+                    <div class="my-4 flex flex-col items-center justify-center">
+                        <div class="p-3 bg-white rounded-xl shadow-lg border-2 border-cyan-500/60 inline-block">
+                            <img src="{{ qr_data_uri }}" alt="2FA QR Kodu" class="w-48 h-48 block">
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <span class="text-[11px] text-slate-500 block mb-1">Kameranız çalışmıyorsa manuel anahtar:</span>
+                            <code class="px-3 py-1.5 rounded bg-slate-950 border border-slate-700 text-cyan-300 font-mono text-xs select-all tracking-wider inline-block">
+                                {{ secret }}
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adım 3: Kod Doğrulama -->
+            <div class="flex items-start space-x-3 p-3.5 rounded-lg bg-slate-900/70 border border-slate-800">
+                <span class="w-6 h-6 rounded-full bg-cyan-950 border border-cyan-600 text-cyan-400 flex items-center justify-center font-bold text-[11px] shrink-0">3</span>
+                <div class="w-full">
+                    <h3 class="font-bold text-slate-200">6 Haneli Kodu Onaylayın</h3>
+                    <p class="text-slate-400 mt-0.5">Uygulamanızın ürettiği 6 haneli doğrulama kodunu girerek kurulumu tamamlayın:</p>
+
+                    <form action="{{ url_for('two_factor_setup') }}" method="POST" class="mt-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <input type="text" name="otp_code" required maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="000000" 
+                                class="w-full sm:w-48 text-center tracking-widest text-lg font-bold font-mono px-4 py-2.5 rounded-lg bg-slate-950 border border-slate-700 text-cyan-400 focus:outline-none focus:border-cyan-400">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono transition-all shadow-lg shadow-cyan-950/60 flex items-center justify-center gap-2 shrink-0">
+                                <i class="fa-solid fa-shield-check"></i>
+                                <span>Doğrula & 2FA'yı Aç</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-4 border-t border-slate-800 text-center">
+            <a href="{{ url_for('dashboard') }}" class="text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Paneline Geri Dön
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

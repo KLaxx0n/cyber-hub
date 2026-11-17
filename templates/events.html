@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Etkinlikler & CTF Takvimi - NÖHÜ Siber Güvenlik{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header Section -->
+    <div class="cyber-card p-6 md:p-8 mb-8 border border-emerald-500/40 rounded-xl bg-gradient-to-r from-emerald-950/20 via-slate-900/40 to-slate-900/60 shadow-lg relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+            <div>
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-emerald-950/90 border border-emerald-600 text-emerald-300 text-xs font-mono mb-3">
+                    <i class="fa-regular fa-calendar-days text-emerald-400"></i>
+                    <span>NÖHÜ TOPLULUK ETKİNLİK & CTF RADARI</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                    Siber Güvenlik Etkinlikleri & Yarışma Takvimi
+                </h1>
+                <p class="text-xs md:text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed">
+                    NÖHÜ Siber Güvenlik Kulübü bünyesinde düzenlenen workshoplar, web exploitation kampları, TEKNOFEST hazırlık süreçleri ve canlı CTF turnuvalarını buradan takip edebilirsiniz.
+                </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+                {% if current_user and current_user.is_team_leader %}
+                <button onclick="document.getElementById('addEventModal').classList.toggle('hidden')" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono flex items-center space-x-2 transition-all shadow-md">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Yeni Etkinlik Ekle</span>
+                </button>
+                {% endif %}
+                <a href="{{ url_for('leaderboard') }}" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono flex items-center space-x-2 transition-colors">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <span>Sıralama</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin / Leader Add Event Form (Collapsible) -->
+    {% if current_user and current_user.is_team_leader %}
+    <div id="addEventModal" class="hidden mb-8 cyber-card p-6 border border-emerald-500/50 rounded-xl bg-slate-950/90 shadow-2xl">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+            <h3 class="text-sm font-bold text-emerald-300 font-mono flex items-center gap-2">
+                <i class="fa-solid fa-calendar-plus"></i> Yeni Topluluk Etkinliği / CTF Tanımla
+            </h3>
+            <button onclick="document.getElementById('addEventModal').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form action="{{ url_for('admin_add_event') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="md:col-span-2">
+                <label class="block text-slate-300 mb-1">Etkinlik Başlığı *</label>
+                <input type="text" name="title" required placeholder="Örn: TEKNOFEST 2026 Siber Savunma Kampı" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Kategori / Tür *</label>
+                <select name="event_type" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                    <option value="CTF">🚩 Canlı CTF Yarışması</option>
+                    <option value="Workshop">🛠️ Uygulamalı Workshop</option>
+                    <option value="Seminer">🎤 Uzman Semineri / Konferans</option>
+                    <option value="Yarışma">🏆 Harici Yarışma / Hackathon</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Tarih & Saat *</label>
+                <input type="datetime-local" name="event_date" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Konum / Platform</label>
+                <input type="text" name="location" placeholder="Örn: Lab 301 veya Çevrimiçi Discord" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Kayıt / Yarışma Linki (İsteğe Bağlı)</label>
+                <input type="url" name="external_link" placeholder="https://..." class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-slate-300 mb-1">Etkinlik Açıklaması *</label>
+                <textarea name="description" rows="3" required placeholder="Etkinliğin detayları, katılım şartları ve kazanımları..." class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"></textarea>
+            </div>
+            <div class="md:col-span-2 flex justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('addEventModal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">İptal</button>
+                <button type="submit" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md">Etkinliği Yayınla</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Next Urgent Event Countdown Widget -->
+    {% if upcoming_events and upcoming_events|length > 0 %}
+    {% set next_ev = upcoming_events[0] %}
+    <div class="mb-10 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/30 border border-emerald-500/40 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-emerald-400 text-9xl pointer-events-none">
+            <i class="fa-solid fa-flag-checkered"></i>
+        </div>
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border {{ next_ev.badge_color }}">
+                    <i class="fa-solid fa-bolt"></i> En Yakın Etkinlik: {{ next_ev.event_type }}
+                </span>
+                <h2 class="text-xl md:text-2xl font-bold text-white mt-2">{{ next_ev.title }}</h2>
+                <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">{{ next_ev.description }}</p>
+                <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 mt-3">
+                    <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-emerald-400"></i>{{ next_ev.event_date.strftime('%d.%m.%Y - %H:%M') }}</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-rose-400"></i>{{ next_ev.location }}</span>
+                    {% if next_ev.external_link %}
+                    <a href="{{ next_ev.external_link }}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Kayıt & Detay
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Countdown Box -->
+            <div class="flex items-center gap-2 sm:gap-3 bg-slate-950/80 p-3.5 sm:p-4 rounded-xl border border-slate-800 shadow-inner text-center font-mono shrink-0" id="countdownContainer" data-target="{{ next_ev.event_date.isoformat() }}">
+                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
+                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-days">--</span>
+                    <span class="block text-[9px] uppercase tracking-wider text-slate-500">Gün</span>
+                </div>
+                <span class="text-slate-600 font-bold">:</span>
+                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
+                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-hours">--</span>
+                    <span class="block text-[9px] uppercase tracking-wider text-slate-500">Saat</span>
+                </div>
+                <span class="text-slate-600 font-bold">:</span>
+                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
+                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-mins">--</span>
+                    <span class="block text-[9px] uppercase tracking-wider text-slate-500">Dk</span>
+                </div>
+                <span class="text-slate-600 font-bold">:</span>
+                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
+                    <span class="text-xl sm:text-2xl font-bold text-cyan-400" id="cd-secs">--</span>
+                    <span class="block text-[9px] uppercase tracking-wider text-slate-500">Sn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Events Grid -->
+    <div class="mb-12">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-white font-mono flex items-center gap-2">
+                <i class="fa-solid fa-radar text-emerald-400"></i> Yaklaşan Etkinlikler & CTF Takvimi
+                <span class="text-xs font-normal text-slate-400">({{ upcoming_events|length }})</span>
+            </h2>
+        </div>
+
+        {% if upcoming_events and upcoming_events|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for ev in upcoming_events %}
+            <div class="cyber-card p-6 border border-slate-800 hover:border-emerald-500/50 rounded-xl transition-all shadow-md flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border {{ ev.badge_color }}">
+                            {{ ev.event_type }}
+                        </span>
+                        {% if current_user and current_user.is_team_leader %}
+                        <form action="{{ url_for('admin_delete_event', event_id=ev.id) }}" method="POST" onsubmit="return confirm('Bu etkinliği silmek istiyor musunuz?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="text-slate-600 hover:text-red-400 text-xs transition-colors" title="Etkinliği Sil">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                        {{ ev.title }}
+                    </h3>
+                    <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                        {{ ev.description }}
+                    </p>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800/80 text-xs font-mono space-y-1.5 text-slate-400">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>Tarih:</span>
+                        <span class="text-slate-200 font-semibold">{{ ev.event_date.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>Yer:</span>
+                        <span class="text-slate-300 truncate max-w-[180px]">{{ ev.location }}</span>
+                    </div>
+                    {% if ev.external_link %}
+                    <div class="pt-2">
+                        <a href="{{ ev.external_link }}" target="_blank" rel="noopener noreferrer" class="w-full text-center py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono flex items-center justify-center gap-1.5 transition-all shadow-md">
+                            <span>Kayıt Ol & Yarışmaya Katıl</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="cyber-card p-10 text-center border-slate-800 rounded-xl text-slate-400 font-mono text-sm">
+            <i class="fa-solid fa-calendar-xmark text-3xl mb-3 text-slate-600"></i>
+            <p>Şu anda planlanmış aktif bir etkinlik bulunmamaktadır.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Past Events Archive -->
+    {% if past_events and past_events|length > 0 %}
+    <div class="mt-12 pt-8 border-t border-slate-800">
+        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left"></i> Tamamlanan Geçmiş Etkinlikler
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+            {% for ev in past_events %}
+            <div class="p-4 rounded-lg bg-slate-950/60 border border-slate-800/80 text-slate-400">
+                <div class="flex items-center justify-between text-[11px] mb-1">
+                    <span class="text-slate-500">{{ ev.event_type }}</span>
+                    <span>{{ ev.event_date.strftime('%d.%m.%Y') }}</span>
+                </div>
+                <div class="font-semibold text-slate-300">{{ ev.title }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Countdown Timer JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('countdownContainer');
+        if (!container) return;
+
+        const targetDate = new Date(container.getAttribute('data-target')).getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('cd-days').textContent = '00';
+                document.getElementById('cd-hours').textContent = '00';
+                document.getElementById('cd-mins').textContent = '00';
+                document.getElementById('cd-secs').textContent = '00';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('cd-days').textContent = String(days).padStart(2, '0');
+            document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
+            document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    });
+</script>
+{% endblock %}

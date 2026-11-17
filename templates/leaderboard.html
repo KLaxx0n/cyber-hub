@@ -16,6 +16,68 @@
         </p>
     </div>
 
+    <!-- Takım Savaşı: Red vs Blue vs Purple Rekabet Barı (Madde 1) -->
+    <div class="cyber-card p-6 border-slate-800 max-w-4xl mx-auto rounded-2xl mb-10 shadow-xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+            <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                <i class="fa-solid fa-swords text-amber-400"></i> TAKIMLAR ARASI SİBER MEYDAN SAVAŞI
+            </h3>
+            <span class="text-xs font-mono text-slate-400">Canlı Hakimiyet Oranı</span>
+        </div>
+
+        <!-- 3'lü Hakimiyet Barı -->
+        <div class="h-4 w-full rounded-full bg-slate-950 border border-slate-800 flex overflow-hidden p-0.5 mb-4 shadow-inner">
+            <div class="h-full bg-gradient-to-r from-red-600 to-rose-600 rounded-l-full transition-all duration-700" style="width: {{ red_pct }}%;" title="Red Team: %{{ red_pct }}"></div>
+            <div class="h-full bg-gradient-to-r from-blue-600 to-sky-600 transition-all duration-700" style="width: {{ blue_pct }}%;" title="Blue Team: %{{ blue_pct }}"></div>
+            <div class="h-full bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-r-full transition-all duration-700" style="width: {{ purple_pct }}%;" title="Purple Team: %{{ purple_pct }}"></div>
+        </div>
+
+        <!-- Takım Kartları -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+            <!-- Red Team -->
+            <div class="p-4 rounded-xl bg-red-950/40 border border-red-800/60 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-1.5 text-red-400 font-bold uppercase text-[11px]">
+                        <i class="fa-solid fa-crosshairs"></i> Red Team
+                    </div>
+                    <div class="text-lg font-bold text-white mt-1">{{ red_score }} P</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">{{ team_scores[0].count if team_scores[0].slug == 'red_team' else (team_scores[1].count if team_scores[1].slug == 'red_team' else team_scores[2].count) }} Ajan &bull; %{{ red_pct }}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-red-950 border border-red-700 text-red-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-skull"></i>
+                </div>
+            </div>
+
+            <!-- Blue Team -->
+            <div class="p-4 rounded-xl bg-blue-950/40 border border-blue-800/60 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-1.5 text-blue-400 font-bold uppercase text-[11px]">
+                        <i class="fa-solid fa-shield-halved"></i> Blue Team
+                    </div>
+                    <div class="text-lg font-bold text-white mt-1">{{ blue_score }} P</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">{{ team_scores[0].count if team_scores[0].slug == 'blue_team' else (team_scores[1].count if team_scores[1].slug == 'blue_team' else team_scores[2].count) }} Ajan &bull; %{{ blue_pct }}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-blue-950 border border-blue-700 text-blue-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-shield-check"></i>
+                </div>
+            </div>
+
+            <!-- Purple Team -->
+            <div class="p-4 rounded-xl bg-purple-950/40 border border-purple-800/60 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-1.5 text-purple-400 font-bold uppercase text-[11px]">
+                        <i class="fa-solid fa-bolt"></i> Purple Team
+                    </div>
+                    <div class="text-lg font-bold text-white mt-1">{{ purple_score }} P</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">{{ team_scores[0].count if team_scores[0].slug == 'purple_team' else (team_scores[1].count if team_scores[1].slug == 'purple_team' else team_scores[2].count) }} Ajan &bull; %{{ purple_pct }}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-purple-950 border border-purple-700 text-purple-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-atom"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Podium (Top 3) -->
     {% if users|length >= 1 %}
     <div class="flex flex-wrap justify-center items-end gap-5 max-w-3xl mx-auto mb-10">
@@ -109,6 +171,16 @@
                             {% elif u.is_team_leader %}
                             <span class="text-[10px] bg-sky-950/90 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600 font-mono" title="Takım Lideri">
                                 <i class="fa-solid fa-user-shield text-[9px] mr-0.5 text-sky-400"></i>Lider
+                            </span>
+                            {% endif %}
+                            {% if u.first_bloods_count > 0 %}
+                            <span class="text-[10px] bg-rose-950/90 text-rose-300 px-1.5 py-0.5 rounded border border-rose-700 font-mono font-bold flex items-center gap-1" title="{{ u.first_bloods_count }} laboratuvarda İlk Kan elde etti">
+                                <i class="fa-solid fa-droplet text-red-500 text-[9px]"></i>{{ u.first_bloods_count }}x
+                            </span>
+                            {% endif %}
+                            {% if u.two_factor_enabled %}
+                            <span class="text-cyan-400 text-xs" title="2FA Google Authenticator ile zırhlanmış hesap">
+                                <i class="fa-solid fa-shield-halved"></i>
                             </span>
                             {% endif %}
                             {% if is_me %}

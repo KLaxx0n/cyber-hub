@@ -80,6 +80,36 @@
         </div>
     </div>
 
+    <!-- Kazanılan Başarım Rozetleri (Badges) (Madde 1) -->
+    <div class="cyber-card p-6 mb-8 border border-slate-800 rounded-xl shadow-md">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+            <h3 class="text-sm font-bold text-white font-mono flex items-center gap-2">
+                <i class="fa-solid fa-medal text-amber-400"></i> KAZANILAN BAŞARIM ROZETLERİ (BADGES)
+                <span class="text-xs text-slate-400 font-normal">({{ user.earned_badges|length }})</span>
+            </h3>
+            <span class="text-xs font-mono text-slate-500">Operasyonel Başarılar</span>
+        </div>
+
+        {% if user.earned_badges and user.earned_badges|length > 0 %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {% for b in user.earned_badges %}
+            <div class="p-3 rounded-xl border {{ b.class }} flex flex-col items-center text-center transition-all hover:scale-105 shadow-sm group relative cursor-pointer" title="{{ b.description }}">
+                <div class="w-9 h-9 rounded-full bg-slate-950/70 border border-white/10 flex items-center justify-center text-base mb-2">
+                    <i class="{{ b.icon }}"></i>
+                </div>
+                <span class="font-bold text-xs font-mono">{{ b.name }}</span>
+                <span class="text-[9px] text-slate-400 mt-1 line-clamp-2 leading-tight">{{ b.description }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-6 text-slate-500 font-mono text-xs">
+            <i class="fa-solid fa-award text-3xl mb-2 text-slate-700 block"></i>
+            Henüz rozet kazanılmadı. Bir lab tamamlayarak veya 2FA aktifleştirerek ilk rozetinizi açabilirsiniz!
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Leader / SuperAdmin Control Quick Banner -->
     {% if user.is_superadmin %}
     <div class="cyber-card p-5 mb-8 border border-amber-500/50 rounded-xl bg-gradient-to-r from-amber-950/30 via-slate-900/50 to-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
@@ -249,7 +279,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <!-- 1. Şifre Değiştir Formu (Mevcut Şifresini Bilenler İçin) -->
             <div class="p-5 rounded-xl bg-slate-950/60 border border-slate-800/80">
                 <div class="flex items-center space-x-2 text-white font-bold text-sm mb-1">
@@ -303,6 +333,61 @@
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <!-- 2. İki Adımlı Doğrulama (2FA - TOTP) (Madde 7) -->
+            <div class="p-5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 text-white font-bold text-sm mb-1">
+                        <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+                        <h4>İki Adımlı Doğrulama (2FA)</h4>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mb-4">
+                        Google Authenticator veya Microsoft Authenticator ile hesabınızı zırhlayın.
+                    </p>
+
+                    {% if user.two_factor_enabled %}
+                    <div class="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-700/60 mb-4">
+                        <div class="flex items-center space-x-2 text-cyan-300 font-bold text-xs font-mono mb-1">
+                            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                            <span>2FA ZIRHI AKTİF</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed font-mono">
+                            Hesabınıza giriş yapılırken şifrenizin yanı sıra telefonunuzdaki tek kullanımlık 6 haneli kod sorgulanır.
+                        </p>
+                    </div>
+
+                    <form action="{{ url_for('two_factor_disable') }}" method="POST" class="space-y-3 pt-2" onsubmit="return confirm('2FA korumasını devre dışı bırakmak istediğinize emin misiniz?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-400 mb-1">Onay İçin Şifreniz</label>
+                            <input type="password" name="password" required placeholder="Mevcut şifreniz"
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-mono">
+                        </div>
+                        <button type="submit" class="w-full py-2 rounded-lg bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 font-medium text-xs font-mono transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock-open text-[11px]"></i>
+                            <span>2FA'yı Kapat</span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 mb-4">
+                        <div class="flex items-center space-x-2 text-slate-400 font-bold text-xs font-mono mb-1">
+                            <i class="fa-solid fa-shield-xmark text-slate-500"></i>
+                            <span>2FA DEVRE DIŞI</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Hesabınız yalnızca şifre ile korunmaktadır. Ekstra güvenlik katmanı için Google Authenticator kurulumunu tamamlayın.
+                        </p>
+                    </div>
+
+                    <div class="pt-2">
+                        <a href="{{ url_for('two_factor_setup') }}" class="w-full py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono transition-all flex items-center justify-center gap-2 shadow-md shadow-cyan-950/60">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span>2FA Kurulumunu Başlat &rarr;</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- 2. Şifremi Unuttum / E-Posta ile Sıfırlama -->

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from models import db, Lab, User
 from werkzeug.security import generate_password_hash
 
@@ -5,7 +6,7 @@ def seed_database(app):
     with app.app_context():
         db.create_all()
 
-        # Otomatik Tablo Sütun Migrasyonu (PostgreSQL & SQLite ALTER TABLE)
+        # Otomatik Tablo Sütun Migrasyonu (SQLite ALTER TABLE)
         try:
             from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
@@ -13,29 +14,38 @@ def seed_database(app):
                 columns = [c['name'] for c in inspector.get_columns('users')]
                 with db.engine.connect() as conn:
                     if 'failed_login_attempts' not in columns:
-                        try:
-                            conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
-                            conn.commit()
-                        except Exception as e:
-                            print(f"[!] failed_login_attempts migration: {e}")
+                        conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
                     if 'is_suspended' not in columns:
-                        try:
-                            conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT FALSE"))
-                            conn.commit()
-                        except Exception as e:
-                            print(f"[!] is_suspended migration: {e}")
+                        conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT 0"))
                     if 'reset_token' not in columns:
-                        try:
-                            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
-                            conn.commit()
-                        except Exception as e:
-                            print(f"[!] reset_token migration: {e}")
+                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
                     if 'reset_token_expires_at' not in columns:
-                        try:
-                            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP"))
-                            conn.commit()
-                        except Exception as e:
-                            print(f"[!] reset_token_expires_at migration: {e}")
+                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME"))
+                    if 'totp_secret' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)"))
+                    if 'two_factor_enabled' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN two_factor_enabled BOOLEAN DEFAULT 0"))
+                    conn.commit()
+
+            if 'labs' in inspector.get_table_names():
+                lab_cols = [c['name'] for c in inspector.get_columns('labs')]
+                with db.engine.connect() as conn:
+                    if 'hint1' not in lab_cols:
+                        conn.execute(text("ALTER TABLE labs ADD COLUMN hint1 TEXT"))
+                    if 'hint2' not in lab_cols:
+                        conn.execute(text("ALTER TABLE labs ADD COLUMN hint2 TEXT"))
+                    conn.commit()
+
+            if 'user_lab_progress' in inspector.get_table_names():
+                ulp_cols = [c['name'] for c in inspector.get_columns('user_lab_progress')]
+                with db.engine.connect() as conn:
+                    if 'is_first_blood' not in ulp_cols:
+                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN is_first_blood BOOLEAN DEFAULT 0"))
+                    if 'hint1_unlocked' not in ulp_cols:
+                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN hint1_unlocked BOOLEAN DEFAULT 0"))
+                    if 'hint2_unlocked' not in ulp_cols:
+                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN hint2_unlocked BOOLEAN DEFAULT 0"))
+                    conn.commit()
         except Exception as mig_err:
             print(f"[!] Sütun migrasyon kontrolü: {mig_err}")
 
@@ -54,6 +64,8 @@ def seed_database(app):
                 'scenario': 'Hedef web uygulamasında ürün arama filtresi doğrudan SQL sorgusu oluşturmaktadır: SELECT * FROM products WHERE name LIKE \'%{input}%\'. Girdi filtresi bulunmamaktadır.',
                 'instructions': 'Arama çubuğuna özel karakterler ve Boolean mantık ifadeleri (\' OR \'1\'=\'1) girerek gizli "Gizli_Sistem_Kayitlari" tablosundaki verileri sızdırın ve gizli Flag değerine ulaşın.',
                 'hint': 'SQL sorgularını manipüle etmek için tırnak işareti (\') ve her zaman doğru olan bir koşul (OR 1=1) kullanmayı deneyin.',
+                'hint1': 'SQL sorgularını manipüle etmek için tırnak işareti (\') ve her zaman doğru olan bir koşul (OR 1=1) kullanmayı deneyin.',
+                'hint2': 'Kritik İpucu (-10 Puan): Arama çubuğuna \' OR \'1\'=\'1 payloadını girerek arka plandaki WHERE filtresini devre dışı bırakabilir ve gizli tablodaki FLAG değerini listeleyebilirsiniz.',
                 'flag': 'FLAG{sql1_inj3ct10n_succ3ss_4z1z}',
                 'lab_type': 'sqli'
             },
@@ -69,6 +81,8 @@ def seed_database(app):
                 'scenario': 'Geri bildirim formunda girilen kullanıcı adı ve mesaj parametreleri herhangi bir sanitize işlemine tabi tutulmadan doğrudan tarayıcı DOM nesnesine yazdırılmaktadır.',
                 'instructions': 'Ziyaretçi adına <script>alert(document.cookie)</script> veya modern bir payload yerleştirerek simüle edilen XSS botunu tetikleyin ve admin token flagini yakalayın.',
                 'hint': '<script> veya <img src=x onerror=...> etiketleri DOM enjeksiyonu için kullanılabilir.',
+                'hint1': '<script> veya <img src=x onerror=...> etiketleri DOM enjeksiyonu için kullanılabilir.',
+                'hint2': 'Kritik İpucu (-10 Puan): Ziyaretçi adına <script>alert(document.cookie)</script> yazıp gönderdiğinizde simülatör yönetici botunu çalıştıracak ve alert mesajında admin oturum bayrağını (FLAG{xss...}) döndürecektir.',
                 'flag': 'FLAG{xss_cr0ss_s1t3_scr1pt1ng_2026}',
                 'lab_type': 'xss'
             },
@@ -84,6 +98,8 @@ def seed_database(app):
                 'scenario': 'Şirket çalışanlarına "Hesabınız askıya alınacak, acil şifre yenileyin" konulu sahte bir Microsoft 365 e-postası iletilmiştir. E-postadaki link sahte bir login sayfasına yönlendirmektedir.',
                 'instructions': 'E-posta başlıklarını (SPF, DKIM, Return-Path) ve sahte login sayfasının kaynak kodunu inceleyin. Saldırganın form action adresinde gizlediği izleme kodunu (Flag) bulun.',
                 'hint': 'E-posta kaynak kodundaki (Header) "Return-Path" ve formun POST edildiği URL adresine dikkat edin.',
+                'hint1': 'E-posta kaynak kodundaki (Header) "Return-Path" ve formun POST edildiği URL adresine dikkat edin.',
+                'hint2': 'Kritik İpucu (-10 Puan): E-posta kaynak detaylarında Return-Path adresinin gerçek Microsoft olmayıp saldırgan C2 sunucusuna (phish-trap.xyz) çıktığını ve form action adresinde FLAG parametresinin iletildiğini görebilirsiniz.',
                 'flag': 'FLAG{ph1sh1ng_h34d3r_4n4lys1s_2026}',
                 'lab_type': 'phishing'
             },
@@ -101,6 +117,8 @@ def seed_database(app):
                 'scenario': 'Sistem yöneticisi gece 03:00 sularında sunucu yükünün aşırı arttığını fark etmiştir. Log kayıtlarında binlerce 404 ve 200 HTTP yanıtı bulunmaktadır.',
                 'instructions': 'Verilen log kayıtlarını filtreleyin. Dizin taraması (directory brute force) yapan ve sonunda /admin-secret-backup.zip dosyasına erişen saldırganın IP adresini ve dosya imzasındaki Flag değerini bulun.',
                 'hint': 'En çok istek atan IP adresini bulun ve 200 OK koduyla indirdiği gizli dosyanın yanıtına bakın.',
+                'hint1': 'En çok istek atan IP adresini bulun ve 200 OK koduyla indirdiği gizli dosyanın yanıtına bakın.',
+                'hint2': 'Kritik İpucu (-10 Puan): 192.168.1.105 IP adresi Gobuster ile tarama yapmış ve /admin-secret-backup.zip dosyasını başarıyla indirmiştir. Dosya hash/indirme logunda FLAG{blue_log...} yer almaktadır.',
                 'flag': 'FLAG{blu3_l0g_4n4lys1s_d3t3ct3d}',
                 'lab_type': 'log_analysis'
             },
@@ -116,6 +134,8 @@ def seed_database(app):
                 'scenario': 'Ele geçirilen bir şüpheli bellek dökümünde bir JPEG dosyasının sonuna Base64 şifrelenmiş veri eklenmiş ve dosya tablosundan silinmiştir.',
                 'instructions': 'Verilen ham Hex dökümünü inceleyin. JPEG dosya bitiş imzasını (FF D9) bulun ve ardından gelen gizli kanıt dizgisini deşifre ederek Bayrağa (Flag) ulaşın.',
                 'hint': 'Hex görünümünde FFD9 sonrasındaki karakterleri ASCII ve Base64 çözücüye aktarın.',
+                'hint1': 'Hex görünümünde FFD9 sonrasındaki karakterleri ASCII ve Base64 çözücüye aktarın.',
+                'hint2': 'Kritik İpucu (-10 Puan): FFD9 baytından hemen sonra başlayan RkxBR3tkMWcx... dizgisi Base64 kodludur; decode edildiğinde doğrudan adli bilişim bayrağını verir.',
                 'flag': 'FLAG{d1g1t4l_f0r3ns1cs_c4rv3d_f1l3}',
                 'lab_type': 'forensics'
             },
@@ -131,6 +151,8 @@ def seed_database(app):
                 'scenario': 'Sunucu belirli bir IP bloğundan gelen yoğun SYN Flood ve SSH Port 22 brute force saldırısıyla karşı karşıyadır.',
                 'instructions': 'Doğru iptables kuralını seçin/uygulayın: Saldırgan subnetini engelleyin ve meşru web trafiğine (Port 80/443) izin vererek savunmayı tamamlayın.',
                 'hint': 'iptables -A INPUT -s <IP> -j DROP ve SSH için port 22 rate-limiting kuralları kullanılmalıdır.',
+                'hint1': 'iptables -A INPUT -s <IP> -j DROP ve SSH için port 22 rate-limiting kuralları kullanılmalıdır.',
+                'hint2': 'Kritik İpucu (-10 Puan): 10.0.0.0/24 subnetinden gelen web saldırılarını engelleyen "iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j DROP" kuralını seçiniz.',
                 'flag': 'FLAG{f1r3w4ll_d3f3nd_blu3_t34m}',
                 'lab_type': 'firewall'
             },
@@ -147,6 +169,8 @@ def seed_database(app):
                 'scenario': 'Ağda tespit edilen şüpheli arka kapı yazılımı (updater_agent.bin) güvenlik ortamına alındı. Kodun bağlantı kurduğu C2 alan adı ve gömülü bayrak deşifre edilmelidir.',
                 'instructions': 'Zararlı yazılımın ikili (binary) verisi içerisindeki fonksiyon imzalarını ve Base64/XOR ile gizlenmiş dizgileri inceleyerek gizli FLAG değerine ulaşın.',
                 'hint': 'Statik analiz araçlarında dizgileri tarayarak FLAG{...} formatındaki gizli bayrağı arayın.',
+                'hint1': 'Statik analiz araçlarında dizgileri tarayarak FLAG{...} formatındaki gizli bayrağı arayın.',
+                'hint2': 'Kritik İpucu (-10 Puan): Binary içindeki .rdata segmentinde "c2_connect_beacon" fonksiyonu parametresinde açık ASCII metni olarak FLAG{purpl3_m4lw4r3_r3v3rs3_4n4lys1s} yer almaktadır.',
                 'flag': 'FLAG{purpl3_m4lw4r3_r3v3rs3_4n4lys1s}',
                 'lab_type': 'standard'
             },
@@ -162,6 +186,8 @@ def seed_database(app):
                 'scenario': 'Saldırganlar sistem üzerinde PowerShell ile dosyasız zararlı çalıştırmaktadır. Purple Team testinde saldırı ve savunma telemetrileri eş zamanlı analiz edilir.',
                 'instructions': 'Purple Team senaryosunda saldırı adımlarını emüle edin, ardından SIEM tespit günlüğünü inceleyerek oluşturulan telemetri bayrağını teslim edin.',
                 'hint': 'PowerShell Script Block Logging (Event ID 4104) olay kaydını inceleyin.',
+                'hint1': 'PowerShell Script Block Logging (Event ID 4104) olay kaydını inceleyin.',
+                'hint2': 'Kritik İpucu (-10 Puan): EDR telemetri çıktısındaki "Execution Flag Detected:" satırında yer alan FLAG{purpl3_4t0m1c_t3st_c2_d3t3ct} değerini bayrak kutusuna giriniz.',
                 'flag': 'FLAG{purpl3_4t0m1c_t3st_c2_d3t3ct}',
                 'lab_type': 'standard'
             }
@@ -172,6 +198,44 @@ def seed_database(app):
             if not existing:
                 new_lab = Lab(**lab_info)
                 db.session.add(new_lab)
+            else:
+                existing.hint1 = lab_info.get('hint1', existing.hint)
+                existing.hint2 = lab_info.get('hint2')
+
+        # Varsayılan Siber Etkinlikler ve CTF Takvimi (Madde 6)
+        from models import CyberEvent
+        if CyberEvent.query.count() == 0:
+            events_data = [
+                {
+                    'title': 'NÖHÜ Siber Kamp 2026: Web Exploitation Workshop',
+                    'description': 'SQLi, XSS, SSRF ve modern web zaafiyetlerinin pratik sömürü teknikleri canlı lab uygulamaları ile ele alınacaktır.',
+                    'event_type': 'Workshop',
+                    'location': 'NÖHÜ Mühendislik Fakültesi Lab 301 & Discord',
+                    'event_date': datetime.utcnow() + timedelta(days=5, hours=4),
+                    'external_link': 'https://siber.ohu.edu.tr',
+                    'organizer': 'NÖHÜ Siber Güvenlik Kulübü'
+                },
+                {
+                    'title': 'TEKNOFEST 2026 Hack-Karadeniz Hazırlık CTF',
+                    'description': 'TEKNOFEST Siber Güvenlik Yarışması için NÖHÜ temsilci takım seçmeleri ve eleme bayrak kapmaca maratonu.',
+                    'event_type': 'CTF',
+                    'location': 'Çevrimiçi / CTF Platformu',
+                    'event_date': datetime.utcnow() + timedelta(days=12, hours=8),
+                    'external_link': 'https://teknofest.org',
+                    'organizer': 'NÖHÜ Siber Savunma Koordinatörlüğü'
+                },
+                {
+                    'title': 'SOC & Adli Bilişim (DFIR) Semineri',
+                    'description': 'Siber Güvenlik Operasyon Merkezi (SOC) analisti rolü, tehdit avcılığı ve bellek imajı analizi temalı uzman sunumu.',
+                    'event_type': 'Seminer',
+                    'location': 'NÖHÜ Kongre ve Kültür Merkezi Salon B',
+                    'event_date': datetime.utcnow() + timedelta(days=18, hours=2),
+                    'external_link': None,
+                    'organizer': 'NÖHÜ Siber Güvenlik Kulübü'
+                }
+            ]
+            for ev in events_data:
+                db.session.add(CyberEvent(**ev))
 
         # Predefined default users (Sefa_Gumus Süper Yönetici, KLaxx0n Takım Lideri)
         users_data = [

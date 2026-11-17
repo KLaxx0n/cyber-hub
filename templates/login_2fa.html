@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}İki Adımlı Doğrulama (2FA) - NÖHÜ Siber Güvenlik{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="cyber-card p-6 sm:p-8 rounded-2xl border border-cyan-500/40 bg-gradient-to-b from-slate-900/95 via-slate-950 to-[#030712] shadow-2xl relative overflow-hidden">
+        
+        <div class="text-center mb-6">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-950 border border-cyan-600 text-cyan-400 flex items-center justify-center text-2xl mb-4 shadow-lg shadow-cyan-950/60 animate-pulse">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h1 class="text-xl font-bold text-white tracking-tight">İki Adımlı Doğrulama (2FA)</h1>
+            <p class="text-xs text-slate-400 mt-2">
+                Ajan <strong class="text-cyan-300 font-mono">{{ username }}</strong>, hesabınız 2FA ile korunmaktadır.
+            </p>
+            <p class="text-[11px] text-slate-500 mt-1">
+                Lütfen telefonunuzdaki <strong>Google Authenticator</strong> uygulamasını açıp 6 haneli güvenlik kodunu giriniz.
+            </p>
+        </div>
+
+        <form action="{{ url_for('login_2fa') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1 text-center">GÜVENLİK KODU</label>
+                <input type="text" name="otp_code" required maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" autofocus placeholder="000 000" 
+                    class="w-full text-center tracking-[0.4em] text-2xl font-bold font-mono px-4 py-3 rounded-lg bg-slate-950 border border-cyan-600/70 text-cyan-300 placeholder-slate-700 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all">
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono transition-all shadow-lg shadow-cyan-950/60 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-lock-open"></i>
+                <span>Girişi Doğrula</span>
+            </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+            <a href="{{ url_for('login') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Farklı Bir Hesapla Giriş Yap
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

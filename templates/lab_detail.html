@@ -53,6 +53,15 @@
                     <span class="text-xs font-mono text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800 font-bold">
                         +{{ lab.points }} Puan
                     </span>
+                    {% if first_blood_user %}
+                    <span class="text-xs font-mono text-rose-300 bg-rose-950/90 px-2.5 py-0.5 rounded border border-rose-700 font-bold flex items-center shadow-sm" title="Bu laboratuvarı platformda ilk çözen ajan">
+                        <i class="fa-solid fa-droplet text-red-500 mr-1 animate-pulse"></i>İlk Kan: {{ first_blood_user }}
+                    </span>
+                    {% else %}
+                    <span class="text-xs font-mono text-amber-300 bg-amber-950/70 px-2 py-0.5 rounded border border-amber-600 font-semibold flex items-center" title="İlk çözen ajana +50 bonus puan!">
+                        <i class="fa-solid fa-trophy text-amber-400 mr-1"></i>İlk Kan Boşta (+50 P Bonus)
+                    </span>
+                    {% endif %}
                     {% if is_solved %}
                     <span class="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700 font-bold ml-auto flex items-center">
                         <i class="fa-solid fa-circle-check mr-1"></i>ÇÖZÜLDÜ
@@ -185,6 +194,64 @@
 
             </div>
 
+            <!-- Topluluk Çözüm Raporları (Writeups) Bölümü (Madde 3) -->
+            <div class="cyber-card p-6 border-slate-800">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+                    <h3 class="text-base font-bold text-white flex items-center font-mono">
+                        <i class="fa-solid fa-book-skull text-purple-400 mr-2"></i>Topluluk Çözüm Raporları (Writeups)
+                        <span class="ml-2 text-xs font-normal text-slate-400" id="writeup-count-badge">({{ writeup_count }})</span>
+                    </h3>
+                    {% if is_solved %}
+                    <button onclick="document.getElementById('writeupFormContainer').classList.toggle('hidden')" class="px-3 py-1.5 rounded-lg bg-purple-900/70 hover:bg-purple-800 border border-purple-600 text-purple-200 text-xs font-mono flex items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-pen-nib"></i>
+                        <span>Writeup Yaz</span>
+                    </button>
+                    {% endif %}
+                </div>
+
+                {% if is_solved %}
+                <!-- Writeup Gönderim Formu (Açılır/Kapanır) -->
+                <div id="writeupFormContainer" class="hidden mb-6 p-4 rounded-xl bg-slate-950 border border-purple-800/60 shadow-inner">
+                    <h4 class="text-xs font-mono font-bold text-purple-300 uppercase mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-feather"></i> Çözüm Raporunu Toplulukla Paylaş
+                    </h4>
+                    <form id="writeup-form" class="space-y-3 font-mono text-xs">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Rapor Başlığı *</label>
+                            <input type="text" id="writeup-title" required placeholder="Örn: SQL Injection Boolean-Based Filtre Atlatma Rehberi" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Çözüm Adımları & Mantığı *</label>
+                            <textarea id="writeup-content" rows="4" required placeholder="1. Adım: Arama kutusuna payload denendi...&#10;2. Adım: Dönen hata analiz edildi...&#10;3. Adım: Flag şu yöntemle sızdırıldı..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500"></textarea>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" onclick="document.getElementById('writeupFormContainer').classList.add('hidden')" class="px-3 py-1.5 rounded bg-slate-800 text-slate-400 hover:text-white">İptal</button>
+                            <button type="submit" id="writeup-submit-btn" class="px-4 py-1.5 rounded bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all shadow-md">Raporu Yayınla</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Writeup Listesi -->
+                <div id="writeups-list" class="space-y-3">
+                    <div class="text-center py-4 text-slate-500 font-mono text-xs">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Çözüm raporları yükleniyor...
+                    </div>
+                </div>
+
+                {% else %}
+                <!-- Spoiler Koruması Banner -->
+                <div class="p-6 rounded-xl bg-slate-950/80 border border-slate-800 text-center font-mono">
+                    <div class="w-10 h-10 mx-auto rounded-lg bg-slate-900 border border-slate-700 text-slate-500 flex items-center justify-center text-lg mb-2">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-300">Spoiler Koruması Aktif</h4>
+                    <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+                        Topluluktaki diğer ajanların paylaştığı çözüm adımlarını (Writeups) okuyabilmek için öncelikle bu laboratuvarı kendiniz tamamlayıp bayrağı (Flag) teslim etmelisiniz.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
         </div>
 
         <!-- Right 1 Col: Flag Submission & Hint Box -->
@@ -217,20 +284,46 @@
                     </button>
                 </form>
 
-                <!-- Hint Accordion -->
-                {% if lab.hint %}
-                <div class="mt-6 pt-4 border-t border-slate-800">
-                    <details class="group cursor-pointer">
-                        <summary class="flex items-center justify-between text-xs font-mono text-amber-400 hover:text-amber-300">
-                            <span><i class="fa-solid fa-lightbulb mr-1.5"></i>İpucu Görüntüle</span>
-                            <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
-                        </summary>
-                        <div class="mt-3 p-3 rounded-lg bg-amber-950/40 border border-amber-800/60 text-xs text-amber-200/90 font-mono">
-                            {{ lab.hint }}
+                <!-- Kademeli İpucu Sistemi (Madde 3) -->
+                <div class="mt-6 pt-5 border-t border-slate-800 space-y-3 font-mono text-xs">
+                    <div class="flex items-center justify-between text-slate-400 font-bold">
+                        <span><i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i>Kademeli İpucu Sistemi</span>
+                    </div>
+
+                    <!-- İpucu 1: Temel Rehber (Ücretsiz) -->
+                    <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-300">İpucu 1 (Temel)</span>
+                            <span class="text-[10px] text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">Ücretsiz</span>
                         </div>
-                    </details>
+                        <div id="hint1-content" class="mt-2 text-slate-300 leading-relaxed {% if not progress or not progress.hint1_unlocked %}hidden{% endif %}">
+                            {{ lab.get_hint1() }}
+                        </div>
+                        {% if not progress or not progress.hint1_unlocked %}
+                        <button id="hint1-btn" onclick="unlockHint(1)" class="mt-2 w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-eye text-[11px]"></i>
+                            <span>İpucu 1'i Göster</span>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- İpucu 2: Kritik Çözüm İpucu (-10 Puan) -->
+                    <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-300">İpucu 2 (Kritik Çözüm)</span>
+                            <span class="text-[10px] text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-800">-10 Puan</span>
+                        </div>
+                        <div id="hint2-content" class="mt-2 text-amber-200/90 leading-relaxed {% if not progress or not progress.hint2_unlocked %}hidden{% endif %}">
+                            {{ lab.get_hint2() }}
+                        </div>
+                        {% if not progress or not progress.hint2_unlocked %}
+                        <button id="hint2-btn" onclick="unlockHint(2)" class="mt-2 w-full py-1.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs transition-colors flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-lock-open text-[11px]"></i>
+                            <span>İpucu 2'yi Aç (-10 Puan)</span>
+                        </button>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
 
         </div>
@@ -398,5 +491,115 @@ async function runFirewallRule() {
         output.innerHTML = `<div class="p-3 bg-red-950 border border-red-500 text-red-300 rounded">${escapeHtml(data.message)}</div>`;
     }
 }
+
+// Kademeli İpucu Servisi
+async function unlockHint(hintNum) {
+    if (hintNum === 2) {
+        if (!confirm("İpucu 2'yi açmak mevcut puanınızdan 10 PUAN düşürecektir. Devam etmek istiyor musunuz?")) {
+            return;
+        }
+    }
+    try {
+        const res = await fetch('/api/unlock-hint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ lab_id: {{ lab.id }}, hint_num: hintNum })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (hintNum === 1) {
+                const el = document.getElementById('hint1-content');
+                el.textContent = data.hint_text;
+                el.classList.remove('hidden');
+                document.getElementById('hint1-btn')?.remove();
+            } else if (hintNum === 2) {
+                const el = document.getElementById('hint2-content');
+                el.textContent = data.hint_text;
+                el.classList.remove('hidden');
+                document.getElementById('hint2-btn')?.remove();
+            }
+        } else {
+            alert(data.message || 'İpucu açılamadı.');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('İpucu servisiyle iletişim kurulamadı.');
+    }
+}
+
+// Writeup Yükleme ve Gönderme
+{% if is_solved %}
+async function loadWriteups() {
+    const list = document.getElementById('writeups-list');
+    if (!list) return;
+    try {
+        const res = await fetch('/api/lab-writeups/{{ lab.id }}');
+        const data = await res.json();
+        if (data.success && data.writeups.length > 0) {
+            list.innerHTML = data.writeups.map(w => `
+                <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono space-y-2">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                        <span class="font-bold text-purple-300 text-sm">${escapeHtml(w.title)}</span>
+                        <span class="text-slate-500 text-[11px]"><i class="fa-solid fa-user-secret mr-1"></i>${escapeHtml(w.author)} &bull; ${w.created_at}</span>
+                    </div>
+                    <div class="text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(w.content)}</div>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = `
+                <div class="p-6 text-center text-slate-500 font-mono text-xs">
+                    <i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>
+                    Bu laboratuvar için henüz bir çözüm raporu (writeup) yazılmamış. İlk yazan sen ol!
+                </div>
+            `;
+        }
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<div class="text-red-400 text-xs font-mono">Writeup listesi yüklenemedi.</div>';
+    }
+}
+
+document.getElementById('writeup-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const title = document.getElementById('writeup-title').value.trim();
+    const content = document.getElementById('writeup-content').value.trim();
+    const submitBtn = document.getElementById('writeup-submit-btn');
+
+    if (!title || !content) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Gönderiliyor...';
+
+    try {
+        const res = await fetch('/api/submit-writeup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ lab_id: {{ lab.id }}, title: title, content: content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message);
+            document.getElementById('writeup-form').reset();
+            document.getElementById('writeupFormContainer').classList.add('hidden');
+            loadWriteups();
+        } else {
+            alert(data.message || 'Writeup gönderilemedi.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Sunucu iletişim hatası.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Raporu Yayınla';
+    }
+});
+
+loadWriteups();
+{% endif %}
 </script>
 {% endblock %}

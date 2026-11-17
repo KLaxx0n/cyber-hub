@@ -3,6 +3,10 @@ import re
 import secrets
 import string
 import hmac
+import io
+import base64
+import pyotp
+import qrcode
 from datetime import datetime, timedelta
 from functools import wraps
 from urllib.parse import urlsplit
@@ -15,7 +19,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import func
 
 from config import Config
-from models import db, User, Lab, UserLabProgress
+from models import db, User, Lab, UserLabProgress, LabWriteup, CyberEvent
 from seed_data import seed_database
 from mail_service import send_verification_email, send_password_reset_email
 
@@ -356,12 +360,10 @@ def login():
     if request.method == 'POST':
         login_id = request.form.get('login_id', '').strip()
         password = request.form.get('password', '').strip()
-        next_url = request.args.get('next')
 
         if not login_id or not password:
             flash('Lütfen kullanıcı adı/e-posta ve şifrenizi girin.', 'danger')
-            session['failed_login_id'] = login_id
-            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
+            return render_template('login.html', login_id=login_id)
 
         clean_login = login_id.lower()
         user = User.query.filter(
@@ -372,8 +374,7 @@ def login():
 
         if not user:
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
-            session['failed_login_id'] = login_id
-            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
+            return render_template('login.html', login_id=login_id)
 
         # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ
         if user.is_suspended:
@@ -384,10 +385,9 @@ def login():
                 db.session.commit()
             else:
                 flash('🚨 Bu hesap hatalı denemeler nedeniyle geçici olarak askıya alınmıştır. Açmak için doğru şifrenizi giriniz veya Süper Yönetici ile iletişime geçiniz.', 'danger')
-                session['failed_login_id'] = login_id
-                return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
+                return render_template('login.html', login_id=login_id)
 
-        # 2. ŞİFRE DOĞRULAMA (PRG Deseni - F5 basıldığında hak düşmez)
+        # 2. ŞİFRE DOĞRULAMA
         if not user.check_password(password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
             if user.failed_login_attempts >= 5:
@@ -398,9 +398,7 @@ def login():
                 remaining = 5 - user.failed_login_attempts
                 db.session.commit()
                 flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}.', 'danger')
-            session['failed_login_id'] = login_id
-            # Post/Redirect/Get: F5 ile yenilendiğinde aynı POST isteği tekrarlanmasın
-            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
+            return render_template('login.html', login_id=login_id)
 
         # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla
         if (user.failed_login_attempts or 0) > 0 or user.is_suspended:
@@ -433,6 +431,13 @@ def login():
             user.failed_login_attempts = 0
             db.session.commit()
 
+        # 2FA Kontrolü (İki Adımlı Doğrulama Aktifse ara doğrulama ekranına yönlendir)
+        if user.two_factor_enabled and user.totp_secret:
+            session.clear()
+            session['pending_2fa_user_id'] = user.id
+            flash('İki Adımlı Doğrulama (2FA) aktif. Lütfen Google Authenticator uygulamanızdaki 6 haneli kodu giriniz.', 'info')
+            return redirect(url_for('login_2fa'))
+
         # Login success - Oturum fiksasyonu koruması ve Kalıcı Oturum
         session.clear()
         session.permanent = True
@@ -441,14 +446,98 @@ def login():
         flash(f'Hoş geldin, Ajan {user.username}! Sisteme güvenli bağlantı kuruldu.', 'success')
         
         # Açık Yönlendirme (Open Redirect) Koruması
+        next_url = request.args.get('next')
         if next_url and is_safe_url(next_url):
             return redirect(next_url)
         return redirect(url_for('dashboard'))
 
-    # GET İsteği - Formu göster (Sayfa F5 ile yenilendiğinde sayaç ASLA etkilenmez)
-    failed_login_id = session.pop('failed_login_id', None)
-    login_id = request.args.get('login_id', '') or failed_login_id or ''
-    return render_template('login.html', login_id=login_id)
+    return render_template('login.html')
+
+@app.route('/login/2fa', methods=['GET', 'POST'])
+def login_2fa():
+    pending_user_id = session.get('pending_2fa_user_id')
+    if not pending_user_id:
+        flash('Lütfen önce kullanıcı adı ve şifrenizle giriş yapınız.', 'warning')
+        return redirect(url_for('login'))
+
+    user = User.query.get(pending_user_id)
+    if not user or not user.two_factor_enabled or not user.totp_secret:
+        session.pop('pending_2fa_user_id', None)
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        otp_code = request.form.get('otp_code', '').strip().replace(' ', '')
+        if not otp_code or len(otp_code) != 6:
+            flash('Lütfen 6 haneli doğrulama kodunu eksiksiz giriniz.', 'danger')
+            return render_template('login_2fa.html', username=user.username)
+
+        totp = pyotp.TOTP(user.totp_secret)
+        if totp.verify(otp_code, valid_window=1): # ±30 saniye tolerans
+            session.clear()
+            session.permanent = True
+            session['user_id'] = user.id
+            session['username'] = user.username
+            flash(f'2FA doğrulaması başarılı! Hoş geldin, Ajan {user.username}.', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Geçersiz veya süresi dolmuş 2FA kodu. Lütfen Authenticator uygulamasını kontrol edip tekrar deneyiniz.', 'danger')
+            return render_template('login_2fa.html', username=user.username)
+
+    return render_template('login_2fa.html', username=user.username)
+
+@app.route('/2fa/setup', methods=['GET', 'POST'])
+@login_required
+def two_factor_setup():
+    user = User.query.get(session['user_id'])
+    if user.two_factor_enabled:
+        flash('İki Adımlı Doğrulama (2FA) hesabınızda zaten aktif durumda.', 'info')
+        return redirect(url_for('dashboard'))
+
+    # Üretilmiş secret yoksa oluştur
+    if not user.totp_secret:
+        user.totp_secret = pyotp.random_base32()
+        db.session.commit()
+
+    totp = pyotp.TOTP(user.totp_secret)
+    provisioning_uri = totp.provisioning_uri(name=user.email, issuer_name='NOHU Cyber-Hub')
+
+    # Data URI QR Kod oluştur
+    qr = qrcode.QRCode(version=1, box_size=7, border=2)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#020617", back_color="#ffffff")
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_data_uri = f"data:image/png;base64,{qr_b64}"
+
+    if request.method == 'POST':
+        otp_code = request.form.get('otp_code', '').strip().replace(' ', '')
+        if totp.verify(otp_code, valid_window=1):
+            user.two_factor_enabled = True
+            db.session.commit()
+            flash('Tebrikler! İki Adımlı Doğrulama (2FA) başarıyla aktifleştirildi. Hesabınız artık zırhlı!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Girilen 6 haneli kod doğrulanamadı. Lütfen Authenticator uygulamanızdaki güncel kodu deneyiniz.', 'danger')
+
+    return render_template('two_factor_setup.html', user=user, secret=user.totp_secret, qr_data_uri=qr_data_uri)
+
+@app.route('/2fa/disable', methods=['POST'])
+@login_required
+def two_factor_disable():
+    user = User.query.get(session['user_id'])
+    password = request.form.get('password', '').strip()
+
+    if not user.check_password(password):
+        flash('2FA korumasını kapatmak için şifrenizi doğru girmelisiniz.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    user.two_factor_enabled = False
+    user.totp_secret = None
+    db.session.commit()
+    flash('İki Adımlı Doğrulama (2FA) başarıyla devre dışı bırakıldı.', 'warning')
+    return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():
@@ -512,11 +601,12 @@ def dashboard_forgot_password_request():
 
     sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
     if sent:
-        flash(f"6 haneli şifre sıfırlama kodunuz {user.email} adresinize gönderildi. Kolaylık sağlamak için kod aşağıdaki kutuya otomatik olarak da yerleştirildi.", 'success')
+        flash(f"6 haneli şifre sıfırlama kodunuz kayıtlı e-posta adresinize ({user.email}) gönderildi.", 'success')
     else:
-        flash(f"🔔 Sunucu güvenlik politikası gereği harici e-posta çıkışı kısıtlandığından sıfırlama kodunuz doğrudan aşağıdaki kutuya yerleştirildi: [ {reset_code} ]", 'warning')
+        print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
+        flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
 
-    return redirect(url_for('reset_password', email=user.email, code=reset_code))
+    return redirect(url_for('reset_password', email=user.email))
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 @csrf.exempt
@@ -544,11 +634,12 @@ def forgot_password():
 
         sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
         if sent:
-            flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize iletildi. Kolaylık sağlamak için kod aşağıdaki kutuya otomatik olarak da yerleştirildi.", 'success')
+            flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize gönderildi.", 'success')
         else:
-            flash(f"🔔 Render bulut ortamında harici e-posta çıkışı engellendiğinden sıfırlama kodunuz doğrudan aşağıdaki kutuya yerleştirildi: [ {reset_code} ]", 'warning')
+            print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
+            flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
 
-        return redirect(url_for('reset_password', email=user.email, code=reset_code))
+        return redirect(url_for('reset_password', email=user.email))
 
     prefill_email = request.args.get('email', '')
     return render_template('forgot_password.html', login_id=prefill_email)
@@ -565,7 +656,7 @@ def reset_password():
 
         if not login_id or not code or not new_password or not confirm_password:
             flash('Lütfen tüm alanları eksiksiz doldurunuz.', 'danger')
-            return render_template('reset_password.html', email=login_id, code=code)
+            return render_template('reset_password.html', email=login_id)
 
         user = User.query.filter(
             (func.lower(User.username) == login_id.lower()) | 
@@ -574,12 +665,12 @@ def reset_password():
 
         if not user:
             flash('Kullanıcı hesabı bulunamadı.', 'danger')
-            return render_template('reset_password.html', email=login_id, code=code)
+            return render_template('reset_password.html', email=login_id)
 
         # Kod kontrolü
         if not user.reset_token or user.reset_token.strip().upper() != code:
             flash('Girilen 6 haneli güvenlik kodu hatalı!', 'danger')
-            return render_template('reset_password.html', email=login_id, code=code)
+            return render_template('reset_password.html', email=login_id)
 
         # Süre kontrolü (15 dakika)
         if user.reset_token_expires_at and user.reset_token_expires_at < datetime.utcnow():
@@ -589,13 +680,13 @@ def reset_password():
         # Şifre eşleşme kontrolü
         if new_password != confirm_password:
             flash('Girilen yeni şifreler birbiriyle uyuşmuyor.', 'danger')
-            return render_template('reset_password.html', email=login_id, code=code)
+            return render_template('reset_password.html', email=login_id)
 
         # Şifre karmaşıklık kuralları
         is_valid_pw, pw_msg = validate_password_complexity(new_password)
         if not is_valid_pw:
             flash(pw_msg, 'danger')
-            return render_template('reset_password.html', email=login_id, code=code)
+            return render_template('reset_password.html', email=login_id)
 
         # Şifreyi güncelle ve askıyı kaldır
         user.set_password(new_password)
@@ -609,8 +700,7 @@ def reset_password():
         return redirect(url_for('login'))
 
     email = request.args.get('email', '')
-    code = request.args.get('code', '')
-    return render_template('reset_password.html', email=email, code=code)
+    return render_template('reset_password.html', email=email)
 
 @app.route('/dashboard')
 @login_required
@@ -886,12 +976,112 @@ def lab_detail(slug):
     progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
     is_solved = progress.is_completed if progress else False
 
-    return render_template('lab_detail.html', lab=lab, is_solved=is_solved, progress=progress)
+    # First blood kullanıcısı kim?
+    first_blood = lab.first_blood
+    first_blood_user = first_blood.user.username if first_blood and first_blood.user else None
+
+    # Writeup sayısı
+    writeup_count = lab.writeups.count()
+
+    return render_template('lab_detail.html', 
+                           lab=lab, 
+                           is_solved=is_solved, 
+                           progress=progress, 
+                           first_blood_user=first_blood_user,
+                           writeup_count=writeup_count)
 
 @app.route('/leaderboard')
 def leaderboard():
     users = User.query.filter_by(is_verified=True).order_by(User.score.desc(), User.created_at.asc()).all()
-    return render_template('leaderboard.html', users=users)
+    
+    red_users = [u for u in users if u.assigned_team == 'red_team']
+    blue_users = [u for u in users if u.assigned_team == 'blue_team']
+    purple_users = [u for u in users if u.assigned_team == 'purple_team']
+    
+    red_score = sum(u.score for u in red_users)
+    blue_score = sum(u.score for u in blue_users)
+    purple_score = sum(u.score for u in purple_users)
+    total_team_score = red_score + blue_score + purple_score
+    if total_team_score == 0:
+        total_team_score = 1
+    
+    red_pct = round((red_score / total_team_score) * 100, 1)
+    blue_pct = round((blue_score / total_team_score) * 100, 1)
+    purple_pct = round((purple_score / total_team_score) * 100, 1)
+    
+    team_scores = [
+        {'name': 'Red Team', 'slug': 'red_team', 'score': red_score, 'count': len(red_users), 'pct': red_pct, 'color': 'red', 'border': 'border-red-600', 'bg': 'bg-red-950/80', 'text': 'text-red-400', 'icon': 'fa-crosshairs'},
+        {'name': 'Blue Team', 'slug': 'blue_team', 'score': blue_score, 'count': len(blue_users), 'pct': blue_pct, 'color': 'blue', 'border': 'border-blue-600', 'bg': 'bg-blue-950/80', 'text': 'text-blue-400', 'icon': 'fa-shield-halved'},
+        {'name': 'Purple Team', 'slug': 'purple_team', 'score': purple_score, 'count': len(purple_users), 'pct': purple_pct, 'color': 'purple', 'border': 'border-purple-600', 'bg': 'bg-purple-950/80', 'text': 'text-purple-400', 'icon': 'fa-bolt'}
+    ]
+    team_scores.sort(key=lambda x: x['score'], reverse=True)
+    
+    return render_template('leaderboard.html', 
+                           users=users,
+                           team_scores=team_scores,
+                           red_score=red_score,
+                           blue_score=blue_score,
+                           purple_score=purple_score,
+                           red_pct=red_pct,
+                           blue_pct=blue_pct,
+                           purple_pct=purple_pct)
+
+# ----------------- ETKİNLİKLER & CTF TAKVİMİ (Madde 6) ----------------- #
+
+@app.route('/events')
+def events_page():
+    all_events = CyberEvent.query.order_by(CyberEvent.event_date.asc()).all()
+    upcoming = [e for e in all_events if not e.is_past]
+    past = [e for e in all_events if e.is_past]
+    return render_template('events.html', upcoming_events=upcoming, past_events=past)
+
+@app.route('/admin/event/add', methods=['POST'])
+@leader_required
+def admin_add_event():
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    event_type = request.form.get('event_type', 'CTF')
+    location = request.form.get('location', '').strip() or 'NÖHÜ Siber Lab'
+    date_str = request.form.get('event_date', '')
+    external_link = request.form.get('external_link', '').strip() or None
+    organizer = request.form.get('organizer', '').strip() or 'NÖHÜ Siber Güvenlik Kulübü'
+
+    if not title or not description or not date_str:
+        flash('Lütfen etkinlik başlığı, açıklaması ve tarihini eksiksiz giriniz.', 'danger')
+        return redirect(url_for('events_page'))
+
+    try:
+        event_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+    except ValueError:
+        try:
+            event_date = datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            flash('Geçersiz tarih formatı.', 'danger')
+            return redirect(url_for('events_page'))
+
+    ev = CyberEvent(
+        title=title,
+        description=description,
+        event_type=event_type,
+        location=location,
+        event_date=event_date,
+        external_link=external_link,
+        organizer=organizer
+    )
+    db.session.add(ev)
+    db.session.commit()
+    flash(f"'{title}' etkinliği başarıyla takvime eklendi.", 'success')
+    return redirect(url_for('events_page'))
+
+@app.route('/admin/event/delete/<int:event_id>', methods=['POST'])
+@leader_required
+def admin_delete_event(event_id):
+    ev = CyberEvent.query.get_or_404(event_id)
+    title = ev.title
+    db.session.delete(ev)
+    db.session.commit()
+    flash(f"'{title}' etkinliği takvimden silindi.", 'info')
+    return redirect(url_for('events_page'))
 
 # ----------------- LAB SIMULATION & FLAG SUBMIT APIS ----------------- #
 
@@ -930,18 +1120,31 @@ def submit_flag():
 
     # Validate flag with timing-attack safe comparison (hmac.compare_digest)
     if hmac.compare_digest(submitted_flag.encode('utf-8'), lab.flag.encode('utf-8')):
+        # First Blood kontrolü: Bu labı platformda daha önce çözen var mı?
+        prior_solvers = UserLabProgress.query.filter_by(lab_id=lab.id, is_completed=True).count()
+        is_first = (prior_solvers == 0)
+        
+        bonus_points = 50 if is_first else 0
+        total_earned = lab.points + bonus_points
+
         progress.is_completed = True
-        progress.earned_points = lab.points
+        progress.is_first_blood = is_first
+        progress.earned_points = total_earned
         progress.completed_at = datetime.utcnow()
-        user.score += lab.points
+        user.score += total_earned
         db.session.commit()
+
+        msg = f'TEBRİKLER! Bayrak başarıyla doğrulandı. +{lab.points} Puan kazandınız!'
+        if is_first:
+            msg = f'🩸 İLK KAN (FIRST BLOOD)! Bu laboratuvarı platformda ilk çözen öncü ajan oldunuz! (+{lab.points} Temel + 50 Bonus = +{total_earned} Puan)'
 
         return jsonify({
             'success': True,
             'already_completed': False,
-            'earned_points': lab.points,
+            'is_first_blood': is_first,
+            'earned_points': total_earned,
             'new_score': user.score,
-            'message': f'TEBRİKLER! Bayrak başarıyla doğrulandı. +{lab.points} Puan kazandınız!'
+            'message': msg
         })
     else:
         db.session.commit()
@@ -949,6 +1152,120 @@ def submit_flag():
             'success': False,
             'message': 'Hatalı bayrak (Flag)! Tekrar analiz edin veya ipucunu inceleyin.'
         })
+
+# ----------------- KADEMELİ İPUCU SİSTEMİ (Madde 3) ----------------- #
+
+@app.route('/api/unlock-hint', methods=['POST'])
+@login_required
+@csrf.exempt
+def unlock_hint():
+    data = request.get_json() or {}
+    lab_id = data.get('lab_id')
+    hint_num = int(data.get('hint_num', 1))
+
+    lab = Lab.query.get_or_404(lab_id)
+    user = User.query.get(session['user_id'])
+    progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
+    if not progress:
+        progress = UserLabProgress(user_id=user.id, lab_id=lab.id)
+        db.session.add(progress)
+
+    if hint_num == 1:
+        progress.hint1_unlocked = True
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'hint_num': 1,
+            'hint_text': lab.get_hint1(),
+            'cost': 0
+        })
+    elif hint_num == 2:
+        cost = 10
+        if not progress.hint2_unlocked:
+            if user.score < cost:
+                return jsonify({
+                    'success': False,
+                    'message': f'İleri ipucunu açmak için en az {cost} puana sahip olmalısınız. Mevcut puanınız: {user.score}'
+                }), 400
+            user.score = max(0, user.score - cost)
+            progress.hint2_unlocked = True
+            db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'hint_num': 2,
+            'hint_text': lab.get_hint2(),
+            'cost': cost,
+            'new_score': user.score
+        })
+    return jsonify({'success': False, 'message': 'Geçersiz ipucu numarası.'}), 400
+
+# ----------------- ÇÖZÜM RAPORLARI / WRITEUPS (Madde 3) ----------------- #
+
+@app.route('/api/submit-writeup', methods=['POST'])
+@login_required
+@csrf.exempt
+def submit_writeup():
+    data = request.get_json() or {}
+    lab_id = data.get('lab_id')
+    title = data.get('title', '').strip()
+    content = data.get('content', '').strip()
+
+    if not lab_id or not title or not content:
+        return jsonify({'success': False, 'message': 'Lütfen başlık ve çözüm içeriğini eksiksiz doldurun.'}), 400
+
+    lab = Lab.query.get_or_404(lab_id)
+    user = User.query.get(session['user_id'])
+
+    # Sadece labı çözmüş olanlar writeup yazabilir
+    if not user.has_completed_lab(lab.id) and not user.is_superadmin:
+        return jsonify({'success': False, 'message': 'Yalnızca bu laboratuvarı tamamlamış ajanlar writeup paylaşabilir.'}), 403
+
+    writeup = LabWriteup(
+        user_id=user.id,
+        lab_id=lab.id,
+        title=title,
+        content=content
+    )
+    db.session.add(writeup)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Çözüm raporunuz (Writeup) başarıyla toplulukla paylaşıldı!'
+    })
+
+@app.route('/api/lab-writeups/<int:lab_id>', methods=['GET'])
+@login_required
+def get_lab_writeups(lab_id):
+    user = User.query.get(session['user_id'])
+    lab = Lab.query.get_or_404(lab_id)
+
+    # Spoiler koruması: Labı çözmemiş olan göremez (Süper Yönetici hariç)
+    if not user.has_completed_lab(lab.id) and not user.is_superadmin:
+        return jsonify({
+            'success': False,
+            'solved': False,
+            'message': 'Spoiler Koruması: Çözüm raporlarını (Writeups) okuyabilmek için önce bu laboratuvarı kendiniz tamamlamalısınız.'
+        }), 403
+
+    writeups = LabWriteup.query.filter_by(lab_id=lab.id).order_by(LabWriteup.created_at.desc()).all()
+    results = []
+    for w in writeups:
+        results.append({
+            'id': w.id,
+            'title': w.title,
+            'content': w.content,
+            'author': w.author.username,
+            'created_at': w.created_at.strftime('%d.%m.%Y %H:%M'),
+            'upvotes': w.upvotes
+        })
+
+    return jsonify({
+        'success': True,
+        'solved': True,
+        'writeups': results
+    })
 
 # Interactive in-lab simulators (for rich lab interaction)
 @app.route('/api/lab-action/<slug>', methods=['POST'])
