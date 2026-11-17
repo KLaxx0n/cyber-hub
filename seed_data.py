@@ -5,7 +5,7 @@ def seed_database(app):
     with app.app_context():
         db.create_all()
 
-        # Otomatik Tablo Sütun Migrasyonu (SQLite ALTER TABLE)
+        # Otomatik Tablo Sütun Migrasyonu (PostgreSQL & SQLite ALTER TABLE)
         try:
             from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
@@ -13,14 +13,29 @@ def seed_database(app):
                 columns = [c['name'] for c in inspector.get_columns('users')]
                 with db.engine.connect() as conn:
                     if 'failed_login_attempts' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
+                        try:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
+                            conn.commit()
+                        except Exception as e:
+                            print(f"[!] failed_login_attempts migration: {e}")
                     if 'is_suspended' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT 0"))
+                        try:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT FALSE"))
+                            conn.commit()
+                        except Exception as e:
+                            print(f"[!] is_suspended migration: {e}")
                     if 'reset_token' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
+                        try:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
+                            conn.commit()
+                        except Exception as e:
+                            print(f"[!] reset_token migration: {e}")
                     if 'reset_token_expires_at' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME"))
-                    conn.commit()
+                        try:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP"))
+                            conn.commit()
+                        except Exception as e:
+                            print(f"[!] reset_token_expires_at migration: {e}")
         except Exception as mig_err:
             print(f"[!] Sütun migrasyon kontrolü: {mig_err}")
 

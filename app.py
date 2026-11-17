@@ -356,10 +356,12 @@ def login():
     if request.method == 'POST':
         login_id = request.form.get('login_id', '').strip()
         password = request.form.get('password', '').strip()
+        next_url = request.args.get('next')
 
         if not login_id or not password:
             flash('Lütfen kullanıcı adı/e-posta ve şifrenizi girin.', 'danger')
-            return render_template('login.html', login_id=login_id)
+            session['failed_login_id'] = login_id
+            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
 
         clean_login = login_id.lower()
         user = User.query.filter(
@@ -370,7 +372,8 @@ def login():
 
         if not user:
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
-            return render_template('login.html', login_id=login_id)
+            session['failed_login_id'] = login_id
+            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
 
         # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ
         if user.is_suspended:
@@ -381,9 +384,10 @@ def login():
                 db.session.commit()
             else:
                 flash('🚨 Bu hesap hatalı denemeler nedeniyle geçici olarak askıya alınmıştır. Açmak için doğru şifrenizi giriniz veya Süper Yönetici ile iletişime geçiniz.', 'danger')
-                return render_template('login.html', login_id=login_id)
+                session['failed_login_id'] = login_id
+                return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
 
-        # 2. ŞİFRE DOĞRULAMA
+        # 2. ŞİFRE DOĞRULAMA (PRG Deseni - F5 basıldığında hak düşmez)
         if not user.check_password(password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
             if user.failed_login_attempts >= 5:
@@ -394,7 +398,9 @@ def login():
                 remaining = 5 - user.failed_login_attempts
                 db.session.commit()
                 flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}.', 'danger')
-            return render_template('login.html', login_id=login_id)
+            session['failed_login_id'] = login_id
+            # Post/Redirect/Get: F5 ile yenilendiğinde aynı POST isteği tekrarlanmasın
+            return redirect(url_for('login', next=next_url) if next_url else url_for('login'))
 
         # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla
         if (user.failed_login_attempts or 0) > 0 or user.is_suspended:
@@ -435,12 +441,14 @@ def login():
         flash(f'Hoş geldin, Ajan {user.username}! Sisteme güvenli bağlantı kuruldu.', 'success')
         
         # Açık Yönlendirme (Open Redirect) Koruması
-        next_url = request.args.get('next')
         if next_url and is_safe_url(next_url):
             return redirect(next_url)
         return redirect(url_for('dashboard'))
 
-    return render_template('login.html')
+    # GET İsteği - Formu göster (Sayfa F5 ile yenilendiğinde sayaç ASLA etkilenmez)
+    failed_login_id = session.pop('failed_login_id', None)
+    login_id = request.args.get('login_id', '') or failed_login_id or ''
+    return render_template('login.html', login_id=login_id)
 
 @app.route('/logout')
 def logout():
