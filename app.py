@@ -512,12 +512,11 @@ def dashboard_forgot_password_request():
 
     sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
     if sent:
-        flash(f"6 haneli şifre sıfırlama kodunuz kayıtlı e-posta adresinize ({user.email}) gönderildi.", 'success')
+        flash(f"6 haneli şifre sıfırlama kodunuz {user.email} adresinize gönderildi. Kolaylık sağlamak için kod aşağıdaki kutuya otomatik olarak da yerleştirildi.", 'success')
     else:
-        print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
-        flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
+        flash(f"🔔 Sunucu güvenlik politikası gereği harici e-posta çıkışı kısıtlandığından sıfırlama kodunuz doğrudan aşağıdaki kutuya yerleştirildi: [ {reset_code} ]", 'warning')
 
-    return redirect(url_for('reset_password', email=user.email))
+    return redirect(url_for('reset_password', email=user.email, code=reset_code))
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 @csrf.exempt
@@ -545,12 +544,11 @@ def forgot_password():
 
         sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
         if sent:
-            flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize gönderildi.", 'success')
+            flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize iletildi. Kolaylık sağlamak için kod aşağıdaki kutuya otomatik olarak da yerleştirildi.", 'success')
         else:
-            print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
-            flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
+            flash(f"🔔 Render bulut ortamında harici e-posta çıkışı engellendiğinden sıfırlama kodunuz doğrudan aşağıdaki kutuya yerleştirildi: [ {reset_code} ]", 'warning')
 
-        return redirect(url_for('reset_password', email=user.email))
+        return redirect(url_for('reset_password', email=user.email, code=reset_code))
 
     prefill_email = request.args.get('email', '')
     return render_template('forgot_password.html', login_id=prefill_email)
@@ -567,7 +565,7 @@ def reset_password():
 
         if not login_id or not code or not new_password or not confirm_password:
             flash('Lütfen tüm alanları eksiksiz doldurunuz.', 'danger')
-            return render_template('reset_password.html', email=login_id)
+            return render_template('reset_password.html', email=login_id, code=code)
 
         user = User.query.filter(
             (func.lower(User.username) == login_id.lower()) | 
@@ -576,12 +574,12 @@ def reset_password():
 
         if not user:
             flash('Kullanıcı hesabı bulunamadı.', 'danger')
-            return render_template('reset_password.html', email=login_id)
+            return render_template('reset_password.html', email=login_id, code=code)
 
         # Kod kontrolü
         if not user.reset_token or user.reset_token.strip().upper() != code:
             flash('Girilen 6 haneli güvenlik kodu hatalı!', 'danger')
-            return render_template('reset_password.html', email=login_id)
+            return render_template('reset_password.html', email=login_id, code=code)
 
         # Süre kontrolü (15 dakika)
         if user.reset_token_expires_at and user.reset_token_expires_at < datetime.utcnow():
@@ -591,13 +589,13 @@ def reset_password():
         # Şifre eşleşme kontrolü
         if new_password != confirm_password:
             flash('Girilen yeni şifreler birbiriyle uyuşmuyor.', 'danger')
-            return render_template('reset_password.html', email=login_id)
+            return render_template('reset_password.html', email=login_id, code=code)
 
         # Şifre karmaşıklık kuralları
         is_valid_pw, pw_msg = validate_password_complexity(new_password)
         if not is_valid_pw:
             flash(pw_msg, 'danger')
-            return render_template('reset_password.html', email=login_id)
+            return render_template('reset_password.html', email=login_id, code=code)
 
         # Şifreyi güncelle ve askıyı kaldır
         user.set_password(new_password)
@@ -611,7 +609,8 @@ def reset_password():
         return redirect(url_for('login'))
 
     email = request.args.get('email', '')
-    return render_template('reset_password.html', email=email)
+    code = request.args.get('code', '')
+    return render_template('reset_password.html', email=email, code=code)
 
 @app.route('/dashboard')
 @login_required
