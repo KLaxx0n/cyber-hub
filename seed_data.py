@@ -6,48 +6,37 @@ def seed_database(app):
     with app.app_context():
         db.create_all()
 
-        # Otomatik Tablo Sütun Migrasyonu (SQLite ALTER TABLE)
-        try:
+        # Otomatik Tablo Sütun Migrasyonu (PostgreSQL & SQLite Uyumlu)
+        def safe_add_column(engine, table_name, column_name, column_def):
             from sqlalchemy import inspect, text
-            inspector = inspect(db.engine)
-            if 'users' in inspector.get_table_names():
-                columns = [c['name'] for c in inspector.get_columns('users')]
-                with db.engine.connect() as conn:
-                    if 'failed_login_attempts' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
-                    if 'is_suspended' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT 0"))
-                    if 'reset_token' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
-                    if 'reset_token_expires_at' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME"))
-                    if 'totp_secret' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)"))
-                    if 'two_factor_enabled' not in columns:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN two_factor_enabled BOOLEAN DEFAULT 0"))
-                    conn.commit()
+            try:
+                inspector = inspect(engine)
+                if table_name in inspector.get_table_names():
+                    columns = [c['name'] for c in inspector.get_columns(table_name)]
+                    if column_name not in columns:
+                        with engine.connect() as conn:
+                            conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_def}"))
+                            conn.commit()
+                        print(f"[+] Sütun eklendi: {table_name}.{column_name}")
+            except Exception as e:
+                print(f"[!] Sütun kontrolü ({table_name}.{column_name}): {e}")
 
-            if 'labs' in inspector.get_table_names():
-                lab_cols = [c['name'] for c in inspector.get_columns('labs')]
-                with db.engine.connect() as conn:
-                    if 'hint1' not in lab_cols:
-                        conn.execute(text("ALTER TABLE labs ADD COLUMN hint1 TEXT"))
-                    if 'hint2' not in lab_cols:
-                        conn.execute(text("ALTER TABLE labs ADD COLUMN hint2 TEXT"))
-                    conn.commit()
+        # Users tablosu sütunları
+        safe_add_column(db.engine, 'users', 'failed_login_attempts', 'INTEGER DEFAULT 0')
+        safe_add_column(db.engine, 'users', 'is_suspended', 'BOOLEAN DEFAULT FALSE')
+        safe_add_column(db.engine, 'users', 'reset_token', 'VARCHAR(64)')
+        safe_add_column(db.engine, 'users', 'reset_token_expires_at', 'TIMESTAMP')
+        safe_add_column(db.engine, 'users', 'totp_secret', 'VARCHAR(64)')
+        safe_add_column(db.engine, 'users', 'two_factor_enabled', 'BOOLEAN DEFAULT FALSE')
 
-            if 'user_lab_progress' in inspector.get_table_names():
-                ulp_cols = [c['name'] for c in inspector.get_columns('user_lab_progress')]
-                with db.engine.connect() as conn:
-                    if 'is_first_blood' not in ulp_cols:
-                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN is_first_blood BOOLEAN DEFAULT 0"))
-                    if 'hint1_unlocked' not in ulp_cols:
-                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN hint1_unlocked BOOLEAN DEFAULT 0"))
-                    if 'hint2_unlocked' not in ulp_cols:
-                        conn.execute(text("ALTER TABLE user_lab_progress ADD COLUMN hint2_unlocked BOOLEAN DEFAULT 0"))
-                    conn.commit()
-        except Exception as mig_err:
-            print(f"[!] Sütun migrasyon kontrolü: {mig_err}")
+        # Labs tablosu sütunları
+        safe_add_column(db.engine, 'labs', 'hint1', 'TEXT')
+        safe_add_column(db.engine, 'labs', 'hint2', 'TEXT')
+
+        # UserLabProgress tablosu sütunları
+        safe_add_column(db.engine, 'user_lab_progress', 'is_first_blood', 'BOOLEAN DEFAULT FALSE')
+        safe_add_column(db.engine, 'user_lab_progress', 'hint1_unlocked', 'BOOLEAN DEFAULT FALSE')
+        safe_add_column(db.engine, 'user_lab_progress', 'hint2_unlocked', 'BOOLEAN DEFAULT FALSE')
 
         # Predefined Labs based on project report
         labs_data = [
