@@ -55,6 +55,10 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2 justify-center md:justify-start">
                         <p class="text-xs text-slate-400 font-mono">{{ user.email }} &bull; Kayıt: {{ user.created_at.strftime('%d.%m.%Y') }}</p>
+                        <a href="#security-settings" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-xs text-amber-400 font-mono transition-colors">
+                            <i class="fa-solid fa-key text-[10px]"></i>
+                            <span>Şifre & Güvenlik</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -222,6 +226,137 @@
             Henüz çözülmüş bir laboratuvarınız bulunmuyor.
         </div>
         {% endif %}
+    </div>
+
+    <!-- Account & Security Settings Card -->
+    <div id="security-settings" class="cyber-card p-6 md:p-8 mt-8 border border-slate-800 rounded-xl scroll-mt-6 shadow-lg">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-950/70 border border-amber-600/60 flex items-center justify-center text-amber-400 text-lg">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        Hesap & Şifre Güvenliği
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-400 font-mono">Kullanıcı Ayarları</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Mevcut şifrenizi değiştirebilir veya unuttuysanız e-posta adresinize sıfırlama kodu talep edebilirsiniz.</p>
+                </div>
+            </div>
+            <div class="text-xs font-mono text-slate-400 flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                <i class="fa-solid fa-envelope text-amber-400"></i>
+                <span>{{ user.email }}</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+            <!-- 1. Şifre Değiştir Formu (Mevcut Şifresini Bilenler İçin) -->
+            <div class="p-5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                <div class="flex items-center space-x-2 text-white font-bold text-sm mb-1">
+                    <i class="fa-solid fa-key text-blue-400"></i>
+                    <h4>Şifremi Değiştir</h4>
+                </div>
+                <p class="text-[11px] text-slate-400 mb-4">
+                    Mevcut şifrenizi girerek hesabınız için yeni bir güvenli şifre belirleyebilirsiniz.
+                </p>
+
+                <form action="{{ url_for('change_password') }}" method="POST" class="space-y-3.5">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Mevcut Şifre</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                                <i class="fa-solid fa-lock text-xs"></i>
+                            </span>
+                            <input type="password" name="current_password" required placeholder="Mevcut şifreniz"
+                                class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Yeni Şifre</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                                <i class="fa-solid fa-shield-cat text-xs"></i>
+                            </span>
+                            <input type="password" name="new_password" required placeholder="En az 6 karakter (harf + rakam)"
+                                class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Yeni Şifre (Tekrar)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                                <i class="fa-solid fa-shield-cat text-xs"></i>
+                            </span>
+                            <input type="password" name="confirm_password" required placeholder="Yeni şifrenizi tekrar yazın"
+                                class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs font-mono transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Şifremi Güncelle</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 2. Şifremi Unuttum / E-Posta ile Sıfırlama -->
+            <div class="p-5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 text-white font-bold text-sm mb-1">
+                        <i class="fa-solid fa-circle-question text-amber-400"></i>
+                        <h4>Mevcut Şifremi Hatırlamıyorum</h4>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mb-4">
+                        Eski şifrenizi hatırlamıyorsanız veya unuttuysanız, doğrudan sistemde kayıtlı e-posta adresinize tek kullanımlık <strong>6 haneli güvenlik kodu</strong> gönderebilirsiniz.
+                    </p>
+
+                    <div class="p-3.5 rounded-lg bg-amber-950/30 border border-amber-800/50 mb-4">
+                        <div class="flex items-start space-x-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                            <div class="text-[11px] text-amber-200/90 leading-relaxed">
+                                Kod <strong>{{ user.email }}</strong> adresine iletilecektir. Gönderilen kod <strong>15 dakika</strong> geçerlidir.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tips -->
+                    <div class="space-y-1.5 text-[11px] text-slate-400 font-mono mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                            <span>En az 6 karakter uzunluk</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                            <span>En az bir harf (a-z / A-Z)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                            <span>En az bir rakam (0-9)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <form action="{{ url_for('dashboard_forgot_password_request') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs font-mono transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>E-Postama Sıfırlama Kodu Gönder</span>
+                        </button>
+                    </form>
+                    <a href="{{ url_for('reset_password', email=user.email) }}" class="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-medium text-xs font-mono transition-colors flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-key"></i>
+                        <span>Zaten Kodum Var, Şifremi Yenile &rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

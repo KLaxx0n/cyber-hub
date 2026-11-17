@@ -17,7 +17,7 @@ from sqlalchemy import func
 from config import Config
 from models import db, User, Lab, UserLabProgress
 from seed_data import seed_database
-from mail_service import send_verification_email
+from mail_service import send_verification_email, send_password_reset_email
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -447,6 +447,163 @@ def logout():
     session.clear()
     flash('Oturum başarıyla sonlandırıldı. Güvenli çıkış yapıldı.', 'info')
     return redirect(url_for('index'))
+
+# ----------------- ŞİFRE YÖNETİMİ & SIFIRLAMA ROTLARI ----------------- #
+
+@app.route('/change-password', methods=['POST'])
+@login_required
+@csrf.exempt
+def change_password():
+    user = User.query.get(session['user_id'])
+    current_password = request.form.get('current_password', '').strip()
+    new_password = request.form.get('new_password', '').strip()
+    confirm_password = request.form.get('confirm_password', '').strip()
+
+    if not current_password or not new_password or not confirm_password:
+        flash('Lütfen tüm şifre alanlarını eksiksiz doldurunuz.', 'danger')
+        return redirect(url_for('dashboard') + '#security-settings')
+
+    # Mevcut şifre doğrulaması
+    if not user.check_password(current_password):
+        flash('Mevcut şifrenizi hatalı girdiniz! Şifrenizi unuttuysanız aşağıdaki "Şifremi Unuttum" seçeneğini kullanabilirsiniz.', 'danger')
+        return redirect(url_for('dashboard') + '#security-settings')
+
+    # Yeni şifre eşleşme kontrolü
+    if new_password != confirm_password:
+        flash('Yeni şifreler birbiriyle uyuşmuyor. Lütfen tekrar deneyiniz.', 'danger')
+        return redirect(url_for('dashboard') + '#security-settings')
+
+    # Yeni şifre eskisinin aynısı olamaz
+    if current_password == new_password:
+        flash('Yeni şifreniz mevcut şifrenizle aynı olamaz.', 'warning')
+        return redirect(url_for('dashboard') + '#security-settings')
+
+    # Şifre karmaşıklık kontrolü
+    is_valid_pw, pw_msg = validate_password_complexity(new_password)
+    if not is_valid_pw:
+        flash(pw_msg, 'danger')
+        return redirect(url_for('dashboard') + '#security-settings')
+
+    # Şifreyi güncelle ve oturum hatalarını temizle
+    user.set_password(new_password)
+    user.failed_login_attempts = 0
+    db.session.commit()
+
+    flash('🔐 Şifreniz başarıyla güncellendi! Yeni şifreniz anında aktif edildi.', 'success')
+    return redirect(url_for('dashboard') + '#security-settings')
+
+@app.route('/dashboard/forgot-password-request', methods=['POST'])
+@login_required
+@csrf.exempt
+def dashboard_forgot_password_request():
+    user = User.query.get(session['user_id'])
+    reset_code = generate_verification_code()
+    user.reset_token = reset_code
+    user.reset_token_expires_at = datetime.utcnow() + timedelta(minutes=15)
+    db.session.commit()
+
+    sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
+    if sent:
+        flash(f"6 haneli şifre sıfırlama kodunuz kayıtlı e-posta adresinize ({user.email}) gönderildi.", 'success')
+    else:
+        print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
+        flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
+
+    return redirect(url_for('reset_password', email=user.email))
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+@csrf.exempt
+@limiter.limit("15 per minute")
+def forgot_password():
+    if request.method == 'POST':
+        login_id = request.form.get('login_id', '').strip()
+        if not login_id:
+            flash('Lütfen kullanıcı adı veya e-posta adresinizi giriniz.', 'danger')
+            return render_template('forgot_password.html')
+
+        user = User.query.filter(
+            (func.lower(User.username) == login_id.lower()) | 
+            (func.lower(User.email) == login_id.lower())
+        ).first()
+
+        if not user:
+            flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
+            return render_template('forgot_password.html', login_id=login_id)
+
+        reset_code = generate_verification_code()
+        user.reset_token = reset_code
+        user.reset_token_expires_at = datetime.utcnow() + timedelta(minutes=15)
+        db.session.commit()
+
+        sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
+        if sent:
+            flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize gönderildi.", 'success')
+        else:
+            print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
+            flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
+
+        return redirect(url_for('reset_password', email=user.email))
+
+    prefill_email = request.args.get('email', '')
+    return render_template('forgot_password.html', login_id=prefill_email)
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+@csrf.exempt
+@limiter.limit("15 per minute")
+def reset_password():
+    if request.method == 'POST':
+        login_id = request.form.get('email', '').strip()
+        code = request.form.get('code', '').strip().upper()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        if not login_id or not code or not new_password or not confirm_password:
+            flash('Lütfen tüm alanları eksiksiz doldurunuz.', 'danger')
+            return render_template('reset_password.html', email=login_id)
+
+        user = User.query.filter(
+            (func.lower(User.username) == login_id.lower()) | 
+            (func.lower(User.email) == login_id.lower())
+        ).first()
+
+        if not user:
+            flash('Kullanıcı hesabı bulunamadı.', 'danger')
+            return render_template('reset_password.html', email=login_id)
+
+        # Kod kontrolü
+        if not user.reset_token or user.reset_token.strip().upper() != code:
+            flash('Girilen 6 haneli güvenlik kodu hatalı!', 'danger')
+            return render_template('reset_password.html', email=login_id)
+
+        # Süre kontrolü (15 dakika)
+        if user.reset_token_expires_at and user.reset_token_expires_at < datetime.utcnow():
+            flash('Güvenlik kodunun 15 dakikalık süresi dolmuş. Lütfen yeni bir kod talep ediniz.', 'danger')
+            return redirect(url_for('forgot_password', email=user.email))
+
+        # Şifre eşleşme kontrolü
+        if new_password != confirm_password:
+            flash('Girilen yeni şifreler birbiriyle uyuşmuyor.', 'danger')
+            return render_template('reset_password.html', email=login_id)
+
+        # Şifre karmaşıklık kuralları
+        is_valid_pw, pw_msg = validate_password_complexity(new_password)
+        if not is_valid_pw:
+            flash(pw_msg, 'danger')
+            return render_template('reset_password.html', email=login_id)
+
+        # Şifreyi güncelle ve askıyı kaldır
+        user.set_password(new_password)
+        user.reset_token = None
+        user.reset_token_expires_at = None
+        user.failed_login_attempts = 0
+        user.is_suspended = False
+        db.session.commit()
+
+        flash('🎉 Şifreniz başarıyla sıfırlandı! Yeni şifrenizle giriş yapabilirsiniz.', 'success')
+        return redirect(url_for('login'))
+
+    email = request.args.get('email', '')
+    return render_template('reset_password.html', email=email)
 
 @app.route('/dashboard')
 @login_required

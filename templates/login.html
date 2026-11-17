@@ -27,7 +27,12 @@
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Şifre</label>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-medium text-slate-300">Şifre</label>
+                    <a href="{{ url_for('forgot_password') }}" class="text-[11px] text-amber-400 hover:text-amber-300 font-mono transition-colors">
+                        Şifremi Unuttum?
+                    </a>
+                </div>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-key text-xs"></i>

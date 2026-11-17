@@ -16,6 +16,10 @@ def seed_database(app):
                         conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
                     if 'is_suspended' not in columns:
                         conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT 0"))
+                    if 'reset_token' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64)"))
+                    if 'reset_token_expires_at' not in columns:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME"))
                     conn.commit()
         except Exception as mig_err:
             print(f"[!] Sütun migrasyon kontrolü: {mig_err}")

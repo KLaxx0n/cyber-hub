@@ -20,6 +20,8 @@ class User(db.Model):
     failed_login_attempts = db.Column(db.Integer, default=0)
     is_suspended = db.Column(db.Boolean, default=False)
     verification_code_expires_at = db.Column(db.DateTime, nullable=True)
+    reset_token = db.Column(db.String(64), nullable=True)
+    reset_token_expires_at = db.Column(db.DateTime, nullable=True)
     assigned_team = db.Column(db.String(20), default='unassigned') # 'red_team', 'blue_team', 'unassigned'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
