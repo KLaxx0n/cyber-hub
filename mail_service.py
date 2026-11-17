@@ -144,15 +144,32 @@ def send_verification_email(to_email, username, verification_code):
         msg['To'] = to_email
         msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
-        # Timeout 4 sn tutuldu (bulut güvenlik duvarında isteklerin askıda kalmaması için)
-        with smtplib.SMTP(mail_server, mail_port, timeout=4) as server:
-            if use_tls:
-                server.starttls()
-            server.login(mail_username, mail_password)
-            server.sendmail(mail_username, to_email, msg.as_string())
+        # Port 465 (SSL) ve Port 587 (TLS) sırasıyla denenir
+        sent = False
+        last_err = None
+        try:
+            with smtplib.SMTP_SSL(mail_server, 465, timeout=5) as server:
+                server.login(mail_username, mail_password)
+                server.sendmail(mail_username, to_email, msg.as_string())
+                sent = True
+        except Exception as e_ssl:
+            last_err = e_ssl
+            try:
+                with smtplib.SMTP(mail_server, 587, timeout=5) as server:
+                    if use_tls:
+                        server.starttls()
+                    server.login(mail_username, mail_password)
+                    server.sendmail(mail_username, to_email, msg.as_string())
+                    sent = True
+            except Exception as e_tls:
+                last_err = e_tls
 
-        print(f"[+] Siber temalı doğrulama kodu {to_email} adresine başarıyla iletildi.")
-        return True, "Doğrulama kodu başarıyla e-posta adresinize gönderildi."
+        if sent:
+            print(f"[+] Siber temalı doğrulama kodu {to_email} adresine başarıyla iletildi.")
+            return True, "Doğrulama kodu başarıyla e-posta adresinize gönderildi."
+        else:
+            print(f"[!] E-posta gönderme hatası: {last_err}")
+            return False, str(last_err)
 
     except Exception as e:
         error_msg = str(e)
@@ -268,14 +285,31 @@ def send_password_reset_email(to_email, username, reset_code):
         msg['To'] = to_email
         msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
-        with smtplib.SMTP(mail_server, mail_port, timeout=4) as server:
-            if use_tls:
-                server.starttls()
-            server.login(mail_username, mail_password)
-            server.sendmail(mail_username, to_email, msg.as_string())
+        sent = False
+        last_err = None
+        try:
+            with smtplib.SMTP_SSL(mail_server, 465, timeout=5) as server:
+                server.login(mail_username, mail_password)
+                server.sendmail(mail_username, to_email, msg.as_string())
+                sent = True
+        except Exception as e_ssl:
+            last_err = e_ssl
+            try:
+                with smtplib.SMTP(mail_server, 587, timeout=5) as server:
+                    if use_tls:
+                        server.starttls()
+                    server.login(mail_username, mail_password)
+                    server.sendmail(mail_username, to_email, msg.as_string())
+                    sent = True
+            except Exception as e_tls:
+                last_err = e_tls
 
-        print(f"[+] Şifre sıfırlama kodu {to_email} adresine iletildi.")
-        return True, "Şifre sıfırlama kodu başarıyla e-posta adresinize gönderildi."
+        if sent:
+            print(f"[+] Şifre sıfırlama kodu {to_email} adresine iletildi.")
+            return True, "Şifre sıfırlama kodu başarıyla e-posta adresinize gönderildi."
+        else:
+            print(f"[!] Şifre sıfırlama e-posta hatası: {last_err}")
+            return False, str(last_err)
 
     except Exception as e:
         error_msg = str(e)

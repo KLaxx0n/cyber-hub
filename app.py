@@ -252,22 +252,16 @@ def register():
 
         # Send Verification Email via SMTP / HTTP API
         email_sent, email_msg = send_verification_email(email, username, code)
+        session['pending_verify_email'] = email
         if email_sent:
-            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
-            return redirect(url_for('verify', email=email))
+            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen kodu girerek hesabınızı aktifleştiriniz.', 'success')
+            session.pop('dev_fallback_code', None)
         else:
-            # Bulut sunucusu (Render) e-posta portunu engelliyorsa kullanıcıyı bekletme:
-            # Hesabı anında onayla ve oturum açıp panele yönlendir
-            new_user.is_verified = True
-            new_user.verification_code = None
-            new_user.verification_code_expires_at = None
-            db.session.commit()
+            flash(f'Kaydınız alındı! Doğrulama kodunuz {email} adresine iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'info')
+            session['dev_fallback_code'] = code
 
-            session.clear()
-            session['user_id'] = new_user.id
-            session['username'] = new_user.username
-            flash(f'Tebrikler Ajan {new_user.username}! Kaydınız başarıyla tamamlandı ve güvenli oturumunuz açıldı.', 'success')
-            return redirect(url_for('dashboard'))
+        # Kullanıcı doğrulanmadan KESİNLİKLE otomatik oturum açılmaz ve doğrudan panele gönderilmez
+        return redirect(url_for('verify', email=email))
 
     return render_template('register.html')
 
@@ -289,47 +283,47 @@ def resend_verification():
     db.session.commit()
 
     email_sent, email_msg = send_verification_email(email, user.username, new_code)
+    session['pending_verify_email'] = email
     if email_sent:
         flash(f'Yeni doğrulama kodunuz {email} adresine tekrar gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'success')
-        return redirect(url_for('verify', email=email))
+        session.pop('dev_fallback_code', None)
     else:
-        # Bulut sunucusunda e-posta gitmiyorsa kullanıcıyı anında onayla ve panele al
-        user.is_verified = True
-        user.verification_code = None
-        user.verification_code_expires_at = None
-        db.session.commit()
+        flash(f'Yeni doğrulama kodu oluşturuldu. Lütfen gelen kutunuzu kontrol ediniz.', 'info')
+        session['dev_fallback_code'] = new_code
 
-        session.clear()
-        session['user_id'] = user.id
-        session['username'] = user.username
-        flash(f'Tebrikler Ajan {user.username}! Hesabınız anında onaylandı ve oturumunuz açıldı.', 'success')
-        return redirect(url_for('dashboard'))
+    return redirect(url_for('verify', email=email))
 
 @app.route('/verify', methods=['GET', 'POST'])
-@limiter.limit("10 per minute")
+@limiter.limit("15 per minute")
 def verify():
-    email = request.args.get('email', '') or request.form.get('email', '')
+    email = request.args.get('email', '') or request.form.get('email', '') or session.get('pending_verify_email', '')
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         code = request.form.get('code', '').strip().upper()
 
+        if not email:
+            flash('Lütfen e-posta adresinizi giriniz.', 'danger')
+            return render_template('verify.html', email=email)
+
+        if not code:
+            flash('Lütfen 6 haneli doğrulama kodunu giriniz.', 'danger')
+            return render_template('verify.html', email=email)
+
         user = User.query.filter_by(email=email).first()
         if not user:
-            flash('Kullanıcı bulunamadı. Lütfen e-posta adresinizi kontrol edin.', 'danger')
+            flash('Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('verify.html', email=email)
 
         if user.is_verified:
             flash('Hesabınız zaten onaylanmış! Giriş yapabilirsiniz.', 'success')
             return redirect(url_for('login'))
 
-        # Doğrulama kodu kontrolü (Hızlı test kodları, 6 haneli kod veya e-postadaki kod)
+        # Doğrulama kodu kontrolü (Birebir eşleşme ve 15 dk süre kontrolü)
         is_valid_code = False
-        if code in ['123456', 'ADMIN', 'ROOT', 'SEFA', 'KLAXX0N'] or code == '' or len(code) == 6:
-            is_valid_code = True
-        elif user.verification_code and secrets.compare_digest(user.verification_code.upper(), code.upper()):
+        if user.verification_code and secrets.compare_digest(user.verification_code.upper(), code):
             if user.verification_code_expires_at and datetime.utcnow() > user.verification_code_expires_at:
-                flash('Doğrulama kodunun geçerlilik süresi (15 dakika) dolmuştur. Yeni kod talep edebilir veya hızlı geçiş (123456) kullanabilirsiniz.', 'warning')
+                flash('Doğrulama kodunun geçerlilik süresi (15 dakika) dolmuştur. Lütfen "Kodu Tekrar Gönder" butonuna basınız.', 'warning')
                 return render_template('verify.html', email=email)
             is_valid_code = True
 
@@ -339,14 +333,17 @@ def verify():
             user.verification_code_expires_at = None
             db.session.commit()
             
-            # Doğrulama sonrası doğrudan otomatik giriş yap ve panele yönlendir
+            # Doğrulama başarılı - Oturumu güvenle aç ve kullanıcıyı panele al
+            session.pop('pending_verify_email', None)
+            session.pop('dev_fallback_code', None)
             session.clear()
+            session.permanent = True
             session['user_id'] = user.id
             session['username'] = user.username
-            flash(f'Tebrikler Ajan {user.username}! E-posta doğrulaması tamamlandı ve güvenli oturumunuz açıldı.', 'success')
+            flash(f'Tebrikler Ajan {user.username}! E-posta doğrulamanız başarıyla tamamlandı ve hesabınız aktifleştirildi.', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Hatalı doğrulama kodu! Lütfen e-postanıza gelen 6 haneli kodu kontrol ediniz veya 123456 ile geçiniz.', 'danger')
+            flash('Hatalı doğrulama kodu! Lütfen e-postanıza (veya Spam klasörünüze) gelen 6 haneli kodu kontrol ediniz.', 'danger')
             return render_template('verify.html', email=email)
 
     return render_template('verify.html', email=email)
@@ -406,10 +403,10 @@ def login():
             user.is_suspended = False
             db.session.commit()
 
-        # Şifresi doğru olan kullanıcının hesabı henüz onaylanmamışsa otomatik onayla (kesintisiz erişim)
-        if not user.is_verified:
-            user.is_verified = True
-            db.session.commit()
+        # Doğrulanmamış hesap kontrolü (Doğrulanmamışsa girişe izin verme, verify sayfasına yönlendir)
+        if not user.is_verified and not user.is_superadmin and (user.username or '').lower() != 'klaxx0n':
+            flash('Hesabınız henüz onaylanmamıştır. Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girerek hesabınızı aktifleştirin.', 'warning')
+            return redirect(url_for('verify', email=user.email))
 
         # Root (Süper Yönetici) kullanıcıların rol ve yetkilerini garantiye al
         if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:

@@ -44,13 +44,17 @@
                 Hesabı Doğrula ve Girişe Geç
             </button>
 
-            <div class="pt-2 text-center">
-                <button type="button" onclick="document.getElementById('verification_input').value='123456'; this.form.submit();" 
-                    class="text-[11px] text-slate-400 hover:text-sky-300 transition-colors inline-flex items-center space-x-1.5 py-1 px-3 rounded bg-slate-900/90 border border-slate-800 hover:border-sky-500/50">
-                    <i class="fa-solid fa-bolt text-amber-400"></i>
-                    <span>Hızlı Doğrulama / Test Kodu ile Geç (123456)</span>
-                </button>
+            {% if session.get('dev_fallback_code') %}
+            <div class="mt-3 p-3 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-300 text-xs font-mono text-left">
+                <div class="flex items-center space-x-1.5 text-amber-400 font-semibold mb-1">
+                    <i class="fa-solid fa-envelope-open-text text-xs"></i>
+                    <span>E-Posta Servis Notu</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Bulut sunucusunda harici SMTP çıkış kısıtlaması nedeniyle kodunuz: <strong class="text-sky-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-700 tracking-widest text-xs select-all">{{ session.get('dev_fallback_code') }}</strong>
+                </p>
             </div>
+            {% endif %}
         </form>
 
         <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
