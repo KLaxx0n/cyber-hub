@@ -43,7 +43,7 @@ def ensure_permanent_session():
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
     flash('Güvenlik oturumu yenilendi. Lütfen işlemi tekrar deneyin.', 'info')
-    return redirect(request.referrer or url_for('admin_panel'))
+    return redirect(request.referrer or url_for('index'))
 
 # Ensure database tables and initial seed data exist
 with app.app_context():
@@ -730,6 +730,7 @@ def leaderboard():
 
 @app.route('/api/submit-flag', methods=['POST'])
 @login_required
+@csrf.exempt
 @limiter.limit("20 per minute")
 def submit_flag():
     data = request.get_json() or {}
