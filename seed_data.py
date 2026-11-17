@@ -154,7 +154,7 @@ def seed_database(app):
                 new_lab = Lab(**lab_info)
                 db.session.add(new_lab)
 
-        # Predefined default users (Sefa_Gumus & KLaxx0n kurucu ve süper yöneticiler)
+        # Predefined default users (Sefa_Gumus Süper Yönetici, KLaxx0n Takım Lideri)
         users_data = [
             {
                 'username': 'Sefa_Gumus',
@@ -164,7 +164,7 @@ def seed_database(app):
                 'score': 0,
                 'is_leader': True,
                 'is_founder': True,
-                'role': 'superadmin',
+                'role': 'root',
                 'assigned_team': 'blue_team',
                 'is_suspended': False,
                 'failed_login_attempts': 0
@@ -176,8 +176,8 @@ def seed_database(app):
                 'is_verified': True,
                 'score': 0,
                 'is_leader': True,
-                'is_founder': True,
-                'role': 'superadmin',
+                'is_founder': False,
+                'role': 'leader',
                 'assigned_team': 'blue_team',
                 'is_suspended': False,
                 'failed_login_attempts': 0
@@ -195,9 +195,9 @@ def seed_database(app):
                 existing_user.is_verified = True
                 if not existing_user.password_hash:
                     existing_user.password_hash = u_info['password_hash']
-                existing_user.role = u_info.get('role', existing_user.role)
-                existing_user.is_leader = u_info.get('is_leader', existing_user.is_leader)
-                existing_user.is_founder = u_info.get('is_founder', existing_user.is_founder)
+                existing_user.role = u_info['role']
+                existing_user.is_leader = u_info['is_leader']
+                existing_user.is_founder = u_info['is_founder']
                 existing_user.is_suspended = False
                 existing_user.failed_login_attempts = 0
 

@@ -299,9 +299,9 @@
                             {% endif %}
                         </td>
 
-                        <!-- Yetkili İşlemleri -->
+                        <!-- Yetkili İşlemleri (Yalnızca Süper Yönetici) -->
+                        {% if current_user.is_superadmin %}
                         <td class="py-3.5 px-4 text-right">
-                            {% if current_user.is_superadmin %}
                             <div class="flex items-center justify-end space-x-2">
                                 <!-- Hesap Askısını Kaldır (YALNIZCA Süper Yönetici yapabilir) -->
                                 {% if u.is_suspended %}
@@ -343,14 +343,8 @@
                                 </form>
                                 {% endif %}
                             </div>
-                            {% else %}
-                            <div class="text-right">
-                                <span class="text-slate-500 text-[11px] font-mono italic" title="Takım Liderleri yalnızca Takım ataması yapabilir.">
-                                    <i class="fa-solid fa-lock text-[10px] text-slate-600 mr-1"></i>Yetki Yok (Yalnızca Takım)
-                                </span>
-                            </div>
-                            {% endif %}
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>

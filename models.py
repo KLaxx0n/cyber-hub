@@ -52,13 +52,16 @@ class User(db.Model):
 
     @property
     def is_superadmin(self):
-        # 1. Aktif rolü 'superadmin' veya 'root' olan her kullanıcı tam yetkili Süper Yöneticidir
+        # 1. Eğer kullanıcının aktif rolü 'leader' veya 'student' ise kesinlikle süper yönetici olamaz
+        if self.role in ['leader', 'student']:
+            return False
+        # 2. Aktif rolü 'superadmin' veya 'root' olan kullanıcı tam yetkili Süper Yöneticidir
         if self.role in ['superadmin', 'root']:
             return True
-        # 2. Ana root hesabı her zaman korunur
-        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'klaxx0n']:
+        # 3. Ana root hesabı (Sefa_Gumus) korunur
+        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
             return True
-        # 3. Founder bayrağı yalnızca öğrenci/lidere düşürülmemişse superadmin sayılır
+        # 4. Founder bayrağı yalnızca öğrenci/lidere düşürülmemişse superadmin sayılır
         return bool(self.is_founder and self.role not in ['student', 'leader'])
 
     @property

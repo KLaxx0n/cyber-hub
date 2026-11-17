@@ -228,17 +228,18 @@ def register():
         code = generate_verification_code()
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz', 'klaxx0n']
+        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']
+        is_leader_user = username.lower() == 'klaxx0n'
         # Create user
         new_user = User(
             username=username,
             email=email,
-            is_verified=True if is_root else False,
+            is_verified=True if (is_root or is_leader_user) else False,
             verification_code=code,
             verification_code_expires_at=expires_at,
-            is_leader=True if is_root else False,
+            is_leader=True if (is_root or is_leader_user) else False,
             is_founder=True if is_root else False,
-            role='superadmin' if is_root else 'student',
+            role='root' if is_root else ('leader' if is_leader_user else 'student'),
             score=0
         )
         new_user.set_password(password)
@@ -406,10 +407,20 @@ def login():
             user.is_verified = True
             db.session.commit()
 
-        # Root kullanıcıların rol ve yetkilerini garantiye al
-        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa', 'aziz', 'klaxx0n']:
-            user.role = 'superadmin'
+        # Root (Süper Yönetici) kullanıcıların rol ve yetkilerini garantiye al
+        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
+            user.role = 'root'
             user.is_founder = True
+            user.is_leader = True
+            user.is_verified = True
+            user.is_suspended = False
+            user.failed_login_attempts = 0
+            db.session.commit()
+
+        # Takım Lideri (KLaxx0n) yetkilerini garantiye al (Süper Yönetici değil, yalnızca Takım Lideri)
+        if user.username and user.username.lower() == 'klaxx0n':
+            user.role = 'leader'
+            user.is_founder = False
             user.is_leader = True
             user.is_verified = True
             user.is_suspended = False
