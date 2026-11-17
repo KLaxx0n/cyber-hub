@@ -6,43 +6,53 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <!-- Hero Section -->
-    <div class="cyber-card p-8 md:p-12 shadow-xl mb-10">
-        <div class="max-w-3xl">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950/80 border border-blue-800 text-blue-300 text-xs font-mono mb-4">
-                <i class="fa-solid fa-graduation-cap mr-1"></i>
-                <span>NÖHÜ BİLGİ TEKNOLOJİLERİ BÖLÜMÜ PROJESİ</span>
-            </div>
-
-            <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-                Siber Güvenlik Eğitim & Laboratuvar Portalı
-            </h1>
+    <div class="cyber-card p-6 md:p-8 lg:p-10 shadow-xl mb-10 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            <p class="mt-4 text-base text-slate-300 leading-relaxed">
-                Bu platform, ofansif (Red Team) ve defansif (Blue Team) siber güvenlik konularında öğrencilerin pratik beceriler kazanması, zafiyet analizleri yapması ve güvenlik kurallarını uygulamalı olarak öğrenmesi amacıyla geliştirilmiştir.
-            </p>
+            <!-- Sol Sütun: Başlık, Açıklama ve Modül Butonları -->
+            <div class="lg:col-span-7 z-10">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950/80 border border-blue-800 text-blue-300 text-xs font-mono mb-4">
+                    <i class="fa-solid fa-graduation-cap mr-1"></i>
+                    <span>NÖHÜ BİLGİ TEKNOLOJİLERİ BÖLÜMÜ PROJESİ</span>
+                </div>
 
-            <div class="mt-8 flex flex-wrap gap-3">
-                <a href="{{ url_for('red_team') }}" class="px-5 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                    <i class="fa-solid fa-crosshairs"></i>
-                    <span>Red Team Modülü</span>
-                </a>
-                <a href="{{ url_for('blue_team') }}" class="px-5 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>Blue Team Modülü</span>
-                </a>
-                <a href="{{ url_for('purple_team') }}" class="px-5 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Purple Team Modülü</span>
-                </a>
-                <a href="{{ url_for('leaderboard') }}" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm flex items-center space-x-2 transition-colors">
-                    <i class="fa-solid fa-list-ol text-slate-400"></i>
-                    <span>Sıralama Tablosu</span>
-                </a>
-                <a href="#hakkimizda" class="px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-cyan-300 border border-cyan-800/60 font-medium text-sm flex items-center space-x-2 transition-colors">
-                    <i class="fa-solid fa-circle-info text-cyan-400"></i>
-                    <span>Hakkımızda</span>
-                </a>
+                <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                    Siber Güvenlik Eğitim & Laboratuvar Portalı
+                </h1>
+                
+                <p class="mt-4 text-base text-slate-300 leading-relaxed max-w-2xl">
+                    Bu platform, ofansif (Red Team) ve defansif (Blue Team) siber güvenlik konularında öğrencilerin pratik beceriler kazanması, zafiyet analizleri yapması ve güvenlik kurallarını uygulamalı olarak öğrenmesi amacıyla geliştirilmiştir.
+                </p>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a href="{{ url_for('red_team') }}" class="px-5 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        <span>Red Team Modülü</span>
+                    </a>
+                    <a href="{{ url_for('blue_team') }}" class="px-5 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Blue Team Modülü</span>
+                    </a>
+                    <a href="{{ url_for('purple_team') }}" class="px-5 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Purple Team Modülü</span>
+                    </a>
+                    <a href="{{ url_for('leaderboard') }}" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm flex items-center space-x-2 transition-colors">
+                        <i class="fa-solid fa-list-ol text-slate-400"></i>
+                        <span>Sıralama Tablosu</span>
+                    </a>
+                    <a href="#hakkimizda" class="px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-cyan-300 border border-cyan-800/60 font-medium text-sm flex items-center space-x-2 transition-colors">
+                        <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                        <span>Hakkımızda</span>
+                    </a>
+                </div>
             </div>
+
+            <!-- Sağ Sütun: Sadece 3D Siber Küre (Çerçevesiz, Tam Entegre) -->
+            <div class="lg:col-span-5 relative w-full flex items-center justify-center">
+                <div id="cyber-globe-viz" class="w-full h-[360px] sm:h-[420px] lg:h-[460px] cursor-grab active:cursor-grabbing select-none flex items-center justify-center"></div>
+            </div>
+
         </div>
     </div>
 
@@ -309,4 +319,10 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- 3D Globe Library & Cyber Attack Map -->
+<script src="{{ url_for('static', filename='js/globe.gl.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cyber_globe.js') }}"></script>
 {% endblock %}
