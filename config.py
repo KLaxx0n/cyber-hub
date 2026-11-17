@@ -44,4 +44,4 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'cyberhubsecurity.tr@gmail.com'
     import base64
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('cXp1eHZncWxibmZmbXVmaQ==').decode()
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('ZW1mZHVnZWdkd3dycnRidQ==').decode()
