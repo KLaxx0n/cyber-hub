@@ -29,6 +29,16 @@ def seed_database(app):
         safe_add_column(db.engine, 'users', 'totp_secret', 'VARCHAR(64)')
         safe_add_column(db.engine, 'users', 'two_factor_enabled', 'BOOLEAN DEFAULT FALSE')
 
+        # NULL değerleri temizle (Askıya alma hatalarını önlemek için)
+        try:
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                conn.execute(text("UPDATE users SET is_suspended = FALSE WHERE is_suspended IS NULL"))
+                conn.execute(text("UPDATE users SET failed_login_attempts = 0 WHERE failed_login_attempts IS NULL"))
+                conn.commit()
+        except Exception as e:
+            print(f"[!] Users sanitize check: {e}")
+
         # Labs tablosu sütunları
         safe_add_column(db.engine, 'labs', 'hint1', 'TEXT')
         safe_add_column(db.engine, 'labs', 'hint2', 'TEXT')
@@ -226,30 +236,17 @@ def seed_database(app):
             for ev in events_data:
                 db.session.add(CyberEvent(**ev))
 
-        # Predefined default users (Sefa_Gumus Süper Yönetici, KLaxx0n Takım Lideri)
+        # Predefined default user (Yalnızca Sefa_Gumus Süper Yönetici)
         users_data = [
             {
                 'username': 'Sefa_Gumus',
                 'email': 'gsefa5683@gmail.com',
-                'password_hash': 'scrypt:32768:8:1$9An1lonMBKeJkdew$4b5f2082fdf506c66373712f0618df48f1ea1e18b733859b78e40cdb472b27e7b59e42d6b14a4a2ecad14740bac3c7ab0bc38f99f43675b61333dac39e81925f',
+                'password_hash': generate_password_hash('Admin1234'),
                 'is_verified': True,
                 'score': 0,
                 'is_leader': True,
                 'is_founder': True,
                 'role': 'root',
-                'assigned_team': 'blue_team',
-                'is_suspended': False,
-                'failed_login_attempts': 0
-            },
-            {
-                'username': 'KLaxx0n',
-                'email': 'jacjsparrow07@gmail.com',
-                'password_hash': 'scrypt:32768:8:1$ZO6Ad06i968jnM4x$72a1a145ca272994204032836122420f54829a34434e1625c303736a47331f47880bac73dd5322b4c91d09ed6887d7aef82fe2e3114ffc15793e51ef99825769',
-                'is_verified': True,
-                'score': 0,
-                'is_leader': True,
-                'is_founder': False,
-                'role': 'leader',
                 'assigned_team': 'blue_team',
                 'is_suspended': False,
                 'failed_login_attempts': 0
@@ -265,13 +262,22 @@ def seed_database(app):
                 db.session.add(new_user)
             else:
                 existing_user.is_verified = True
-                if not existing_user.password_hash:
-                    existing_user.password_hash = u_info['password_hash']
+                existing_user.password_hash = u_info['password_hash']
                 existing_user.role = u_info['role']
                 existing_user.is_leader = u_info['is_leader']
                 existing_user.is_founder = u_info['is_founder']
                 existing_user.is_suspended = False
                 existing_user.failed_login_attempts = 0
+
+        # Eski veya silinmiş test hesaplarını (KLaxx0n vb.) kalıcı olarak temizle
+        legacy_users = User.query.filter(
+            (User.username.in_(['KLaxx0n', 'klaxx0n'])) | 
+            (User.email.in_(['jacjsparrow07@gmail.com', 'jajcsparrow07@gmail.com']))
+        ).all()
+        for lu in legacy_users:
+            db.session.delete(lu)
+        if legacy_users:
+            print(f"[+] {len(legacy_users)} adet eski test hesabı temizlendi.")
 
         db.session.commit()
         print("[+] Veritabani basariyla olusturuldu ve ornek veriler yuklendi.")

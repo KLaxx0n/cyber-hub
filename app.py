@@ -193,7 +193,7 @@ def about():
 
 
 @app.route('/register', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("30 per minute")
 def register():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
@@ -251,19 +251,20 @@ def register():
         code = generate_verification_code()
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-        is_root = username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']
-        is_leader_user = username.lower() == 'klaxx0n'
-        # Create user
+        is_root = (username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (email.lower() == 'gsefa5683@gmail.com')
+        # Create user (Askıya alma mantığı kayıt kısmında kesinlikle devrede değildir, varsayılan açık ve aktiftir)
         new_user = User(
             username=username,
             email=email,
-            is_verified=True if (is_root or is_leader_user) else False,
+            is_verified=True if is_root else False,
             verification_code=code,
             verification_code_expires_at=expires_at,
-            is_leader=True if (is_root or is_leader_user) else False,
+            is_leader=True if is_root else False,
             is_founder=True if is_root else False,
-            role='root' if is_root else ('leader' if is_leader_user else 'student'),
-            score=0
+            role='root' if is_root else 'student',
+            score=0,
+            is_suspended=False,
+            failed_login_attempts=0
         )
         new_user.set_password(password)
         db.session.add(new_user)
@@ -283,7 +284,7 @@ def register():
     return render_template('register.html')
 
 @app.route('/resend-verification', methods=['POST'])
-@limiter.limit("3 per minute")
+@limiter.limit("20 per minute")
 def resend_verification():
     email = request.form.get('email', '').strip().lower()
     user = User.query.filter_by(email=email).first()
@@ -309,7 +310,7 @@ def resend_verification():
     return redirect(url_for('verify', email=email))
 
 @app.route('/verify', methods=['GET', 'POST'])
-@limiter.limit("15 per minute")
+@limiter.limit("30 per minute")
 def verify():
     email = request.args.get('email', '') or request.form.get('email', '') or session.get('pending_verify_email', '')
 
@@ -346,6 +347,8 @@ def verify():
             user.is_verified = True
             user.verification_code = None
             user.verification_code_expires_at = None
+            user.is_suspended = False
+            user.failed_login_attempts = 0
             db.session.commit()
             
             # Doğrulama başarılı - Oturumu güvenle aç ve kullanıcıyı panele al
@@ -391,7 +394,7 @@ def login():
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('login.html', login_id=login_id)
 
-        # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ
+        # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ (Yalnızca Giriş Yap kısmında uygulanır)
         if user.is_suspended:
             # Doğru şifre girildiğinde askıyı otomatik kaldır ve girişe izin ver
             if user.check_password(password):
@@ -399,18 +402,18 @@ def login():
                 user.failed_login_attempts = 0
                 db.session.commit()
             else:
-                flash('🚨 Bu hesap hatalı denemeler nedeniyle geçici olarak askıya alınmıştır. Açmak için doğru şifrenizi giriniz veya Süper Yönetici ile iletişime geçiniz.', 'danger')
+                flash('🚨 Bu hesap giriş denemeleri nedeniyle geçici olarak askıya alınmıştır. Kilidi açmak için doğru şifrenizi giriniz veya Şifremi Unuttum seçeneğini kullanınız.', 'danger')
                 return render_template('login.html', login_id=login_id)
 
-        # 2. ŞİFRE DOĞRULAMA
+        # 2. ŞİFRE DOĞRULAMA (SADECE GİRİŞ YAP EKRANINDA 3 KEZ HATALI GİRİLİRSE ASKIYA ALINIR)
         if not user.check_password(password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-            if user.failed_login_attempts >= 5:
+            if user.failed_login_attempts >= 3:
                 user.is_suspended = True
                 db.session.commit()
-                flash('🚨 Şifrenizi 5 kez üst üste hatalı girdiniz! Hesabınız güvenlik için askıya alındı. Açmak için doğru şifrenizi giriniz.', 'danger')
+                flash('🚨 Şifrenizi 3 kez üst üste hatalı girdiniz! Hesabınız güvenlik için askıya alındı. Açmak için doğru şifrenizi giriniz veya Şifremi Unuttum ile şifrenizi sıfırlayınız.', 'danger')
             else:
-                remaining = 5 - user.failed_login_attempts
+                remaining = 3 - user.failed_login_attempts
                 db.session.commit()
                 flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}.', 'danger')
             return render_template('login.html', login_id=login_id)
