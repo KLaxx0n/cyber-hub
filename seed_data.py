@@ -53,6 +53,9 @@ def seed_database(app):
         safe_add_column(db.engine, 'user_lab_progress', 'speed_bonus', 'INTEGER DEFAULT 0')
         safe_add_column(db.engine, 'user_lab_progress', 'solve_time_sec', 'INTEGER DEFAULT 0')
 
+        # CyberEvents tablosu sütunları
+        safe_add_column(db.engine, 'cyber_events', 'end_date', 'TIMESTAMP')
+
         # Predefined Labs based on project report
         labs_data = [
             # RED TEAM LABS
@@ -291,6 +294,49 @@ def seed_database(app):
             ]
             for ev in events_data:
                 db.session.add(CyberEvent(**ev))
+
+        # NÖHÜ (ohu.edu.tr) Resmi Güncel Etkinlikleri (Mevcut kayıtları bozmadan idempotent eklenir)
+        ohu_events_data = [
+            {
+                'title': 'SANAR 2026: 5. Uluslararası Spor, Antropoloji, Beslenme, Anatomi ve Radyoloji Kongresi',
+                'description': 'Niğde Ömer Halisdemir Üniversitesi ev sahipliğinde; Nevşehir Hacı Bektaş Veli, Ankara, Yüksek İhtisas, Kapadokya ve Kayseri Üniversiteleri paydaşlığında 19–21 Kasım 2026 tarihlerinde düzenlenen 5. Uluslararası Spor, Antropoloji, Beslenme, Anatomi ve Radyoloji Kongresi (SANAR 2026). Kongre sayfası: https://ohu.edu.tr/sanar',
+                'event_type': 'Kongre',
+                'location': 'Şehit Ömer Halisdemir Kongre ve Kültür Merkezi',
+                'event_date': datetime(2026, 11, 19, 9, 0),
+                'end_date': datetime(2026, 11, 21, 17, 0),
+                'external_link': 'https://www.ohu.edu.tr/etkinlik/5-uluslararasi-spor-antropoloji-beslenme-anatomi-ve-radyoloji-kongresi/11263',
+                'organizer': 'Niğde Ömer Halisdemir Üniversitesi'
+            },
+            {
+                'title': 'Plates Eğitimi',
+                'description': 'NÖHÜ Spor Kulübü tarafından her Salı ve Perşembe saat 11:45\'te Merkez Kampüs Spor Salonu\'nda düzenlenen pilates eğitimi. Üniversitemiz kadın personeli ve personel yakınlarına yöneliktir. (Afiş dönemi: 17 Ekim – 24 Aralık 2026; resmi etkinlik takvimi bitişi: 17.06.2027.)',
+                'event_type': 'Spor',
+                'location': 'Merkez Kampüs Spor Salonu',
+                'event_date': datetime(2026, 11, 17, 11, 45),
+                'end_date': datetime(2027, 6, 17, 11, 45),
+                'external_link': 'https://www.ohu.edu.tr/etkinlik/plates-egitimi/11270',
+                'organizer': 'NÖHÜ Spor Kulübü'
+            },
+            {
+                'title': 'Spor Aktiviteleri Devam Ediyor',
+                'description': 'Spor Dostu Kampüs uygulaması kapsamında NÖHÜ Spor Koordinatörlüğü ve NÖHÜ Spor Kulübü iş birliğiyle 19.10.2026 – 01.01.2027 tarihleri arasında düzenlenen haftalık spor etkinlikleri: bisiklet, kort tenis, badminton, squash, sağlıklı yaşam yürüyüşü, tekerlekli paten, masa tenisi, boks, temel hareket eğitimi, kick boks, step aerobik, pilates ve dart.',
+                'event_type': 'Spor',
+                'location': 'Merkez Kampüs Spor Alanları & Bor Yerleşkesi',
+                'event_date': datetime(2026, 10, 19, 9, 0),
+                'end_date': datetime(2027, 1, 1, 17, 0),
+                'external_link': 'https://www.ohu.edu.tr/etkinlik/spor-aktiviteleri-devam-ediyor/11264',
+                'organizer': 'NÖHÜ Spor Koordinatörlüğü & NÖHÜ Spor Kulübü'
+            }
+        ]
+        for ohu_ev in ohu_events_data:
+            existing_ev = CyberEvent.query.filter(
+                (CyberEvent.title == ohu_ev['title']) |
+                (CyberEvent.external_link == ohu_ev['external_link'])
+            ).first()
+            if not existing_ev:
+                db.session.add(CyberEvent(**ohu_ev))
+            elif existing_ev.end_date is None and ohu_ev.get('end_date'):
+                existing_ev.end_date = ohu_ev['end_date']
 
         # Predefined default user (Yalnızca Sefa_Gumus Süper Yönetici)
         users_data = [

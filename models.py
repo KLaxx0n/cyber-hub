@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -333,16 +333,29 @@ class CyberEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    event_type = db.Column(db.String(32), default='CTF') # 'CTF', 'Workshop', 'Seminer', 'Yarışma'
+    event_type = db.Column(db.String(32), default='CTF') # 'CTF', 'Workshop', 'Seminer', 'Yarışma', 'Kongre', 'Spor', 'Etkinlik'
     location = db.Column(db.String(120), default='NÖHÜ Siber Lab / Çevrimiçi')
     event_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=True)
     external_link = db.Column(db.String(255), nullable=True)
     organizer = db.Column(db.String(100), default='NÖHÜ Siber Güvenlik Kulübü')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    @staticmethod
+    def _now_tr():
+        """Return current naive datetime in Turkey local time (UTC+3)."""
+        return datetime.utcnow() + timedelta(hours=3)
+
+    @property
+    def is_ongoing(self):
+        """Return True when a multi-day or recurring event is currently active."""
+        now = self._now_tr()
+        return self.end_date is not None and self.event_date <= now <= self.end_date
+
     @property
     def is_past(self):
-        return self.event_date < datetime.utcnow()
+        now = self._now_tr()
+        return (self.end_date or self.event_date) < now
 
     @property
     def badge_color(self):
@@ -350,6 +363,11 @@ class CyberEvent(db.Model):
             'CTF': 'border-red-600 bg-red-950/80 text-red-300',
             'Workshop': 'border-sky-600 bg-sky-950/80 text-sky-300',
             'Seminer': 'border-purple-600 bg-purple-950/80 text-purple-300',
-            'Yarışma': 'border-amber-600 bg-amber-950/80 text-amber-300'
+            'Yarışma': 'border-amber-600 bg-amber-950/80 text-amber-300',
+            'Kongre': 'border-cyan-600 bg-cyan-950/80 text-cyan-300',
+            'Spor': 'border-emerald-600 bg-emerald-950/80 text-emerald-300',
+            'Etkinlik': 'border-teal-600 bg-teal-950/80 text-teal-300',
+            'Konferans': 'border-indigo-600 bg-indigo-950/80 text-indigo-300',
+            'Çalıştay': 'border-orange-600 bg-orange-950/80 text-orange-300',
         }
         return mapping.get(self.event_type, 'border-slate-700 bg-slate-900 text-slate-300')

@@ -1115,50 +1115,81 @@ def leaderboard():
 
 # ----------------- ETKİNLİKLER & CTF TAKVİMİ (Madde 6) ----------------- #
 
+def _parse_event_datetime(date_str):
+    """Parse HTML datetime-local or YYYY-MM-DD strings into a naive datetime."""
+    for fmt in ('%Y-%m-%dT%H:%M', '%Y-%m-%d'):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+def _extract_event_form():
+    """Extract and validate CyberEvent form fields shared by add/edit routes."""
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    event_type = request.form.get('event_type', 'CTF').strip() or 'CTF'
+    location = request.form.get('location', '').strip() or 'NÖHÜ Siber Lab'
+    date_str = request.form.get('event_date', '').strip()
+    end_date_str = request.form.get('end_date', '').strip()
+    external_link = request.form.get('external_link', '').strip() or None
+    organizer = request.form.get('organizer', '').strip() or 'NÖHÜ Siber Güvenlik Kulübü'
+
+    if not title or not description or not date_str:
+        return None, 'Lütfen etkinlik başlığı, açıklaması ve tarihini eksiksiz giriniz.'
+
+    event_date = _parse_event_datetime(date_str)
+    if not event_date:
+        return None, 'Geçersiz başlangıç tarihi formatı.'
+
+    end_date = None
+    if end_date_str:
+        end_date = _parse_event_datetime(end_date_str)
+        if not end_date:
+            return None, 'Geçersiz bitiş tarihi formatı.'
+        if end_date < event_date:
+            return None, 'Bitiş tarihi başlangıç tarihinden önce olamaz.'
+
+    return {
+        'title': title,
+        'description': description,
+        'event_type': event_type,
+        'location': location,
+        'event_date': event_date,
+        'end_date': end_date,
+        'external_link': external_link,
+        'organizer': organizer,
+    }, None
+
 @app.route('/events')
 def events_page():
     all_events = CyberEvent.query.order_by(CyberEvent.event_date.asc()).all()
-    upcoming = [e for e in all_events if not e.is_past]
+    upcoming = sorted(
+        [e for e in all_events if not e.is_past],
+        key=lambda e: (e.is_ongoing, e.event_date)
+    )
     past = [e for e in all_events if e.is_past]
-    return render_template('events.html', upcoming_events=upcoming, past_events=past)
+    countdown_event = next((e for e in upcoming if not e.is_ongoing), None)
+    return render_template(
+        'events.html',
+        upcoming_events=upcoming,
+        past_events=past,
+        countdown_event=countdown_event
+    )
 
 @app.route('/admin/event/add', methods=['POST'])
 @leader_required
 @csrf.exempt
 def admin_add_event():
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
-    event_type = request.form.get('event_type', 'CTF')
-    location = request.form.get('location', '').strip() or 'NÖHÜ Siber Lab'
-    date_str = request.form.get('event_date', '')
-    external_link = request.form.get('external_link', '').strip() or None
-    organizer = request.form.get('organizer', '').strip() or 'NÖHÜ Siber Güvenlik Kulübü'
-
-    if not title or not description or not date_str:
-        flash('Lütfen etkinlik başlığı, açıklaması ve tarihini eksiksiz giriniz.', 'danger')
+    data, error = _extract_event_form()
+    if error:
+        flash(error, 'danger')
         return redirect(url_for('events_page'))
 
-    try:
-        event_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-    except ValueError:
-        try:
-            event_date = datetime.strptime(date_str, '%Y-%m-%d')
-        except ValueError:
-            flash('Geçersiz tarih formatı.', 'danger')
-            return redirect(url_for('events_page'))
-
-    ev = CyberEvent(
-        title=title,
-        description=description,
-        event_type=event_type,
-        location=location,
-        event_date=event_date,
-        external_link=external_link,
-        organizer=organizer
-    )
+    ev = CyberEvent(**data)
     db.session.add(ev)
     db.session.commit()
-    flash(f"'{title}' etkinliği başarıyla takvime eklendi.", 'success')
+    flash(f"'{ev.title}' etkinliği başarıyla takvime eklendi.", 'success')
     return redirect(url_for('events_page'))
 
 @app.route('/admin/event/edit/<int:event_id>', methods=['POST'])
@@ -1166,37 +1197,16 @@ def admin_add_event():
 @csrf.exempt
 def admin_edit_event(event_id):
     ev = CyberEvent.query.get_or_404(event_id)
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
-    event_type = request.form.get('event_type', 'CTF')
-    location = request.form.get('location', '').strip() or 'NÖHÜ Siber Lab'
-    date_str = request.form.get('event_date', '')
-    external_link = request.form.get('external_link', '').strip() or None
-    organizer = request.form.get('organizer', '').strip() or 'NÖHÜ Siber Güvenlik Kulübü'
-
-    if not title or not description or not date_str:
-        flash('Lütfen etkinlik başlığı, açıklaması ve tarihini eksiksiz doldurunuz.', 'danger')
+    data, error = _extract_event_form()
+    if error:
+        flash(error, 'danger')
         return redirect(url_for('events_page'))
 
-    try:
-        event_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-    except ValueError:
-        try:
-            event_date = datetime.strptime(date_str, '%Y-%m-%d')
-        except ValueError:
-            flash('Geçersiz tarih formatı.', 'danger')
-            return redirect(url_for('events_page'))
-
-    ev.title = title
-    ev.description = description
-    ev.event_type = event_type
-    ev.location = location
-    ev.event_date = event_date
-    ev.external_link = external_link
-    ev.organizer = organizer
+    for key, val in data.items():
+        setattr(ev, key, val)
 
     db.session.commit()
-    flash(f"'{title}' etkinliği başarıyla güncellendi.", 'success')
+    flash(f"'{ev.title}' etkinliği başarıyla güncellendi.", 'success')
     return redirect(url_for('events_page'))
 
 @app.route('/admin/event/delete/<int:event_id>', methods=['GET', 'POST'])

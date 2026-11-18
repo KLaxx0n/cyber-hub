@@ -14,10 +14,10 @@
                     <span>NÖHÜ TOPLULUK ETKİNLİK & CTF RADARI</span>
                 </div>
                 <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                    Siber Güvenlik Etkinlikleri & Yarışma Takvimi
+                    Siber Güvenlik & NÖHÜ Etkinlik Takvimi
                 </h1>
                 <p class="text-xs md:text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed">
-                    NÖHÜ Siber Güvenlik Kulübü bünyesinde düzenlenen workshoplar, web exploitation kampları, TEKNOFEST hazırlık süreçleri ve canlı CTF turnuvalarını buradan takip edebilirsiniz.
+                    NÖHÜ Siber Güvenlik Kulübü bünyesinde düzenlenen workshoplar, CTF turnuvaları ve Niğde Ömer Halisdemir Üniversitesi (<span class="text-emerald-300 font-mono">ohu.edu.tr</span>) resmi etkinlik takvimini buradan takip edebilirsiniz.
                 </p>
             </div>
             
@@ -60,18 +60,31 @@
                     <option value="Workshop">🛠️ Uygulamalı Workshop</option>
                     <option value="Seminer">🎤 Uzman Semineri / Konferans</option>
                     <option value="Yarışma">🏆 Harici Yarışma / Hackathon</option>
+                    <option value="Kongre">🎓 Kongre / Sempozyum</option>
+                    <option value="Spor">🏅 Spor / Kampüs Aktivitesi</option>
+                    <option value="Etkinlik">📌 Üniversite Etkinliği</option>
+                    <option value="Konferans">🎙️ Konferans</option>
+                    <option value="Çalıştay">🧩 Çalıştay</option>
                 </select>
             </div>
             <div>
-                <label class="block text-slate-300 mb-1">Tarih & Saat *</label>
+                <label class="block text-slate-300 mb-1">Başlangıç Tarih & Saat *</label>
                 <input type="datetime-local" name="event_date" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Bitiş Tarih & Saat (İsteğe Bağlı)</label>
+                <input type="datetime-local" name="end_date" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+                <label class="block text-slate-300 mb-1">Düzenleyen Kurum / Kulüp</label>
+                <input type="text" name="organizer" placeholder="Örn: NÖHÜ Siber Güvenlik Kulübü" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
             </div>
             <div>
                 <label class="block text-slate-300 mb-1">Konum / Platform</label>
                 <input type="text" name="location" placeholder="Örn: Lab 301 veya Çevrimiçi Discord" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
             </div>
             <div>
-                <label class="block text-slate-300 mb-1">Kayıt / Yarışma Linki (İsteğe Bağlı)</label>
+                <label class="block text-slate-300 mb-1">Kayıt / Detay Linki (İsteğe Bağlı)</label>
                 <input type="url" name="external_link" placeholder="https://..." class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
             </div>
             <div class="md:col-span-2">
@@ -109,18 +122,31 @@
                         <option value="Workshop">🛠️ Uygulamalı Workshop</option>
                         <option value="Seminer">🎤 Uzman Semineri / Konferans</option>
                         <option value="Yarışma">🏆 Harici Yarışma / Hackathon</option>
+                        <option value="Kongre">🎓 Kongre / Sempozyum</option>
+                        <option value="Spor">🏅 Spor / Kampüs Aktivitesi</option>
+                        <option value="Etkinlik">📌 Üniversite Etkinliği</option>
+                        <option value="Konferans">🎙️ Konferans</option>
+                        <option value="Çalıştay">🧩 Çalıştay</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-slate-300 mb-1">Tarih & Saat *</label>
+                    <label class="block text-slate-300 mb-1">Başlangıç Tarih & Saat *</label>
                     <input type="datetime-local" id="edit_event_date" name="event_date" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Bitiş Tarih & Saat (İsteğe Bağlı)</label>
+                    <input type="datetime-local" id="edit_end_date" name="end_date" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1">Düzenleyen Kurum / Kulüp</label>
+                    <input type="text" id="edit_organizer" name="organizer" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
                     <label class="block text-slate-300 mb-1">Konum / Platform</label>
                     <input type="text" id="edit_location" name="location" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-slate-300 mb-1">Kayıt / Yarışma Linki (İsteğe Bağlı)</label>
+                    <label class="block text-slate-300 mb-1">Kayıt / Detay Linki (İsteğe Bağlı)</label>
                     <input type="url" id="edit_external_link" name="external_link" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="md:col-span-2">
@@ -137,8 +163,8 @@
     {% endif %}
 
     <!-- Next Urgent Event Countdown Widget -->
-    {% if upcoming_events and upcoming_events|length > 0 %}
-    {% set next_ev = upcoming_events[0] %}
+    {% if countdown_event %}
+    {% set next_ev = countdown_event %}
     <div class="mb-10 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/30 border border-emerald-500/40 shadow-xl relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 opacity-10 text-emerald-400 text-9xl pointer-events-none">
             <i class="fa-solid fa-flag-checkered"></i>
@@ -151,11 +177,14 @@
                 <h2 class="text-xl md:text-2xl font-bold text-white mt-2">{{ next_ev.title }}</h2>
                 <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">{{ next_ev.description }}</p>
                 <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 mt-3">
-                    <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-emerald-400"></i>{{ next_ev.event_date.strftime('%d.%m.%Y - %H:%M') }}</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-emerald-400"></i>{% if next_ev.end_date %}{{ next_ev.event_date.strftime('%d.%m.%Y') }} – {{ next_ev.end_date.strftime('%d.%m.%Y') }}{% else %}{{ next_ev.event_date.strftime('%d.%m.%Y - %H:%M') }}{% endif %}</span>
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-rose-400"></i>{{ next_ev.location }}</span>
+                    {% if next_ev.organizer %}
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-cyan-400"></i>{{ next_ev.organizer }}</span>
+                    {% endif %}
                     {% if next_ev.external_link %}
                     <a href="{{ next_ev.external_link }}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Kayıt & Detay
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Detay & Kayıt
                     </a>
                     {% endif %}
                 </div>
@@ -191,7 +220,7 @@
     <div class="mb-12">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-bold text-white font-mono flex items-center gap-2">
-                <i class="fa-solid fa-radar text-emerald-400"></i> Yaklaşan Etkinlikler & CTF Takvimi
+                <i class="fa-solid fa-radar text-emerald-400"></i> Yaklaşan & Devam Eden Etkinlikler
                 <span class="text-xs font-normal text-slate-400">({{ upcoming_events|length }})</span>
             </h2>
         </div>
@@ -202,9 +231,16 @@
             <div class="cyber-card p-6 border border-slate-800 hover:border-emerald-500/50 rounded-xl transition-all shadow-md flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border {{ ev.badge_color }}">
-                            {{ ev.event_type }}
-                        </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border {{ ev.badge_color }}">
+                                {{ ev.event_type }}
+                            </span>
+                            {% if ev.is_ongoing %}
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold border border-emerald-500/60 bg-emerald-950/80 text-emerald-300 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Devam Ediyor
+                            </span>
+                            {% endif %}
+                        </div>
                         {% if current_user and current_user.is_team_leader %}
                         <div class="flex items-center gap-2">
                             <button type="button" 
@@ -212,6 +248,8 @@
                                     data-title="{{ ev.title }}"
                                     data-type="{{ ev.event_type }}"
                                     data-date="{{ ev.event_date.strftime('%Y-%m-%dT%H:%M') }}"
+                                    data-end-date="{{ ev.end_date.strftime('%Y-%m-%dT%H:%M') if ev.end_date else '' }}"
+                                    data-organizer="{{ ev.organizer or '' }}"
                                     data-location="{{ ev.location or '' }}"
                                     data-link="{{ ev.external_link or '' }}"
                                     data-desc="{{ ev.description or '' }}"
@@ -238,18 +276,30 @@
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-slate-800/80 text-xs font-mono space-y-1.5 text-slate-400">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>Tarih:</span>
-                        <span class="text-slate-200 font-semibold">{{ ev.event_date.strftime('%d.%m.%Y %H:%M') }}</span>
+                    <div class="flex items-start justify-between gap-3">
+                        <span class="text-slate-500 shrink-0"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>Tarih:</span>
+                        <span class="text-slate-200 font-semibold text-right">
+                            {% if ev.end_date %}
+                                {{ ev.event_date.strftime('%d.%m.%Y') }} – {{ ev.end_date.strftime('%d.%m.%Y') }}{% if ev.event_date.strftime('%H:%M') not in ('00:00', '09:00') %} ({{ ev.event_date.strftime('%H:%M') }}){% endif %}
+                            {% else %}
+                                {{ ev.event_date.strftime('%d.%m.%Y %H:%M') }}
+                            {% endif %}
+                        </span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>Yer:</span>
-                        <span class="text-slate-300 truncate max-w-[180px]">{{ ev.location }}</span>
+                    <div class="flex items-start justify-between gap-3">
+                        <span class="text-slate-500 shrink-0"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>Yer:</span>
+                        <span class="text-slate-300 text-right">{{ ev.location }}</span>
                     </div>
+                    {% if ev.organizer %}
+                    <div class="flex items-start justify-between gap-3">
+                        <span class="text-slate-500 shrink-0"><i class="fa-solid fa-building-columns mr-1 text-slate-400"></i>Kurum:</span>
+                        <span class="text-slate-300 text-right">{{ ev.organizer }}</span>
+                    </div>
+                    {% endif %}
                     {% if ev.external_link %}
                     <div class="pt-2">
                         <a href="{{ ev.external_link }}" target="_blank" rel="noopener noreferrer" class="w-full text-center py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono flex items-center justify-center gap-1.5 transition-all shadow-md">
-                            <span>Kayıt Ol & Yarışmaya Katıl</span>
+                            <span>{% if ev.event_type in ['CTF', 'Yarışma'] %}Kayıt Ol & Yarışmaya Katıl{% else %}Etkinlik Detayı & Kayıt{% endif %}</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
                         </a>
                     </div>
@@ -285,6 +335,8 @@
                                 data-title="{{ ev.title }}"
                                 data-type="{{ ev.event_type }}"
                                 data-date="{{ ev.event_date.strftime('%Y-%m-%dT%H:%M') }}"
+                                data-end-date="{{ ev.end_date.strftime('%Y-%m-%dT%H:%M') if ev.end_date else '' }}"
+                                data-organizer="{{ ev.organizer or '' }}"
                                 data-location="{{ ev.location or '' }}"
                                 data-link="{{ ev.external_link or '' }}"
                                 data-desc="{{ ev.description or '' }}"
@@ -351,6 +403,8 @@
         const title = btn.getAttribute('data-title') || '';
         const type = btn.getAttribute('data-type') || 'CTF';
         const date = btn.getAttribute('data-date') || '';
+        const endDate = btn.getAttribute('data-end-date') || '';
+        const organizer = btn.getAttribute('data-organizer') || '';
         const location = btn.getAttribute('data-location') || '';
         const link = btn.getAttribute('data-link') || '';
         const desc = btn.getAttribute('data-desc') || '';
@@ -365,6 +419,10 @@
         if (typeEl) typeEl.value = type;
         const dateEl = document.getElementById('edit_event_date');
         if (dateEl) dateEl.value = date;
+        const endDateEl = document.getElementById('edit_end_date');
+        if (endDateEl) endDateEl.value = endDate;
+        const orgEl = document.getElementById('edit_organizer');
+        if (orgEl) orgEl.value = organizer;
         const locEl = document.getElementById('edit_location');
         if (locEl) locEl.value = location;
         const linkEl = document.getElementById('edit_external_link');
