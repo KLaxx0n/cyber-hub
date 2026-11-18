@@ -22,6 +22,7 @@ from config import Config
 from models import db, User, Lab, UserLabProgress, LabWriteup, CyberEvent
 from seed_data import seed_database
 from mail_service import send_verification_email, send_password_reset_email
+from lab_configs import MULTI_TASK_LABS, get_public_tasks
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -173,10 +174,10 @@ def health_check():
 @app.route('/')
 def index():
     total_users = User.query.filter_by(is_verified=True).count()
-    total_labs = Lab.query.count()
-    red_labs = Lab.query.filter_by(category='red_team').count()
-    blue_labs = Lab.query.filter_by(category='blue_team').count()
-    purple_labs = Lab.query.filter_by(category='purple_team').count()
+    red_labs = Lab.query.filter_by(category='red_team', is_published=True).count()
+    blue_labs = Lab.query.filter_by(category='blue_team', is_published=True).count()
+    purple_labs = Lab.query.filter_by(category='purple_team', is_published=True).count()
+    total_labs = red_labs + blue_labs + purple_labs
     top_users = User.query.filter_by(is_verified=True).order_by(User.score.desc()).limit(5).all()
     return render_template('index.html', 
                            total_users=total_users, 
@@ -252,13 +253,13 @@ def register():
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
         is_root = (username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (email.lower() == 'gsefa5683@gmail.com')
-        # Create user (Askıya alma mantığı kayıt kısmında kesinlikle devrede değildir, varsayılan açık ve aktiftir)
+        # E-posta doğrulama kapatıldı: Tüm yeni kayıtlar anında aktif ve doğrulanmış başlar
         new_user = User(
             username=username,
             email=email,
-            is_verified=True if is_root else False,
-            verification_code=code,
-            verification_code_expires_at=expires_at,
+            is_verified=True,
+            verification_code=None,
+            verification_code_expires_at=None,
             is_leader=True if is_root else False,
             is_founder=True if is_root else False,
             role='root' if is_root else 'student',
@@ -270,16 +271,12 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # Send Verification Email via SMTP / HTTP API
-        email_sent, email_msg = send_verification_email(email, username, code)
-        session['pending_verify_email'] = email
-        if email_sent:
-            flash(f'Kayıt başarılı! 6 haneli doğrulama kodunuz {email} adresine gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ederek kodu giriniz.', 'success')
-        else:
-            flash(f'Kaydınız alındı! 6 haneli doğrulama kodunuz {email} adresine iletildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol ediniz.', 'info')
-
-        # Kullanıcı doğrulanmadan KESİNLİKLE otomatik oturum açılmaz ve doğrudan panele gönderilmez
-        return redirect(url_for('verify', email=email))
+        # Oturumu doğrudan aç ve kullanıcıyı panele yönlendir (bekleme ve kod engeli yok)
+        session.clear()
+        session['user_id'] = new_user.id
+        session.permanent = True
+        flash(f'🎉 Kaydınız başarıyla tamamlandı! Hoş geldiniz, {new_user.username}.', 'success')
+        return redirect(url_for('dashboard'))
 
     return render_template('register.html')
 
@@ -424,10 +421,10 @@ def login():
             user.is_suspended = False
             db.session.commit()
 
-        # Doğrulanmamış hesap kontrolü (Doğrulanmamışsa girişe izin verme, verify sayfasına yönlendir)
-        if not user.is_verified and not user.is_superadmin:
-            flash('Hesabınız henüz onaylanmamıştır. Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girerek hesabınızı aktifleştirin.', 'warning')
-            return redirect(url_for('verify', email=user.email))
+        # E-posta doğrulama kaldırıldı: Hesap doğrulanmamışsa bile otomatik onayla
+        if not user.is_verified:
+            user.is_verified = True
+            db.session.commit()
 
         # Root (Süper Yönetici) kullanıcıların rol ve yetkilerini garantiye al
         if (user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (user.email and user.email.lower() == 'gsefa5683@gmail.com'):
@@ -727,11 +724,13 @@ def dashboard():
     completed_lab_ids = [p.lab_id for p in completed_progress]
 
     # Category stats
-    total_red = Lab.query.filter_by(category='red_team').count() or 1
-    total_blue = Lab.query.filter_by(category='blue_team').count() or 1
+    published_red_ids = [l.id for l in Lab.query.filter_by(category='red_team', is_published=True).all()]
+    published_blue_ids = [l.id for l in Lab.query.filter_by(category='blue_team', is_published=True).all()]
+    total_red = len(published_red_ids) or 1
+    total_blue = len(published_blue_ids) or 1
 
-    completed_red = Lab.query.filter(Lab.id.in_(completed_lab_ids), Lab.category == 'red_team').count() if completed_lab_ids else 0
-    completed_blue = Lab.query.filter(Lab.id.in_(completed_lab_ids), Lab.category == 'blue_team').count() if completed_lab_ids else 0
+    completed_red = sum(1 for lid in completed_lab_ids if lid in published_red_ids)
+    completed_blue = sum(1 for lid in completed_lab_ids if lid in published_blue_ids)
 
     red_percent = int((completed_red / total_red) * 100)
     blue_percent = int((completed_blue / total_blue) * 100)
@@ -957,11 +956,30 @@ def admin_toggle_leader(user_id):
 
 @app.route('/red-team')
 def red_team():
-    labs = Lab.query.filter_by(category='red_team').all()
+    labs = Lab.query.filter_by(category='red_team', is_published=True).order_by(Lab.id.asc()).all()
     user_completed_ids = []
+    user_progress_map = {}
     if 'user_id' in session:
-        user_completed_ids = [p.lab_id for p in UserLabProgress.query.filter_by(user_id=session['user_id'], is_completed=True).all()]
-    return render_template('red_team.html', labs=labs, user_completed_ids=user_completed_ids)
+        progresses = UserLabProgress.query.filter_by(user_id=session['user_id']).all()
+        for p in progresses:
+            if p.is_completed:
+                user_completed_ids.append(p.lab_id)
+            user_progress_map[p.lab_id] = {
+                'solved_count': len(p.get_solved_tasks()),
+                'earned_points': p.earned_points or 0,
+                'is_completed': bool(p.is_completed)
+            }
+    task_counts = {
+        slug: len(cfg.get('tasks', []))
+        for slug, cfg in MULTI_TASK_LABS.items()
+    }
+    return render_template(
+        'red_team.html',
+        labs=labs,
+        user_completed_ids=user_completed_ids,
+        user_progress_map=user_progress_map,
+        task_counts=task_counts
+    )
 
 @app.route('/blue-team')
 def blue_team():
@@ -984,6 +1002,9 @@ def purple_team():
 def lab_detail(slug):
     lab = Lab.query.filter_by(slug=slug).first_or_404()
     user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        flash('Bu laboratuvar henüz yayına açılmamıştır.', 'warning')
+        return redirect(url_for('red_team' if lab.category == 'red_team' else ('blue_team' if lab.category == 'blue_team' else 'purple_team')))
     
     progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
     is_solved = progress.is_completed if progress else False
@@ -995,12 +1016,39 @@ def lab_detail(slug):
     # Writeup sayısı
     writeup_count = lab.writeups.count()
 
+    if lab.lab_type == 'multi_task' and slug in MULTI_TASK_LABS:
+        cfg = MULTI_TASK_LABS[slug]
+        tasks = get_public_tasks(slug)
+        solved_task_ids = progress.get_solved_tasks() if progress else []
+        return render_template(
+            'lab_multi_task.html',
+            lab=lab,
+            lab_config=cfg,
+            tasks=tasks,
+            solved_task_ids=solved_task_ids,
+            is_solved=is_solved,
+            progress=progress,
+            first_blood_user=first_blood_user,
+            writeup_count=writeup_count,
+            target_url=url_for(cfg['target_endpoint'])
+        )
+
     return render_template('lab_detail.html', 
                            lab=lab, 
                            is_solved=is_solved, 
                            progress=progress, 
                            first_blood_user=first_blood_user,
                            writeup_count=writeup_count)
+
+@app.route('/lab/red-bayrak-avi-1/target')
+@login_required
+def bayrak_avi_1_target():
+    lab = Lab.query.filter_by(slug='red-bayrak-avi-1').first_or_404()
+    user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        flash('Bu hedef sistem henüz erişime açılmamıştır.', 'warning')
+        return redirect(url_for('red_team'))
+    return render_template('labs/bayrak_avi_1_target.html')
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1154,6 +1202,10 @@ def submit_flag():
         return jsonify({'success': False, 'message': 'Laboratuvar bulunamadı.'}), 404
 
     user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        return jsonify({'success': False, 'message': 'Bu laboratuvar henüz aktif değildir.'}), 403
+    if lab.lab_type == 'multi_task':
+        return jsonify({'success': False, 'message': 'Bu laboratuvar çoklu görev (Task) yapısına sahiptir; lütfen görev kartlarından bayrak gönderiniz.'}), 400
     progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
 
     if not progress:
@@ -1204,6 +1256,126 @@ def submit_flag():
             'success': False,
             'message': 'Hatalı bayrak (Flag)! Tekrar analiz edin veya ipucunu inceleyin.'
         })
+
+@app.route('/api/lab-task-submit/<slug>', methods=['POST'])
+@login_required
+@csrf.exempt
+@limiter.limit("40 per minute")
+def submit_lab_task(slug):
+    """Validate an individual task flag for a multi-task lab and award incremental points."""
+    lab = Lab.query.filter_by(slug=slug).first_or_404()
+    user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        return jsonify({'success': False, 'message': 'Bu laboratuvar henüz aktif değildir.'}), 403
+
+    cfg = MULTI_TASK_LABS.get(slug)
+    if not cfg:
+        return jsonify({'success': False, 'message': 'Çoklu görev yapılandırması bulunamadı.'}), 404
+
+    data = request.get_json() or {}
+    task_id = (data.get('task_id') or '').strip()
+    submitted_flag = (data.get('flag') or '').strip()
+
+    if not task_id or not submitted_flag:
+        return jsonify({'success': False, 'message': 'Lütfen geçerli bir bayrak giriniz.'}), 400
+
+    task = next((t for t in cfg['tasks'] if t['id'] == task_id), None)
+    if not task:
+        return jsonify({'success': False, 'message': 'Geçersiz görev kimliği.'}), 404
+
+    progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
+    if not progress:
+        progress = UserLabProgress(
+            user_id=user.id,
+            lab_id=lab.id,
+            attempts=1,
+            solved_tasks='[]',
+            earned_points=0
+        )
+        db.session.add(progress)
+    else:
+        progress.attempts = (progress.attempts or 0) + 1
+
+    solved_tasks = progress.get_solved_tasks()
+    expected_flag = task['flag']
+
+    if not hmac.compare_digest(submitted_flag.encode('utf-8'), expected_flag.encode('utf-8')):
+        db.session.commit()
+        return jsonify({
+            'success': False,
+            'message': 'Yanlış cevap! Tekrar deneyin.'
+        })
+
+    if task_id in solved_tasks:
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'already_solved_task': True,
+            'task_id': task_id,
+            'task_points': task['points'],
+            'solved_tasks': solved_tasks,
+            'total_tasks': len(cfg['tasks']),
+            'earned_points': progress.earned_points or 0,
+            'lab_completed': bool(progress.is_completed),
+            'newly_completed_lab': False,
+            'is_first_blood': bool(progress.is_first_blood),
+            'bonus_points': 0,
+            'new_score': user.score,
+            'message': 'Doğru cevap! Bu görevi daha önce tamamladığınız için mevcut puanınız korunuyor.'
+        })
+
+    solved_tasks.append(task_id)
+    progress.set_solved_tasks(solved_tasks)
+    task_pts = task['points']
+    progress.earned_points = (progress.earned_points or 0) + task_pts
+    user.score = (user.score or 0) + task_pts
+
+    bonus_points = 0
+    newly_completed_lab = False
+    if len(solved_tasks) == len(cfg['tasks']) and not progress.is_completed:
+        prior_solvers = UserLabProgress.query.filter(
+            UserLabProgress.lab_id == lab.id,
+            UserLabProgress.is_completed == True,
+            UserLabProgress.user_id != user.id
+        ).count()
+        is_first = (prior_solvers == 0)
+        bonus_points = 50 if is_first else 0
+        progress.is_completed = True
+        progress.is_first_blood = is_first
+        progress.completed_at = datetime.utcnow()
+        progress.earned_points += bonus_points
+        user.score += bonus_points
+        newly_completed_lab = True
+
+    db.session.commit()
+
+    first_blood = lab.first_blood
+    first_blood_username = first_blood.user.username if first_blood and first_blood.user else None
+
+    if newly_completed_lab:
+        if progress.is_first_blood:
+            msg = f'🩸 İLK KAN (FIRST BLOOD)! Tüm görevler tamamlandı! (+{task_pts} Görev + 50 İlk Kan Bonusu)'
+        else:
+            msg = f'Tebrikler! Tüm görevler tamamlandı (+{task_pts} Puan).'
+    else:
+        msg = f'Tebrikler! Doğru cevap (+{task_pts} Puan).'
+
+    return jsonify({
+        'success': True,
+        'already_solved_task': False,
+        'task_id': task_id,
+        'task_points': task_pts,
+        'solved_tasks': solved_tasks,
+        'total_tasks': len(cfg['tasks']),
+        'earned_points': progress.earned_points,
+        'lab_completed': bool(progress.is_completed),
+        'newly_completed_lab': newly_completed_lab,
+        'is_first_blood': bool(progress.is_first_blood),
+        'bonus_points': bonus_points,
+        'new_score': user.score,
+        'first_blood_username': first_blood_username,
+        'message': msg
+    })
 
 # ----------------- KADEMELİ İPUCU SİSTEMİ (Madde 3) ----------------- #
 
@@ -1325,6 +1497,9 @@ def get_lab_writeups(lab_id):
 @csrf.exempt
 def lab_action(slug):
     lab = Lab.query.filter_by(slug=slug).first_or_404()
+    user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        return jsonify({'success': False, 'message': 'Bu laboratuvar henüz aktif değildir.'}), 403
     data = request.get_json() or {}
     payload = data.get('payload', '').strip()
 

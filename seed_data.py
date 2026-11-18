@@ -42,15 +42,35 @@ def seed_database(app):
         # Labs tablosu sütunları
         safe_add_column(db.engine, 'labs', 'hint1', 'TEXT')
         safe_add_column(db.engine, 'labs', 'hint2', 'TEXT')
+        safe_add_column(db.engine, 'labs', 'is_published', 'BOOLEAN DEFAULT TRUE')
 
         # UserLabProgress tablosu sütunları
         safe_add_column(db.engine, 'user_lab_progress', 'is_first_blood', 'BOOLEAN DEFAULT FALSE')
         safe_add_column(db.engine, 'user_lab_progress', 'hint1_unlocked', 'BOOLEAN DEFAULT FALSE')
         safe_add_column(db.engine, 'user_lab_progress', 'hint2_unlocked', 'BOOLEAN DEFAULT FALSE')
+        safe_add_column(db.engine, 'user_lab_progress', 'solved_tasks', "TEXT DEFAULT '[]'")
 
         # Predefined Labs based on project report
         labs_data = [
             # RED TEAM LABS
+            {
+                'slug': 'red-bayrak-avi-1',
+                'title': 'Bayrak Avı 1',
+                'category': 'red_team',
+                'sub_category': 'Flag Hunting & Kaynak Analizi',
+                'difficulty': 'Kolay',
+                'points': 100,
+                'time_limit_sec': 600, # 10 dakika
+                'description': 'Web sızma testi ve kaynak kod analizi yaparak gizli bayrakları (flag) bulabilir misin?',
+                'scenario': 'Hedef kuruma ait web sayfasının (hedef_site.html) geliştirici notları, stil blokları ve istemci tarafı betikleri incelenmeden yayına alındığı tespit edildi.',
+                'instructions': 'Hedef siteyi yeni sekmede açın. Görünmez yazıları ortaya çıkarın; HTML, CSS ve JavaScript kaynak kodlarını inceleyerek 4 görevin her birine ait FLAG{...} değerini teslim edin. (Her görev 25 puan, toplam 100 puan, baraj 50 puandır.)',
+                'hint': 'Hedef sitede CTRL+A ile gizli yazıları seçmeyi ve CTRL+U / Geliştirici Araçları (F12) ile kaynak kodları incelemeyi deneyin.',
+                'hint1': 'Hedef sitede CTRL+A tuşlarıyla sayfa üzerindeki görünmez yazıları seçebilir, CTRL+U veya F12 (Öğeyi Denetle) ile HTML, CSS ve JavaScript kaynak kodlarını inceleyebilirsiniz.',
+                'hint2': 'Kritik İpucu (-10 Puan): Task 1 için .invisible-flag sınıfına, Task 2 için HTML yorum satırına (GOREV_2), Task 3 için <style> içindeki GOREV_3_CSS_BAYRAGI notuna, Task 4 için <script> içindeki gizliSistemAnahtari değişkenine odaklanın.',
+                'flag': 'FLAG{bayrak_avi_1_multi_task_completed}',
+                'lab_type': 'multi_task',
+                'is_published': True
+            },
             {
                 'slug': 'red-sqli-basic',
                 'title': 'OWASP Top 10: SQL Injection Zafiyeti',
@@ -66,7 +86,8 @@ def seed_database(app):
                 'hint1': 'SQL sorgularını manipüle etmek için tırnak işareti (\') ve her zaman doğru olan bir koşul (OR 1=1) kullanmayı deneyin.',
                 'hint2': 'Kritik İpucu (-10 Puan): Arama çubuğuna \' OR \'1\'=\'1 payloadını girerek arka plandaki WHERE filtresini devre dışı bırakabilir ve gizli tablodaki FLAG değerini listeleyebilirsiniz.',
                 'flag': 'FLAG{sql1_inj3ct10n_succ3ss_4z1z}',
-                'lab_type': 'sqli'
+                'lab_type': 'sqli',
+                'is_published': False
             },
             {
                 'slug': 'red-xss-reflected',
@@ -83,7 +104,8 @@ def seed_database(app):
                 'hint1': '<script> veya <img src=x onerror=...> etiketleri DOM enjeksiyonu için kullanılabilir.',
                 'hint2': 'Kritik İpucu (-10 Puan): Ziyaretçi adına <script>alert(document.cookie)</script> yazıp gönderdiğinizde simülatör yönetici botunu çalıştıracak ve alert mesajında admin oturum bayrağını (FLAG{xss...}) döndürecektir.',
                 'flag': 'FLAG{xss_cr0ss_s1t3_scr1pt1ng_2026}',
-                'lab_type': 'xss'
+                'lab_type': 'xss',
+                'is_published': False
             },
             {
                 'slug': 'red-phishing-analysis',
@@ -100,7 +122,8 @@ def seed_database(app):
                 'hint1': 'E-posta kaynak kodundaki (Header) "Return-Path" ve formun POST edildiği URL adresine dikkat edin.',
                 'hint2': 'Kritik İpucu (-10 Puan): E-posta kaynak detaylarında Return-Path adresinin gerçek Microsoft olmayıp saldırgan C2 sunucusuna (phish-trap.xyz) çıktığını ve form action adresinde FLAG parametresinin iletildiğini görebilirsiniz.',
                 'flag': 'FLAG{ph1sh1ng_h34d3r_4n4lys1s_2026}',
-                'lab_type': 'phishing'
+                'lab_type': 'phishing',
+                'is_published': False
             },
 
             # BLUE TEAM LABS
@@ -200,6 +223,18 @@ def seed_database(app):
             else:
                 existing.hint1 = lab_info.get('hint1', existing.hint)
                 existing.hint2 = lab_info.get('hint2')
+                existing.is_published = lab_info.get('is_published', True)
+                if lab_info.get('lab_type') == 'multi_task':
+                    existing.title = lab_info['title']
+                    existing.sub_category = lab_info['sub_category']
+                    existing.difficulty = lab_info['difficulty']
+                    existing.points = lab_info['points']
+                    existing.time_limit_sec = lab_info['time_limit_sec']
+                    existing.description = lab_info['description']
+                    existing.scenario = lab_info['scenario']
+                    existing.instructions = lab_info['instructions']
+                    existing.hint = lab_info['hint']
+                    existing.lab_type = lab_info['lab_type']
 
         # Varsayılan Siber Etkinlikler ve CTF Takvimi (Madde 6)
         from models import CyberEvent
@@ -278,6 +313,9 @@ def seed_database(app):
             db.session.delete(lu)
         if legacy_users:
             print(f"[+] {len(legacy_users)} adet eski test hesabı temizlendi.")
+
+        # Tüm mevcut ve yeni hesapları doğrudan onaylı/aktif duruma getir
+        User.query.filter_by(is_verified=False).update({User.is_verified: True})
 
         db.session.commit()
         print("[+] Veritabani basariyla olusturuldu ve ornek veriler yuklendi.")
