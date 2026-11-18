@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -261,7 +262,8 @@ class Lab(db.Model):
     hint1 = db.Column(db.Text, nullable=True) # Ücretsiz ipucu (Temel Rehber)
     hint2 = db.Column(db.Text, nullable=True) # İleri ipucu (-10 Ceza Puanı)
     flag = db.Column(db.String(128), nullable=False) # e.g. FLAG{...}
-    lab_type = db.Column(db.String(32), default='standard') # 'sqli', 'xss', 'phishing', 'forensics', 'log_analysis'
+    lab_type = db.Column(db.String(32), default='standard') # 'sqli', 'xss', 'phishing', 'forensics', 'log_analysis', 'multi_task'
+    is_published = db.Column(db.Boolean, default=True)
     
     # Relationships
     progress = db.relationship('UserLabProgress', backref='lab', cascade='all, delete-orphan', lazy='dynamic')
@@ -289,8 +291,23 @@ class UserLabProgress(db.Model):
     hint1_unlocked = db.Column(db.Boolean, default=False)
     hint2_unlocked = db.Column(db.Boolean, default=False)
     earned_points = db.Column(db.Integer, default=0)
+    solved_tasks = db.Column(db.Text, default='[]')
     completed_at = db.Column(db.DateTime, nullable=True)
     attempts = db.Column(db.Integer, default=0)
+
+    def get_solved_tasks(self):
+        """Return the deduplicated list of solved task IDs stored as JSON."""
+        if not self.solved_tasks:
+            return []
+        try:
+            data = json.loads(self.solved_tasks)
+            return data if isinstance(data, list) else []
+        except (ValueError, TypeError):
+            return []
+
+    def set_solved_tasks(self, task_ids):
+        """Persist the solved task IDs list as JSON."""
+        self.solved_tasks = json.dumps(list(dict.fromkeys(task_ids)))
 
 
 class LabWriteup(db.Model):

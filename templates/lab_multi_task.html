@@ -1,0 +1,988 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lab.title }} - Red Team Laboratuvarı{% endblock %}
+
+{% block extra_head %}
+<script>
+    (function () {
+        {% if is_solved %}
+        document.documentElement.classList.add('lab-room-started');
+        {% else %}
+        const startedKey = 'lab_{{ lab.slug }}_u{{ current_user.id }}_started';
+        if (localStorage.getItem(startedKey) === 'true') {
+            document.documentElement.classList.add('lab-room-started');
+        }
+        {% endif %}
+    })();
+</script>
+<style>
+    html:not(.lab-room-started) #lab-workspace {
+        filter: blur(14px);
+        opacity: 0.4;
+        pointer-events: none;
+        user-select: none;
+        transition: filter 0.35s ease, opacity 0.35s ease;
+    }
+    #lab-workspace {
+        transition: filter 0.35s ease, opacity 0.35s ease;
+    }
+    html.lab-room-started #start-overlay {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    #start-overlay {
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .task-flag-input.is-correct {
+        border-color: #10b981 !important;
+        background-color: rgba(16, 185, 129, 0.14) !important;
+        color: #6ee7b7 !important;
+        font-weight: 700;
+    }
+    .task-flag-input.is-wrong {
+        border-color: #ef4444 !important;
+        background-color: rgba(239, 68, 68, 0.16) !important;
+        color: #fca5a5 !important;
+        animation: taskShake 0.35s ease-in-out;
+    }
+    @keyframes taskShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-6px); }
+        50% { transform: translateX(6px); }
+        75% { transform: translateX(-4px); }
+    }
+    @keyframes popIn {
+        0% { transform: scale(0.88); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-pop {
+        animation: popIn 0.25s ease-out;
+    }
+    .confetti-container {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 110;
+        display: none;
+    }
+    .emoji-piece {
+        position: absolute;
+        top: -50px;
+        font-size: 24px;
+        animation: emojiFall linear infinite;
+    }
+    @keyframes emojiFall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(105vh) rotate(360deg); opacity: 0.25; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Confetti Emoji Container -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- Result Modal (Success / Timeout) -->
+<div class="fixed inset-0 z-[120] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" id="result-modal" role="dialog" aria-modal="true">
+    <div class="cyber-card modal-pop border-2 border-red-600 rounded-2xl p-7 sm:p-8 max-w-lg w-full text-center shadow-[0_0_40px_rgba(220,38,38,0.35)] bg-slate-950/95" id="modal-box-content">
+        <h2 id="modal-title" class="text-xl sm:text-2xl font-bold text-red-400 mb-3">Sonuç</h2>
+        <p id="modal-desc" class="text-sm text-slate-200 leading-relaxed mb-5"></p>
+
+        <div class="hidden bg-red-950/40 border-l-4 border-red-500 p-3.5 rounded-r-lg text-red-200 italic text-xs sm:text-sm mb-5 leading-relaxed text-left" id="modal-motivation">
+            "Ruhu düşürme, kendini geliştir; her başarısızlığın gelecekte büyük bir başarıya eşittir."
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <button type="button" id="modal-retry-btn" onclick="resetLab()" class="hidden px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-mono font-bold text-xs transition-colors">
+                <i class="fa-solid fa-rotate-right mr-1.5"></i>Odayı Sıfırla & Tekrar Dene
+            </button>
+            <button type="button" onclick="closeModal()" class="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-mono font-bold text-xs shadow-md shadow-red-950/50 transition-colors">
+                Tamam
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Start Lab Overlay (Blurred until user clicks "Lab'a Başla") -->
+<div id="start-overlay" class="fixed inset-x-0 bottom-0 top-14 sm:top-16 z-40 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="start-lab-title">
+    <div class="cyber-card modal-pop border-2 border-red-600/80 rounded-2xl p-7 sm:p-9 max-w-md w-full text-center shadow-[0_0_40px_rgba(220,38,38,0.3)] bg-slate-950/90">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-red-950/80 border-2 border-red-600 flex items-center justify-center text-3xl shadow-[0_0_18px_rgba(220,38,38,0.3)]">
+            {{ lab_config.icon_emoji }}
+        </div>
+        <div class="font-mono text-xs tracking-widest text-red-300 mb-1.5">
+            {{ lab_config.kicker }}
+        </div>
+        <h2 id="start-lab-title" class="text-2xl font-bold text-white mb-2.5">{{ lab.title }}</h2>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
+            {% if solved_task_ids|length > 0 and not is_solved %}
+                Daha önce <strong class="text-emerald-400">{{ solved_task_ids|length }}/{{ tasks|length }}</strong> görevi tamamladınız. Kaldığınız yerden devam etmek ve {{ (lab.time_limit_sec // 60) }} dakikalık süreyi başlatmak için butona tıklayın.
+            {% else %}
+                Labı başlattığınızda {{ (lab.time_limit_sec // 60) }} dakikalık geri sayım başlayacaktır. Hazır olduğunuzda aşağıdaki butona tıklayın.
+            {% endif %}
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-2 font-mono text-[11px] text-slate-300 mb-6">
+            <span class="px-2.5 py-1 rounded bg-emerald-950/70 border border-emerald-700/70 text-emerald-300">🟢 Zorluk: {{ lab.difficulty }}</span>
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700">⏱️ {{ (lab.time_limit_sec // 60) }} Dakika</span>
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700">🎯 {{ tasks|length }} Görev</span>
+            <span class="px-2.5 py-1 rounded bg-amber-950/70 border border-amber-700/70 text-amber-300">+{{ lab.points }} Puan (Baraj: {{ lab_config.pass_threshold }})</span>
+        </div>
+
+        <div class="space-y-3">
+            <button type="button" id="start-lab-btn" onclick="startLab()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-sm tracking-wide shadow-[0_0_20px_rgba(220,38,38,0.45)] transition-all">
+                <i class="fa-solid fa-play mr-2"></i>{% if solved_task_ids|length > 0 and not is_solved %}Kaldığın Yerden Başla{% else %}Lab'a Başla{% endif %}
+            </button>
+            <a href="{{ url_for('red_team') }}" class="inline-flex items-center justify-center text-xs font-mono text-slate-400 hover:text-white transition-colors pt-1">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i>Red Team Bölümüne Dön
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Top Breadcrumb Bar (Always visible) -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <a href="{{ url_for('red_team') }}" class="text-xs font-mono text-slate-400 hover:text-white flex items-center transition-colors">
+            <i class="fa-solid fa-arrow-left mr-2"></i>Red Team Lablarına Dön
+        </a>
+
+        <div class="text-xs font-mono text-red-400/90 flex items-center gap-2">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>{{ lab_config.kicker }}</span>
+        </div>
+    </div>
+
+    <!-- Main Lab Workspace (Blurred until started) -->
+    <div id="lab-workspace" class="space-y-6">
+
+        <!-- Room Control Pills + Practice Mode Banner -->
+        <div class="cyber-card p-4 border-red-900/50 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <div class="px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-amber-700/70 text-amber-300 font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-stopwatch text-amber-400"></i>
+                    <span>SÜRE:</span>
+                    <span id="room-timer-display" class="text-sm tracking-wider {% if is_solved %}text-emerald-400{% else %}text-cyan-300{% endif %}">
+                        {% if is_solved %}TAMAMLANDI ✔{% else %}{{ '%02d:00'|format(lab.time_limit_sec // 60) }}{% endif %}
+                    </span>
+                </div>
+
+                <div class="px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-emerald-800/70 text-emerald-300 font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-emerald-400"></i>
+                    <span>PUAN:</span>
+                    <span id="room-score-display">{{ solved_task_ids|length * 25 }}</span>
+                    <span class="text-slate-400 font-normal">/ {{ lab.points }} (Baraj: {{ lab_config.pass_threshold }})</span>
+                </div>
+
+                <div class="px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-red-400"></i>
+                    <span id="room-progress-count">{{ solved_task_ids|length }} / {{ tasks|length }} Görev</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span id="practice-mode-badge" class="hidden px-2.5 py-1 rounded bg-amber-950/80 border border-amber-700 text-amber-300 text-[11px]">
+                    Pratik Modu (DB Puanınız Korunuyor)
+                </span>
+                <button type="button" onclick="resetLab()" class="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-red-950/70 border border-slate-700 hover:border-red-600 text-slate-300 hover:text-red-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>{% if is_solved %}Pratik İçin Sıfırla{% else %}Odayı Sıfırla{% endif %}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Timeout Banner (Shown when timer hits 00:00) -->
+        <div id="room-timeout-banner" class="hidden p-4 rounded-xl bg-red-950/90 border border-red-500 text-red-200 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-triangle-exclamation text-2xl text-red-400 animate-pulse"></i>
+                <div>
+                    <h4 class="font-bold text-white text-sm">OPERASYON SÜRESİ DOLDU!</h4>
+                    <p class="text-xs text-red-300">Süreniz tamamlandı ve kalan görevler kilitlendi. Odayı sıfırlayarak yeniden deneyebilirsiniz.</p>
+                </div>
+            </div>
+            <button type="button" onclick="resetLab()" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-mono font-bold transition-colors">
+                <i class="fa-solid fa-rotate-right mr-1"></i>Yeniden Başlat
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+            <!-- Left 2 Columns: Room Info, 4 Tasks & Writeups -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Room Overview Card -->
+                <div class="cyber-card cyber-card-red p-6">
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800">
+                            {{ lab.sub_category }}
+                        </span>
+                        <span class="text-xs font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-700/80">
+                            Zorluk: {{ lab.difficulty }}
+                        </span>
+                        <span class="text-xs font-mono text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-800 font-bold">
+                            +{{ lab.points }} Puan
+                        </span>
+                        <span id="first-blood-badge" class="text-xs font-mono px-2.5 py-0.5 rounded font-bold flex items-center {% if first_blood_user %}text-rose-300 bg-rose-950/90 border border-rose-700{% else %}text-amber-300 bg-amber-950/70 border border-amber-600{% endif %}">
+                            {% if first_blood_user %}
+                                <i class="fa-solid fa-droplet text-red-500 mr-1 animate-pulse"></i>İlk Kan: {{ first_blood_user }}
+                            {% else %}
+                                <i class="fa-solid fa-trophy text-amber-400 mr-1"></i>İlk Kan Boşta (+50 P Bonus)
+                            {% endif %}
+                        </span>
+                        <span id="lab-solved-badge" class="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-700 font-bold ml-auto flex items-center {% if not is_solved %}hidden{% endif %}">
+                            <i class="fa-solid fa-circle-check mr-1"></i>ÇÖZÜLDÜ
+                        </span>
+                    </div>
+
+                    <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2.5">
+                        <span>{{ lab_config.icon_emoji }}</span>
+                        <span>{{ lab.title }}</span>
+                    </h1>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">{{ lab.description }}</p>
+
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-3 font-mono mb-4">
+                        <div>
+                            <span class="text-cyan-400 font-bold uppercase block mb-1"><i class="fa-solid fa-bullseye mr-1.5"></i>Senaryo:</span>
+                            <p class="text-slate-300 leading-relaxed">{{ lab.scenario }}</p>
+                        </div>
+                        <div>
+                            <span class="text-emerald-400 font-bold uppercase block mb-1"><i class="fa-solid fa-list-check mr-1.5"></i>Görev Talimatları:</span>
+                            <p class="text-slate-300 leading-relaxed">{{ lab.instructions }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div>
+                        {% set pct = ((solved_task_ids|length / tasks|length) * 100)|int if tasks|length > 0 else 0 %}
+                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+                            <span>Görev İlerlemesi</span>
+                            <span id="room-progress-pct" class="text-emerald-400 font-bold">%{{ pct }}</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden">
+                            <div id="room-progress-bar" class="bg-gradient-to-r from-red-600 to-emerald-500 h-2 rounded-full transition-all duration-500" style="width: {{ pct }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Tasks Container -->
+                <div class="space-y-4" id="tasks-container">
+                    {% for task in tasks %}
+                    {% set done = task.id in solved_task_ids %}
+                    <div class="cyber-card p-5 sm:p-6 border-l-4 transition-all {{ 'border-l-emerald-500 bg-emerald-950/15' if done else 'border-l-red-600' }}" id="card-{{ task.id }}">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                            <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                                <span id="num-{{ task.id }}" class="font-mono {{ 'text-emerald-400' if done else 'text-red-400' }}">Task {{ task.number }}:</span>
+                                <span>{{ task.title }}</span>
+                            </h3>
+                            <span id="pts-{{ task.id }}" class="font-mono text-xs px-2.5 py-0.5 rounded border {{ 'bg-emerald-950/80 border-emerald-700 text-emerald-300 font-bold' if done else 'bg-slate-900 border-slate-700 text-slate-300' }}">
+                                {% if done %}✓ +{{ task.points }} Puan{% else %}+{{ task.points }} Puan{% endif %}
+                            </span>
+                        </div>
+
+                        <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">{{ task.question }}</p>
+
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text"
+                                   id="input-{{ task.id }}"
+                                   class="task-flag-input flex-1 px-3.5 py-2.5 rounded-lg text-sm font-mono focus:outline-none {{ 'is-correct' if done else '' }}"
+                                   placeholder="FLAG{...}"
+                                   {% if done %}value="✓ Doğru Bayrak Kaydedildi" disabled{% endif %}
+                                   oninput="clearTaskError('{{ task.id }}')"
+                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); verifyTaskFlag('{{ task.id }}'); }">
+
+                            <div class="flex gap-2">
+                                <button type="button"
+                                        id="btn-{{ task.id }}"
+                                        onclick="verifyTaskFlag('{{ task.id }}')"
+                                        {% if done %}disabled{% endif %}
+                                        class="task-submit-btn px-4 py-2.5 rounded-lg font-mono font-bold text-xs transition-all {{ 'bg-emerald-950/80 text-emerald-400 border border-emerald-600 cursor-default' if done else 'bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40' }}">
+                                    {% if done %}✓ Doğru{% else %}Gönder{% endif %}
+                                </button>
+                                <button type="button"
+                                        onclick="toggleTaskHint('{{ task.id }}')"
+                                        class="px-3.5 py-2.5 rounded-lg bg-amber-950/80 hover:bg-amber-900/80 border border-amber-700/80 text-amber-300 font-mono font-bold text-xs transition-colors whitespace-nowrap">
+                                    💡 İpucu
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="fb-{{ task.id }}" class="mt-2 text-xs font-mono font-semibold min-h-[16px] {{ 'text-emerald-400' if done else '' }}">
+                            {% if done %}Bu görevi başarıyla tamamladınız (+{{ task.points }} Puan).{% endif %}
+                        </div>
+
+                        <div id="hint-{{ task.id }}" class="hidden mt-2.5 p-3 rounded-lg bg-amber-950/25 border-l-4 border-amber-500 text-amber-200 text-xs font-mono leading-relaxed">
+                            <strong class="text-amber-400">İpucu:</strong> {{ task.hint }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Topluluk Çözüm Raporları (Writeups) -->
+                <div class="cyber-card p-6 border-slate-800">
+                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+                        <h3 class="text-base font-bold text-white flex items-center font-mono">
+                            <i class="fa-solid fa-book-skull text-purple-400 mr-2"></i>Topluluk Çözüm Raporları (Writeups)
+                            <span class="ml-2 text-xs font-normal text-slate-400" id="writeup-count-badge">({{ writeup_count }})</span>
+                        </h3>
+                        <button type="button" id="writeup-write-btn" onclick="document.getElementById('writeupFormContainer').classList.toggle('hidden')" class="{% if not is_solved %}hidden{% endif %} px-3 py-1.5 rounded-lg bg-purple-900/70 hover:bg-purple-800 border border-purple-600 text-purple-200 text-xs font-mono flex items-center gap-1.5 transition-colors">
+                            <i class="fa-solid fa-pen-nib"></i>
+                            <span>Writeup Yaz</span>
+                        </button>
+                    </div>
+
+                    <!-- Unlocked Writeups Area -->
+                    <div id="writeup-unlocked-box" class="{% if not is_solved %}hidden{% endif %}">
+                        <div id="writeupFormContainer" class="hidden mb-6 p-4 rounded-xl bg-slate-950 border border-purple-800/60 shadow-inner">
+                            <h4 class="text-xs font-mono font-bold text-purple-300 uppercase mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-feather"></i> Çözüm Raporunu Toplulukla Paylaş
+                            </h4>
+                            <form id="writeup-form" class="space-y-3 font-mono text-xs">
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Rapor Başlığı *</label>
+                                    <input type="text" id="writeup-title" required placeholder="Örn: Bayrak Avı 1 - Kaynak Kod Analizi Çözüm Rehberi" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Çözüm Adımları & Mantığı *</label>
+                                    <textarea id="writeup-content" rows="4" required placeholder="1. Görev: CTRL+A ile beyaz metin açığa çıkarıldı...&#10;2. Görev: HTML yorum satırı incelendi..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500"></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="document.getElementById('writeupFormContainer').classList.add('hidden')" class="px-3 py-1.5 rounded bg-slate-800 text-slate-400 hover:text-white">İptal</button>
+                                    <button type="submit" id="writeup-submit-btn" class="px-4 py-1.5 rounded bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all shadow-md">Raporu Yayınla</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="writeups-list" class="space-y-3">
+                            <div class="text-center py-4 text-slate-500 font-mono text-xs">
+                                <i class="fa-solid fa-spinner fa-spin mr-1"></i> Çözüm raporları yükleniyor...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Spoiler Protection Banner -->
+                    <div id="writeup-locked-box" class="{% if is_solved %}hidden{% endif %} p-6 rounded-xl bg-slate-950/80 border border-slate-800 text-center font-mono">
+                        <div class="w-10 h-10 mx-auto rounded-lg bg-slate-900 border border-slate-700 text-slate-500 flex items-center justify-center text-lg mb-2">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-300">Spoiler Koruması Aktif</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+                            Topluluktaki diğer ajanların paylaştığı çözüm adımlarını (Writeups) okuyabilmek için öncelikle tüm görevleri tamamlayıp bayrakları teslim etmelisiniz.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right 1 Column: Target Server + Tiered Hint System -->
+            <div class="space-y-6 lg:sticky lg:top-20">
+
+                <!-- Target Website Launch Card -->
+                <div class="cyber-card cyber-card-red p-6 border-red-900/60 text-center shadow-lg">
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-red-950/80 border border-red-700/80 flex items-center justify-center text-3xl shadow-md shadow-red-950/40">
+                        🎯
+                    </div>
+                    <h3 class="text-base font-bold text-red-400 mb-2 font-mono">Hedef Sunucu / Web Sitesi</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-5">
+                        Aşağıdaki bağlantıya tıklayarak hedef sızma test alanını (<code class="text-red-300 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">{{ lab_config.target_label }}</code>) yeni sekmede açın.
+                    </p>
+                    <a href="{{ target_url }}" target="_blank" rel="noopener noreferrer"
+                       class="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-mono font-bold text-xs tracking-wider shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2">
+                        <span>HEDEF SİTEYİ AÇ</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+
+                    <div class="mt-5 pt-4 border-t border-slate-800/80 text-left text-[11px] font-mono text-slate-400 space-y-1.5">
+                        <div class="text-slate-300 font-bold mb-1"><i class="fa-solid fa-keyboard text-cyan-400 mr-1.5"></i>Hızlı Analiz Kısayolları:</div>
+                        <div><span class="text-cyan-300">CTRL+A</span> &rarr; Gizli metinleri seçme</div>
+                        <div><span class="text-cyan-300">CTRL+U</span> &rarr; Sayfa kaynağını görüntüleme</div>
+                        <div><span class="text-cyan-300">F12</span> &rarr; Geliştirici Araçları (DevTools)</div>
+                    </div>
+                </div>
+
+                <!-- Kademeli İpucu Sistemi -->
+                <div class="cyber-card p-6 border-slate-800">
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="flex items-center justify-between text-slate-300 font-bold pb-2 border-b border-slate-800">
+                            <span><i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i>Kademeli İpucu Sistemi</span>
+                        </div>
+
+                        <!-- İpucu 1: Ücretsiz -->
+                        <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-300">İpucu 1 (Genel Rehber)</span>
+                                <span class="text-[10px] text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">Ücretsiz</span>
+                            </div>
+                            <div id="hint1-content" class="mt-2 text-slate-300 leading-relaxed {% if not progress or not progress.hint1_unlocked %}hidden{% endif %}">
+                                {{ lab.get_hint1() }}
+                            </div>
+                            {% if not progress or not progress.hint1_unlocked %}
+                            <button type="button" id="hint1-btn" onclick="unlockHint(1)" class="mt-2 w-full py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs transition-colors flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-eye text-[11px]"></i>
+                                <span>İpucu 1'i Göster</span>
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <!-- İpucu 2: -10 Puan -->
+                        <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-slate-300">İpucu 2 (Kritik Çözüm)</span>
+                                <span class="text-[10px] text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-800">-10 Puan</span>
+                            </div>
+                            <div id="hint2-content" class="mt-2 text-amber-200/90 leading-relaxed {% if not progress or not progress.hint2_unlocked %}hidden{% endif %}">
+                                {{ lab.get_hint2() }}
+                            </div>
+                            {% if not progress or not progress.hint2_unlocked %}
+                            <button type="button" id="hint2-btn" onclick="unlockHint(2)" class="mt-2 w-full py-1.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs transition-colors flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-lock-open text-[11px]"></i>
+                                <span>İpucu 2'yi Aç (-10 Puan)</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const LAB_SLUG = "{{ lab.slug }}";
+const LAB_ID = {{ lab.id }};
+const LAB_TITLE = {{ lab.title|tojson }};
+const TOTAL_TIME_SEC = {{ lab.time_limit_sec }};
+const PASS_THRESHOLD = {{ lab_config.pass_threshold }};
+const USER_ID = {{ current_user.id }};
+const TASKS = {{ tasks|tojson }};
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+const LS_STARTED = `lab_${LAB_SLUG}_u${USER_ID}_started`;
+const LS_TIME = `lab_${LAB_SLUG}_u${USER_ID}_time`;
+
+let dbSolvedIds = {{ solved_task_ids|tojson }};
+let labCompletedInDb = {{ 'true' if is_solved else 'false' }};
+let practiceMode = false;
+let practiceSolvedIds = [];
+let labStarted = labCompletedInDb || localStorage.getItem(LS_STARTED) === 'true';
+let examEnded = false;
+
+const savedTimeRaw = localStorage.getItem(LS_TIME);
+let timeLeft = (!labCompletedInDb && labStarted && savedTimeRaw !== null && !Number.isNaN(parseInt(savedTimeRaw, 10)))
+    ? Math.max(0, parseInt(savedTimeRaw, 10))
+    : TOTAL_TIME_SEC;
+let timerInterval = null;
+
+function escapeHtml(unsafe) {
+    return (unsafe || '').replace(/[&<>"']/g, function(m) {
+        switch (m) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#039;';
+            default: return m;
+        }
+    });
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById('room-timer-display');
+    if (!el) return;
+    if (labCompletedInDb && !practiceMode) {
+        el.textContent = 'TAMAMLANDI ✔';
+        el.className = 'text-sm tracking-wider text-emerald-400';
+        return;
+    }
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    if (timeLeft <= 60) {
+        el.className = 'text-sm tracking-wider text-red-400 font-bold';
+    } else if (timeLeft <= 180) {
+        el.className = 'text-sm tracking-wider text-amber-300 font-bold';
+    } else {
+        el.className = 'text-sm tracking-wider text-cyan-300';
+    }
+}
+
+function stopTimer() {
+    if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+function startTimer() {
+    if ((labCompletedInDb && !practiceMode) || !labStarted || examEnded || timerInterval !== null) return;
+    timerInterval = setInterval(() => {
+        if (examEnded) {
+            stopTimer();
+            return;
+        }
+        if (timeLeft <= 0) {
+            stopTimer();
+            examEnded = true;
+            localStorage.setItem(LS_TIME, '0');
+            triggerEndGame('⏰ Operasyon Süresi Bitti!', 'Sınav süreniz doldu.', false);
+            return;
+        }
+        timeLeft--;
+        if (!practiceMode) {
+            localStorage.setItem(LS_TIME, String(timeLeft));
+        }
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function startLab() {
+    if (labStarted) return;
+    labStarted = true;
+    localStorage.setItem(LS_STARTED, 'true');
+    localStorage.setItem(LS_TIME, String(timeLeft));
+    document.documentElement.classList.add('lab-room-started');
+    updateTimerDisplay();
+    if (timeLeft <= 0 && !labCompletedInDb) {
+        examEnded = true;
+        triggerEndGame('⏰ Operasyon Süresi Bitti!', 'Sınav süreniz doldu.', false);
+    } else {
+        startTimer();
+    }
+}
+
+function getActiveSolvedIds() {
+    return practiceMode ? practiceSolvedIds : dbSolvedIds;
+}
+
+function updateStatsUI() {
+    const activeIds = getActiveSolvedIds();
+    const score = TASKS.filter(t => activeIds.includes(t.id)).reduce((s, t) => s + t.points, 0);
+    const totalPts = TASKS.reduce((s, t) => s + t.points, 0);
+    const pct = TASKS.length > 0 ? Math.round((activeIds.length / TASKS.length) * 100) : 0;
+
+    document.getElementById('room-score-display').textContent = score;
+    document.getElementById('room-progress-count').textContent = `${activeIds.length} / ${TASKS.length} Görev`;
+    document.getElementById('room-progress-pct').textContent = `%${pct}`;
+    document.getElementById('room-progress-bar').style.width = `${pct}%`;
+    return { score, totalPts };
+}
+
+function lockUnsolvedInputs() {
+    document.querySelectorAll('.task-flag-input, .task-submit-btn').forEach(el => {
+        el.disabled = true;
+    });
+}
+
+function triggerEndGame(title, desc, isSuccess, extraHtml = '') {
+    lockUnsolvedInputs();
+    if (!isSuccess) {
+        document.getElementById('room-timeout-banner')?.classList.remove('hidden');
+    }
+
+    const modal = document.getElementById('result-modal');
+    const mTitle = document.getElementById('modal-title');
+    const mDesc = document.getElementById('modal-desc');
+    const box = document.getElementById('modal-box-content');
+    const motivasyonBox = document.getElementById('modal-motivation');
+    const retryBtn = document.getElementById('modal-retry-btn');
+
+    const { score, totalPts } = updateStatsUI();
+    mTitle.textContent = title;
+
+    if (isSuccess) {
+        mTitle.className = 'text-xl sm:text-2xl font-bold text-emerald-400 mb-3';
+        mDesc.innerHTML = `${desc}<br><br><b>Toplam Puanınız:</b> ${score}/${totalPts} (Başarılı)${extraHtml}`;
+        box.style.borderColor = '#10b981';
+        motivasyonBox.classList.add('hidden');
+        retryBtn.classList.add('hidden');
+    } else {
+        mTitle.className = 'text-xl sm:text-2xl font-bold text-red-400 mb-3';
+        const durum = score >= PASS_THRESHOLD ? 'GEÇTİNİZ' : `KALDINIZ (Baraj: ${PASS_THRESHOLD})`;
+        mDesc.innerHTML = `${desc}<br><br><b>Toplam Puanınız:</b> ${score}/${totalPts} — <b>Durum:</b> ${durum}`;
+        box.style.borderColor = '#dc2626';
+        motivasyonBox.classList.remove('hidden');
+        retryBtn.classList.remove('hidden');
+    }
+
+    startConfetti();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeModal() {
+    const modal = document.getElementById('result-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+const RED_TEAM_EMOJIS = ['🎯', '🔒', '💻', '⭐', '🚀', '🛡️', '💥', '🏴‍☠️'];
+function startConfetti() {
+    const container = document.getElementById('confetti-container');
+    container.style.display = 'block';
+    container.innerHTML = '';
+    for (let i = 0; i < 20; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'emoji-piece';
+        piece.textContent = RED_TEAM_EMOJIS[Math.floor(Math.random() * RED_TEAM_EMOJIS.length)];
+        piece.style.left = (Math.random() * 100) + 'vw';
+        piece.style.animationDuration = (Math.random() * 6 + 9) + 's';
+        piece.style.animationDelay = (Math.random() * 4) + 's';
+        container.appendChild(piece);
+    }
+}
+
+function toggleTaskHint(id) {
+    const box = document.getElementById('hint-' + id);
+    if (box) box.classList.toggle('hidden');
+}
+
+function clearTaskError(id) {
+    const input = document.getElementById('input-' + id);
+    const fb = document.getElementById('fb-' + id);
+    if (input && input.classList.contains('is-wrong')) {
+        input.classList.remove('is-wrong');
+        if (fb) fb.textContent = '';
+    }
+}
+
+function markTaskSolvedUI(taskId, points, message) {
+    const input = document.getElementById('input-' + taskId);
+    const btn = document.getElementById('btn-' + taskId);
+    const fb = document.getElementById('fb-' + taskId);
+    const card = document.getElementById('card-' + taskId);
+    const numEl = document.getElementById('num-' + taskId);
+    const ptsEl = document.getElementById('pts-' + taskId);
+
+    if (input) {
+        input.classList.remove('is-wrong');
+        input.classList.add('is-correct');
+        input.disabled = true;
+    }
+    if (btn) {
+        btn.disabled = true;
+        btn.className = 'task-submit-btn px-4 py-2.5 rounded-lg font-mono font-bold text-xs transition-all bg-emerald-950/80 text-emerald-400 border border-emerald-600 cursor-default';
+        btn.textContent = '✓ Doğru';
+    }
+    if (card) {
+        card.classList.remove('border-l-red-600');
+        card.classList.add('border-l-emerald-500', 'bg-emerald-950/15');
+    }
+    if (numEl) {
+        numEl.classList.remove('text-red-400');
+        numEl.classList.add('text-emerald-400');
+    }
+    if (ptsEl) {
+        ptsEl.className = 'font-mono text-xs px-2.5 py-0.5 rounded border bg-emerald-950/80 border-emerald-700 text-emerald-300 font-bold';
+        ptsEl.textContent = `✓ +${points} Puan`;
+    }
+    if (fb) {
+        fb.className = 'mt-2 text-xs font-mono font-semibold min-h-[16px] text-emerald-400';
+        fb.textContent = message;
+    }
+}
+
+function unlockWriteupsSectionUI() {
+    document.getElementById('writeup-locked-box')?.classList.add('hidden');
+    document.getElementById('writeup-unlocked-box')?.classList.remove('hidden');
+    document.getElementById('writeup-write-btn')?.classList.remove('hidden');
+    loadWriteups();
+}
+
+async function verifyTaskFlag(taskId) {
+    if (!labStarted || examEnded) return;
+    const input = document.getElementById('input-' + taskId);
+    const btn = document.getElementById('btn-' + taskId);
+    const fb = document.getElementById('fb-' + taskId);
+    if (!input || !btn) return;
+
+    const val = input.value.trim();
+    if (!val) return;
+
+    btn.disabled = true;
+    const originalBtnText = btn.textContent;
+    btn.textContent = '...';
+
+    try {
+        const res = await fetch(`/api/lab-task-submit/${LAB_SLUG}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ task_id: taskId, flag: val })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            if (practiceMode) {
+                if (!practiceSolvedIds.includes(taskId)) {
+                    practiceSolvedIds.push(taskId);
+                }
+            } else {
+                dbSolvedIds = data.solved_tasks || dbSolvedIds;
+            }
+
+            if (typeof data.new_score === 'number') {
+                const navScore = document.getElementById('navbar-user-score');
+                if (navScore) navScore.textContent = `${data.new_score} P`;
+            }
+
+            const taskObj = TASKS.find(t => t.id === taskId);
+            const taskPts = taskObj ? taskObj.points : 25;
+            const successMsg = practiceMode
+                ? 'Doğru cevap! (Pratik modu: mevcut platform puanınız korunuyor.)'
+                : (data.message || `Tebrikler! Doğru cevap (+${taskPts} Puan).`);
+
+            markTaskSolvedUI(taskId, taskPts, successMsg);
+            updateStatsUI();
+
+            const activeIds = getActiveSolvedIds();
+            if (activeIds.length === TASKS.length && !examEnded) {
+                examEnded = true;
+                stopTimer();
+
+                if (!practiceMode) {
+                    labCompletedInDb = true;
+                    localStorage.removeItem(LS_TIME);
+                    updateTimerDisplay();
+                    document.getElementById('lab-solved-badge')?.classList.remove('hidden');
+
+                    if (data.first_blood_username) {
+                        const fbBadge = document.getElementById('first-blood-badge');
+                        if (fbBadge) {
+                            fbBadge.className = 'text-xs font-mono px-2.5 py-0.5 rounded font-bold flex items-center text-rose-300 bg-rose-950/90 border border-rose-700';
+                            fbBadge.innerHTML = `<i class="fa-solid fa-droplet text-red-500 mr-1 animate-pulse"></i>İlk Kan: ${escapeHtml(data.first_blood_username)}`;
+                        }
+                    }
+
+                    unlockWriteupsSectionUI();
+                }
+
+                let modalTitle = '🎉 Operasyon Başarılı!';
+                let extraHtml = '';
+                if (!practiceMode && data.newly_completed_lab && data.is_first_blood) {
+                    modalTitle = '🩸 İLK KAN! Operasyon Başarılı!';
+                    extraHtml = '<br><span class="text-rose-400 font-bold">Platformda bu labı ilk çözen ajan oldunuz (+50 Bonus Puan)!</span>';
+                }
+
+                triggerEndGame(
+                    modalTitle,
+                    `Tüm bayraklar ele geçirildi, ${escapeHtml(LAB_TITLE)} başarıyla tamamlandı!`,
+                    true,
+                    extraHtml
+                );
+            }
+        } else {
+            btn.disabled = false;
+            btn.textContent = originalBtnText;
+            input.classList.remove('is-wrong');
+            void input.offsetWidth;
+            input.classList.add('is-wrong');
+            if (fb) {
+                fb.className = 'mt-2 text-xs font-mono font-semibold min-h-[16px] text-red-400';
+                fb.textContent = data.message || 'Yanlış cevap! Tekrar deneyin.';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = originalBtnText;
+        if (fb) {
+            fb.className = 'mt-2 text-xs font-mono font-semibold min-h-[16px] text-red-400';
+            fb.textContent = 'Sunucu iletişim hatası. Lütfen tekrar deneyin.';
+        }
+    }
+}
+
+function resetLab() {
+    closeModal();
+    stopTimer();
+    document.getElementById('confetti-container').style.display = 'none';
+    document.getElementById('room-timeout-banner')?.classList.add('hidden');
+
+    if (labCompletedInDb) {
+        // Tamamlanmış labda kullanıcı puanlarını sıfırlamadan pratik modu başlat
+        practiceMode = true;
+        practiceSolvedIds = [];
+        labStarted = true;
+        examEnded = false;
+        timeLeft = TOTAL_TIME_SEC;
+        document.getElementById('practice-mode-badge')?.classList.remove('hidden');
+
+        TASKS.forEach(t => {
+            const card = document.getElementById('card-' + t.id);
+            const input = document.getElementById('input-' + t.id);
+            const btn = document.getElementById('btn-' + t.id);
+            const fb = document.getElementById('fb-' + t.id);
+            const numEl = document.getElementById('num-' + t.id);
+            const ptsEl = document.getElementById('pts-' + t.id);
+
+            if (card) {
+                card.classList.remove('border-l-emerald-500', 'bg-emerald-950/15');
+                card.classList.add('border-l-red-600');
+            }
+            if (input) {
+                input.className = 'task-flag-input flex-1 px-3.5 py-2.5 rounded-lg text-sm font-mono focus:outline-none';
+                input.value = '';
+                input.disabled = false;
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.className = 'task-submit-btn px-4 py-2.5 rounded-lg font-mono font-bold text-xs transition-all bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40';
+                btn.textContent = 'Gönder';
+            }
+            if (numEl) {
+                numEl.classList.remove('text-emerald-400');
+                numEl.classList.add('text-red-400');
+            }
+            if (ptsEl) {
+                ptsEl.className = 'font-mono text-xs px-2.5 py-0.5 rounded border bg-slate-900 border-slate-700 text-slate-300';
+                ptsEl.textContent = `+${t.points} Puan`;
+            }
+            if (fb) {
+                fb.textContent = '';
+            }
+        });
+
+        updateStatsUI();
+        updateTimerDisplay();
+        startTimer();
+        return;
+    }
+
+    localStorage.removeItem(LS_TIME);
+    localStorage.removeItem(LS_STARTED);
+    window.location.reload();
+}
+
+// Kademeli İpucu Servisi
+async function unlockHint(hintNum) {
+    if (hintNum === 2) {
+        if (!confirm("İpucu 2'yi açmak mevcut puanınızdan 10 PUAN düşürecektir. Devam etmek istiyor musunuz?")) {
+            return;
+        }
+    }
+    try {
+        const res = await fetch('/api/unlock-hint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ lab_id: LAB_ID, hint_num: hintNum })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (hintNum === 1) {
+                const el = document.getElementById('hint1-content');
+                el.textContent = data.hint_text;
+                el.classList.remove('hidden');
+                document.getElementById('hint1-btn')?.remove();
+            } else if (hintNum === 2) {
+                const el = document.getElementById('hint2-content');
+                el.textContent = data.hint_text;
+                el.classList.remove('hidden');
+                document.getElementById('hint2-btn')?.remove();
+                if (typeof data.new_score === 'number') {
+                    const navScore = document.getElementById('navbar-user-score');
+                    if (navScore) navScore.textContent = `${data.new_score} P`;
+                }
+            }
+        } else {
+            alert(data.message || 'İpucu açılamadı.');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('İpucu servisiyle iletişim kurulamadı.');
+    }
+}
+
+// Writeup Servisi
+async function loadWriteups() {
+    const list = document.getElementById('writeups-list');
+    if (!list) return;
+    try {
+        const res = await fetch(`/api/lab-writeups/${LAB_ID}`);
+        const data = await res.json();
+        if (data.success && data.writeups.length > 0) {
+            document.getElementById('writeup-count-badge').textContent = `(${data.writeups.length})`;
+            list.innerHTML = data.writeups.map(w => `
+                <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono space-y-2">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                        <span class="font-bold text-purple-300 text-sm">${escapeHtml(w.title)}</span>
+                        <span class="text-slate-500 text-[11px]"><i class="fa-solid fa-user-secret mr-1"></i>${escapeHtml(w.author)} &bull; ${w.created_at}</span>
+                    </div>
+                    <div class="text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(w.content)}</div>
+                </div>
+            `).join('');
+        } else if (data.success) {
+            list.innerHTML = `
+                <div class="p-6 text-center text-slate-500 font-mono text-xs">
+                    <i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>
+                    Bu laboratuvar için henüz bir çözüm raporu (writeup) yazılmamış. İlk yazan sen ol!
+                </div>
+            `;
+        }
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<div class="text-red-400 text-xs font-mono">Writeup listesi yüklenemedi.</div>';
+    }
+}
+
+document.getElementById('writeup-form')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const title = document.getElementById('writeup-title').value.trim();
+    const content = document.getElementById('writeup-content').value.trim();
+    const submitBtn = document.getElementById('writeup-submit-btn');
+
+    if (!title || !content) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Gönderiliyor...';
+
+    try {
+        const res = await fetch('/api/submit-writeup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ lab_id: LAB_ID, title: title, content: content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('writeup-form').reset();
+            document.getElementById('writeupFormContainer').classList.add('hidden');
+            loadWriteups();
+        } else {
+            alert(data.message || 'Writeup gönderilemedi.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Sunucu iletişim hatası.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Raporu Yayınla';
+    }
+});
+
+// İlk Yükleme Durumu
+updateStatsUI();
+updateTimerDisplay();
+if (labCompletedInDb) {
+    loadWriteups();
+} else if (labStarted) {
+    if (timeLeft <= 0) {
+        examEnded = true;
+        triggerEndGame('⏰ Operasyon Süresi Bitti!', 'Sınav süreniz doldu.', false);
+    } else {
+        startTimer();
+    }
+}
+</script>
+{% endblock %}

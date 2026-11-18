@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hedef Web Sitesi | NØHU Flag Hunting</title>
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #111827;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .main-box {
+            max-width: 650px;
+            padding: 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+        h1 {
+            font-size: 2rem;
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+        p {
+            color: #4b5563;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        /* Soru 1 İçin: Beyaz arka plan (#ffffff) üstüne beyaz (#ffffff) görünmez yazı */
+        .invisible-flag {
+            color: #ffffff;
+            background-color: #ffffff;
+            font-size: 1rem;
+            margin-top: 24px;
+            user-select: all;
+        }
+
+        /* GOREV_3_CSS_BAYRAGI: FLAG{css_kodlari_arasinda_bulundu} */
+    </style>
+</head>
+<body>
+
+    <!-- GOREV_2_HTML_BAYRAGI: FLAG{html_kodlari_arasinda_gizli_2026} -->
+
+    <div class="main-box">
+        <h1>Hoş geldiniz hedef siteye</h1>
+        <p>
+            Bu sayfa siber güvenlik Flag Hunting testi için hazırlanmıştır. 
+            Ekranda görünmeyen gizli bayrakları bulmak için sayfayı inceleyin ve kaynak kodlarına bakın.
+        </p>
+
+        <!-- Soru 1 Bayrağı (CTRL+A yapınca görünür) -->
+        <div class="invisible-flag">FLAG{beyaz_ekranda_gizli_yazi_ffffff}</div>
+    </div>
+
+    <script>
+        // Soru 4 Bayrağı (JavaScript değişkeni içinde)
+        const gizliSistemAnahtari = "FLAG{javascript_kodlarinda_bulundu_ok}";
+        console.log("Hedef web sitesi yüklendi.");
+    </script>
+
+</body>
+</html>

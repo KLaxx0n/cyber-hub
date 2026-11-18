@@ -113,7 +113,7 @@
                             {% elif current_user.assigned_team == 'purple_team' %}
                                 <span class="hidden xl:inline-flex bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">Purple</span>
                             {% endif %}
-                            <span class="hidden 2xl:inline-flex bg-blue-900/60 text-blue-300 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">{{ current_user.score }} P</span>
+                            <span id="navbar-user-score" class="hidden 2xl:inline-flex bg-blue-900/60 text-blue-300 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">{{ current_user.score }} P</span>
                         </a>
                         <a href="{{ url_for('logout') }}" title="Çıkış Yap" class="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-red-400 hover:border-red-500/50 transition-colors shrink-0 flex items-center justify-center">
                             <i class="fa-solid fa-right-from-bracket text-xs"></i>
