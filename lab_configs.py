@@ -91,6 +91,11 @@ MULTI_TASK_LABS = {
             'title': 'Gerekli Araç Uyarısı',
             'text': 'Bu lab için bilgisayarınıza ExifTool indirmeniz gerekir (Windows PowerShell veya Kali terminalinden kurup kullanabilirsiniz).'
         },
+        'guide_pdf': {
+            'filename': 'guides/red_team_lab2_ohsint_ogrenim_rehberi.pdf',
+            'label': 'OhSINT & ExifTool Hazırlık Rehberi (PDF)',
+            'desc': 'Labı başlatmadan önce ExifTool kurulumu, Linux dosya izinleri ve WiGLE.net yöntemini okuyabilirsiniz.'
+        },
         'tasks': [
             {
                 'id': 'q1',
@@ -171,6 +176,11 @@ MULTI_TASK_LABS = {
         'case_sensitive': False,
         'kicker': 'NØHU BLUE TEAM // LAB 01',
         'icon_emoji': '🛡️',
+        'guide_pdf': {
+            'filename': 'guides/blue_team_lab1_soc_hazirlik_rehberi.pdf',
+            'label': 'SOC & Log Analizi Hazırlık Rehberi (PDF)',
+            'desc': 'Labı başlatmadan önce Nginx access.log, Linux auth.log ve Base64 analiz temellerini okuyabilirsiniz.'
+        },
         'tasks': [
             {
                 'id': 'q1',

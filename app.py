@@ -978,13 +978,19 @@ def _render_team_labs(category, template_name):
         for slug, cfg in MULTI_TASK_LABS.items()
         if cfg.get('card_warning')
     }
+    lab_guides = {
+        slug: cfg['guide_pdf']
+        for slug, cfg in MULTI_TASK_LABS.items()
+        if cfg.get('guide_pdf')
+    }
     return render_template(
         template_name,
         labs=labs,
         user_completed_ids=user_completed_ids,
         user_progress_map=user_progress_map,
         task_counts=task_counts,
-        lab_warnings=lab_warnings
+        lab_warnings=lab_warnings,
+        lab_guides=lab_guides
     )
 
 @app.route('/red-team')
