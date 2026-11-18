@@ -222,9 +222,16 @@
                                 <i class="fa-solid fa-check text-[10px] mr-1"></i>Onaylı
                             </span>
                             {% else %}
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-amber-950 border border-amber-800 text-amber-400">
-                                <i class="fa-solid fa-clock text-[10px] mr-1"></i>Bekliyor
-                            </span>
+                            <div class="inline-flex flex-col items-center gap-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-amber-950 border border-amber-800 text-amber-400">
+                                    <i class="fa-solid fa-clock text-[10px] mr-1"></i>Bekliyor
+                                </span>
+                                {% if u.verification_code %}
+                                <span class="font-mono text-cyan-300 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800 text-[10px]" title="Aktif Doğrulama Kodu">
+                                    Kod: {{ u.verification_code }}
+                                </span>
+                                {% endif %}
+                            </div>
                             {% endif %}
                         </td>
 

@@ -6,6 +6,36 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import current_app
 
+def send_via_brevo_api(api_key, to_email, username, subject, html_body):
+    """
+    Render Free Tier gibi harici SMTP portlarının (587/465) engellendiği bulut
+    ortamlarında HTTPS Port 443 üzerinden Brevo (Sendinblue) REST API v3 ile e-posta gönderir.
+    Günde 300 e-posta ücretsizdir ve alan adı doğrulaması gerektirmez.
+    """
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "NOHU-CyberHub/1.0"
+    }
+    payload = {
+        "sender": {"name": "NÖHÜ Siber Lab", "email": "cyberhubsecurity.tr@gmail.com"},
+        "to": [{"email": to_email, "name": username or to_email}],
+        "subject": subject,
+        "htmlContent": html_body
+    }
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() in [200, 201]:
+                print(f"[+] Brevo REST API üzerinden e-posta başarıyla iletildi: {to_email}")
+                return True, "Doğrulama kodu başarıyla e-posta adresinize gönderildi."
+            return False, f"Brevo API HTTP {response.getcode()}"
+    except Exception as e:
+        print(f"[!] Brevo API Hatası: {e}")
+        return False, str(e)
+
 def send_via_resend_api(api_key, to_email, subject, html_body):
     """
     Render Free Tier gibi harici SMTP portlarının (587/465) engellendiği bulut
@@ -121,14 +151,21 @@ def send_verification_email(to_email, username, verification_code):
         </html>
         """
 
-        # 1. Öncelik: Resend REST API (HTTPS Port 443 - Bulut ve Render kısıtlamalarına takılmaz)
+        # 1. Öncelik: Brevo REST API (HTTPS Port 443 - Bulut ve Render kısıtlamalarına takılmaz)
+        brevo_key = os.environ.get('BREVO_API_KEY') or current_app.config.get('BREVO_API_KEY')
+        if brevo_key:
+            sent, api_msg = send_via_brevo_api(brevo_key, to_email, username, subject, html_body)
+            if sent:
+                return True, api_msg
+
+        # 2. Öncelik: Resend REST API (HTTPS Port 443)
         resend_key = os.environ.get('RESEND_API_KEY') or current_app.config.get('RESEND_API_KEY')
         if resend_key:
             sent, api_msg = send_via_resend_api(resend_key, to_email, subject, html_body)
             if sent:
                 return True, api_msg
 
-        # 2. Öncelik: Standart SMTP (Localhost veya engellenmemiş sunucularda çalışır)
+        # 3. Öncelik: Standart SMTP (Localhost veya engellenmemiş sunucularda çalışır)
         mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
         mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
         mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -262,14 +299,21 @@ def send_password_reset_email(to_email, username, reset_code):
         </html>
         """
 
-        # 1. Öncelik: Resend REST API
+        # 1. Öncelik: Brevo REST API (HTTPS Port 443)
+        brevo_key = os.environ.get('BREVO_API_KEY') or current_app.config.get('BREVO_API_KEY')
+        if brevo_key:
+            sent, api_msg = send_via_brevo_api(brevo_key, to_email, username, subject, html_body)
+            if sent:
+                return True, api_msg
+
+        # 2. Öncelik: Resend REST API
         resend_key = os.environ.get('RESEND_API_KEY') or current_app.config.get('RESEND_API_KEY')
         if resend_key:
             sent, api_msg = send_via_resend_api(resend_key, to_email, subject, html_body)
             if sent:
                 return True, api_msg
 
-        # 2. Öncelik: Standart SMTP
+        # 3. Öncelik: Standart SMTP
         mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
         mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
         mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
