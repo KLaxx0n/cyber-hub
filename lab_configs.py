@@ -87,6 +87,10 @@ MULTI_TASK_LABS = {
         'case_sensitive': False,
         'kicker': 'NØHU RED TEAM // LAB 02',
         'icon_emoji': '🕵️‍♂️',
+        'card_warning': {
+            'title': 'Gerekli Araç Uyarısı',
+            'text': 'Bu lab için bilgisayarınıza ExifTool indirmeniz gerekir (Windows PowerShell veya Kali terminalinden kurup kullanabilirsiniz).'
+        },
         'tasks': [
             {
                 'id': 'q1',

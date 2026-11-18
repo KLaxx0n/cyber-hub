@@ -79,6 +79,17 @@
                 <p class="text-xs text-slate-300 leading-relaxed mb-4">
                     {{ lab.description }}
                 </p>
+
+                {% set warning = lab_warnings.get(lab.slug) if lab_warnings is defined else None %}
+                {% if warning %}
+                <div class="mb-4 p-2.5 rounded-lg bg-amber-950/50 border border-amber-600/60 text-amber-200 text-[11px] font-mono leading-relaxed flex items-start gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                    <div>
+                        <span class="font-bold text-amber-300">{{ warning.title }}:</span>
+                        <span>{{ warning.text }}</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="pt-4 border-t border-white/10 space-y-3 font-mono text-xs">

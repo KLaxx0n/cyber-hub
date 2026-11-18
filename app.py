@@ -973,12 +973,18 @@ def red_team():
         slug: len(cfg.get('tasks', []))
         for slug, cfg in MULTI_TASK_LABS.items()
     }
+    lab_warnings = {
+        slug: cfg['card_warning']
+        for slug, cfg in MULTI_TASK_LABS.items()
+        if cfg.get('card_warning')
+    }
     return render_template(
         'red_team.html',
         labs=labs,
         user_completed_ids=user_completed_ids,
         user_progress_map=user_progress_map,
-        task_counts=task_counts
+        task_counts=task_counts,
+        lab_warnings=lab_warnings
     )
 
 @app.route('/blue-team')
