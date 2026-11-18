@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from urllib.parse import urlsplit
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -1028,12 +1028,14 @@ def lab_detail(slug):
         cfg = MULTI_TASK_LABS[slug]
         tasks = get_public_tasks(slug)
         solved_task_ids = progress.get_solved_tasks() if progress else []
+        initial_score = sum(t['points'] for t in tasks if t['id'] in solved_task_ids)
         return render_template(
             'lab_multi_task.html',
             lab=lab,
             lab_config=cfg,
             tasks=tasks,
             solved_task_ids=solved_task_ids,
+            initial_score=initial_score,
             is_solved=is_solved,
             progress=progress,
             first_blood_user=first_blood_user,
@@ -1057,6 +1059,17 @@ def bayrak_avi_1_target():
         flash('Bu hedef sistem henüz erişime açılmamıştır.', 'warning')
         return redirect(url_for('red_team'))
     return render_template('labs/bayrak_avi_1_target.html')
+
+@app.route('/lab/red-ohsint-2/target')
+@login_required
+def ohsint_2_target():
+    lab = Lab.query.filter_by(slug='red-ohsint-2').first_or_404()
+    user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        flash('Bu hedef dosya henüz erişime açılmamıştır.', 'warning')
+        return redirect(url_for('red_team'))
+    assets_dir = os.path.join(app.root_path, 'lab_assets')
+    return send_from_directory(assets_dir, 'numune.jpg', as_attachment=True, download_name='numune.jpg')
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1340,8 +1353,12 @@ def submit_lab_task(slug):
 
     solved_tasks = progress.get_solved_tasks()
     expected_flag = task['flag']
+    if not cfg.get('case_sensitive', True):
+        is_match = hmac.compare_digest(submitted_flag.lower().encode('utf-8'), expected_flag.lower().encode('utf-8'))
+    else:
+        is_match = hmac.compare_digest(submitted_flag.encode('utf-8'), expected_flag.encode('utf-8'))
 
-    if not hmac.compare_digest(submitted_flag.encode('utf-8'), expected_flag.encode('utf-8')):
+    if not is_match:
         db.session.commit()
         return jsonify({
             'success': False,

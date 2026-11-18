@@ -75,6 +75,24 @@ def seed_database(app):
                 'is_published': True
             },
             {
+                'slug': 'red-ohsint-2',
+                'title': 'OhSINT: Açık Kaynak İstihbaratı',
+                'category': 'red_team',
+                'sub_category': 'OSINT & Meta Veri Analizi',
+                'difficulty': 'Orta',
+                'points': 100,
+                'time_limit_sec': 900, # 15 dakika
+                'description': 'Verilen fotoğraf dosyasını inceleyerek OhSINT sorularını yanıtlayın ve ExifTool ile meta verileri analiz edin.',
+                'scenario': 'Şüpheli bir kullanıcıya ait örnek fotoğraf dosyası (numune.jpg) elde edildi. Açık kaynak istihbaratı (OSINT) ve EXIF meta veri analizi teknikleriyle hedef hakkında kritik bilgilere ulaşılması gerekmektedir.',
+                'instructions': 'İnceleme dosyasını (numune.jpg) indirin. ExifTool (Windows PowerShell veya Kali terminal) ve açık kaynak istihbarat araçlarıyla 6 görevin her birine ait cevabı teslim edin. (Toplam 100 puan, baraj 50 puandır.)',
+                'hint': 'ExifTool ile numune.jpg dosyasının meta verilerini (Copyright, File Permissions) ve BSSID bilgisini wigle.net üzerinde araştırın.',
+                'hint1': 'Terminalde "exiftool numune.jpg" komutunu çalıştırarak telif hakkı (Copyright) ve dosya izinleri (File Permissions) bilgilerine ulaşabilirsiniz. Elde ettiğiniz kullanıcı adını arama motorları, GitHub ve wigle.net üzerinde araştırın.',
+                'hint2': 'Kritik İpucu (-10 Puan): Task 1 için avatar türü (cat), Task 2 için şehir (London), Task 3 için e-posta (OWoodflint@gmail.com), Task 4 için geliştirici platformu (Github), Task 5 için dosya izinleri (-rw-rw-r--), Task 6 için Wi-Fi SSID (UnileverWiFI) değerlerini inceleyin.',
+                'flag': 'FLAG{ohsint_lab_2_multi_task_completed}',
+                'lab_type': 'multi_task',
+                'is_published': True
+            },
+            {
                 'slug': 'red-sqli-basic',
                 'title': 'OWASP Top 10: SQL Injection Zafiyeti',
                 'category': 'red_team',
