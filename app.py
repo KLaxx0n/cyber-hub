@@ -954,9 +954,9 @@ def admin_toggle_leader(user_id):
 
     return redirect(url_for('admin_panel'))
 
-@app.route('/red-team')
-def red_team():
-    labs = Lab.query.filter_by(category='red_team', is_published=True).order_by(Lab.id.asc()).all()
+def _render_team_labs(category, template_name):
+    """Render published labs for a team category with user task progress and warnings."""
+    labs = Lab.query.filter_by(category=category, is_published=True).order_by(Lab.id.asc()).all()
     user_completed_ids = []
     user_progress_map = {}
     if 'user_id' in session:
@@ -979,7 +979,7 @@ def red_team():
         if cfg.get('card_warning')
     }
     return render_template(
-        'red_team.html',
+        template_name,
         labs=labs,
         user_completed_ids=user_completed_ids,
         user_progress_map=user_progress_map,
@@ -987,13 +987,13 @@ def red_team():
         lab_warnings=lab_warnings
     )
 
+@app.route('/red-team')
+def red_team():
+    return _render_team_labs('red_team', 'red_team.html')
+
 @app.route('/blue-team')
 def blue_team():
-    labs = Lab.query.filter_by(category='blue_team').all()
-    user_completed_ids = []
-    if 'user_id' in session:
-        user_completed_ids = [p.lab_id for p in UserLabProgress.query.filter_by(user_id=session['user_id'], is_completed=True).all()]
-    return render_template('blue_team.html', labs=labs, user_completed_ids=user_completed_ids)
+    return _render_team_labs('blue_team', 'blue_team.html')
 
 @app.route('/purple-team')
 def purple_team():
@@ -1056,26 +1056,69 @@ def lab_detail(slug):
                            first_blood_user=first_blood_user,
                            writeup_count=writeup_count)
 
+def _get_accessible_lab_or_redirect(slug, fallback_endpoint):
+    """Return the Lab if published or current user is superadmin; otherwise redirect."""
+    lab = Lab.query.filter_by(slug=slug).first_or_404()
+    user = User.query.get(session['user_id'])
+    if not lab.is_published and not user.is_superadmin:
+        flash('Bu hedef kaynak henüz erişime açılmamıştır.', 'warning')
+        return None, redirect(url_for(fallback_endpoint))
+    return lab, None
+
 @app.route('/lab/red-bayrak-avi-1/target')
 @login_required
 def bayrak_avi_1_target():
-    lab = Lab.query.filter_by(slug='red-bayrak-avi-1').first_or_404()
-    user = User.query.get(session['user_id'])
-    if not lab.is_published and not user.is_superadmin:
-        flash('Bu hedef sistem henüz erişime açılmamıştır.', 'warning')
-        return redirect(url_for('red_team'))
+    _, denied = _get_accessible_lab_or_redirect('red-bayrak-avi-1', 'red_team')
+    if denied:
+        return denied
     return render_template('labs/bayrak_avi_1_target.html')
 
 @app.route('/lab/red-ohsint-2/target')
 @login_required
 def ohsint_2_target():
-    lab = Lab.query.filter_by(slug='red-ohsint-2').first_or_404()
-    user = User.query.get(session['user_id'])
-    if not lab.is_published and not user.is_superadmin:
-        flash('Bu hedef dosya henüz erişime açılmamıştır.', 'warning')
-        return redirect(url_for('red_team'))
+    _, denied = _get_accessible_lab_or_redirect('red-ohsint-2', 'red_team')
+    if denied:
+        return denied
     assets_dir = os.path.join(app.root_path, 'lab_assets')
     return send_from_directory(assets_dir, 'numune.jpg', as_attachment=True, download_name='numune.jpg')
+
+@app.route('/lab/blue-soc-olay-1/target')
+@login_required
+def blue_soc_olay_1_target():
+    _, denied = _get_accessible_lab_or_redirect('blue-soc-olay-1', 'blue_team')
+    if denied:
+        return denied
+    logs_dir = os.path.join(app.root_path, 'lab_assets', 'blue_soc_olay_1')
+    with open(os.path.join(logs_dir, 'access.log'), 'r', encoding='utf-8') as f:
+        access_lines = [line.rstrip('\r\n') for line in f if line.strip()]
+    with open(os.path.join(logs_dir, 'auth.log'), 'r', encoding='utf-8') as f:
+        auth_lines = [line.rstrip('\r\n') for line in f if line.strip()]
+
+    stats = {
+        'access_total': len(access_lines),
+        'http_errors': sum(1 for l in access_lines if re.search(r'" (401|403|404|405|500) ', l)),
+        'http_200': sum(1 for l in access_lines if '" 200 ' in l),
+        'auth_total': len(auth_lines),
+        'ssh_failed': sum(1 for l in auth_lines if 'Failed password' in l),
+        'ssh_accepted': sum(1 for l in auth_lines if 'Accepted ' in l),
+    }
+    return render_template(
+        'labs/blue_soc_olay_1_target.html',
+        access_lines=access_lines,
+        auth_lines=auth_lines,
+        stats=stats
+    )
+
+@app.route('/lab/blue-soc-olay-1/download/<filename>')
+@login_required
+def blue_soc_olay_1_download(filename):
+    if filename not in {'access.log', 'auth.log'}:
+        return jsonify({'success': False, 'message': 'Dosya bulunamadı.'}), 404
+    _, denied = _get_accessible_lab_or_redirect('blue-soc-olay-1', 'blue_team')
+    if denied:
+        return denied
+    logs_dir = os.path.join(app.root_path, 'lab_assets', 'blue_soc_olay_1')
+    return send_from_directory(logs_dir, filename, as_attachment=True, download_name=filename)
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1368,11 +1411,17 @@ def submit_lab_task(slug):
         progress.attempts = (progress.attempts or 0) + 1
 
     solved_tasks = progress.get_solved_tasks()
-    expected_flag = task['flag']
+    candidates = task.get('accepted_flags') or [task['flag']]
     if not cfg.get('case_sensitive', True):
-        is_match = hmac.compare_digest(submitted_flag.lower().encode('utf-8'), expected_flag.lower().encode('utf-8'))
+        is_match = any(
+            hmac.compare_digest(submitted_flag.lower().encode('utf-8'), cand.lower().encode('utf-8'))
+            for cand in candidates
+        )
     else:
-        is_match = hmac.compare_digest(submitted_flag.encode('utf-8'), expected_flag.encode('utf-8'))
+        is_match = any(
+            hmac.compare_digest(submitted_flag.encode('utf-8'), cand.encode('utf-8'))
+            for cand in candidates
+        )
 
     if not is_match:
         db.session.commit()

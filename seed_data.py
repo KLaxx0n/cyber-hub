@@ -152,6 +152,24 @@ def seed_database(app):
 
             # BLUE TEAM LABS
             {
+                'slug': 'blue-soc-olay-1',
+                'title': 'SOC Vakası 1: Gece Yarısı İhlal Avı',
+                'category': 'blue_team',
+                'sub_category': 'SOC & Olay Müdahalesi',
+                'difficulty': 'Kolay',
+                'points': 100,
+                'time_limit_sec': 900, # 15 dakika
+                'description': 'Gerçekçi Nginx access.log ve Linux auth.log kayıtlarını korele ederek saldırgan IP adresini, ele geçirilen SSH hesabını, web shelli, veri sızıntısını ve kalıcılık bayrağını tespit edin.',
+                'scenario': '18 Kasım 2026 gecesi kurum sunucusunda (srv-web-01) olağandışı ağ trafiği ve şüpheli sistem komutları tespit edildi. SIEM ön uyarısının ardından access.log ve auth.log kayıtları SOC olay müdahale konsoluna aktarıldı.',
+                'instructions': 'SOC Olay İnceleme Konsolunu yeni sekmede açın (harici araç gerektirmez; dilerseniz .log dosyalarını indirip yerelde de inceleyebilirsiniz). 5 aşamalı saldırı zincirini analiz ederek her görevin cevabını teslim edin. (Her görev 20 puan, toplam 100 puan, baraj 60 puandır.)',
+                'hint': 'access.log içinde 404 dizin taraması ve 200 OK /uploads/ veya /backups/ isteklerini; auth.log içinde "Accepted password" ve Base64 kodlu sudo komutunu inceleyin.',
+                'hint1': 'SOC Konsolunda hızlı filtreleme çiplerini kullanın: access.log içinde 404 yanıtları üreten IP adresini bulun, ardından aynı IP için auth.log üzerinde "Accepted password" ve "sudo" satırlarını arayın.',
+                'hint2': 'Kritik İpucu (-10 Puan): Task 1 için 185.220.101.47, Task 2 için deploy_svc, Task 3 için sys_health.php, Task 4 için prod_users_dump_2026.sql.gz, Task 5 için auth.log sudo satırındaki Base64 kodunu SOC Base64 Çözücü ile çözün.',
+                'flag': 'FLAG{blue_soc_olay_1_multi_task_completed}',
+                'lab_type': 'multi_task',
+                'is_published': True
+            },
+            {
                 'slug': 'blue-log-analysis',
                 'title': 'Sunucu Log Analizi & Saldırı Tespiti',
                 'category': 'blue_team',
@@ -166,7 +184,8 @@ def seed_database(app):
                 'hint1': 'En çok istek atan IP adresini bulun ve 200 OK koduyla indirdiği gizli dosyanın yanıtına bakın.',
                 'hint2': 'Kritik İpucu (-10 Puan): 192.168.1.105 IP adresi Gobuster ile tarama yapmış ve /admin-secret-backup.zip dosyasını başarıyla indirmiştir. Dosya hash/indirme logunda FLAG{blue_log...} yer almaktadır.',
                 'flag': 'FLAG{blu3_l0g_4n4lys1s_d3t3ct3d}',
-                'lab_type': 'log_analysis'
+                'lab_type': 'log_analysis',
+                'is_published': False
             },
             {
                 'slug': 'blue-digital-forensics',
@@ -183,7 +202,8 @@ def seed_database(app):
                 'hint1': 'Hex görünümünde FFD9 sonrasındaki karakterleri ASCII ve Base64 çözücüye aktarın.',
                 'hint2': 'Kritik İpucu (-10 Puan): FFD9 baytından hemen sonra başlayan RkxBR3tkMWcx... dizgisi Base64 kodludur; decode edildiğinde doğrudan adli bilişim bayrağını verir.',
                 'flag': 'FLAG{d1g1t4l_f0r3ns1cs_c4rv3d_f1l3}',
-                'lab_type': 'forensics'
+                'lab_type': 'forensics',
+                'is_published': False
             },
             {
                 'slug': 'blue-firewall-defense',
@@ -200,7 +220,8 @@ def seed_database(app):
                 'hint1': 'iptables -A INPUT -s <IP> -j DROP ve SSH için port 22 rate-limiting kuralları kullanılmalıdır.',
                 'hint2': 'Kritik İpucu (-10 Puan): 10.0.0.0/24 subnetinden gelen web saldırılarını engelleyen "iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j DROP" kuralını seçiniz.',
                 'flag': 'FLAG{f1r3w4ll_d3f3nd_blu3_t34m}',
-                'lab_type': 'firewall'
+                'lab_type': 'firewall',
+                'is_published': False
             },
             # PURPLE TEAM LABS
             {

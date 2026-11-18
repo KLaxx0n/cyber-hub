@@ -147,6 +147,79 @@ MULTI_TASK_LABS = {
                 'flag': 'UnileverWiFI'
             }
         ]
+    },
+    'blue-soc-olay-1': {
+        'pass_threshold': 60,
+        'target_endpoint': 'blue_soc_olay_1_target',
+        'target_label': 'SOC Olay Konsolu (access.log & auth.log)',
+        'target_icon': '🛡️',
+        'target_title': 'SOC Olay İnceleme Konsolu',
+        'target_desc_before': 'Aşağıdaki bağlantıya tıklayarak ',
+        'target_desc_after': ' panelini yeni sekmede açın. Harici araç kurmadan logları filtreleyebilir, dilerseniz .log dosyalarını indirebilirsiniz.',
+        'target_button_text': 'SOC KONSOLUNU AÇ',
+        'target_is_download': False,
+        'quick_tips_title': 'SOC Hızlı Analiz İpuçları:',
+        'quick_tips': [
+            ('404 / gobuster', 'Web dizin taraması tespiti'),
+            ('Accepted password', 'Başarılı SSH parola girişi'),
+            ('base64 -d', 'Gizli kalıcılık payloadı çözümü'),
+        ],
+        'input_placeholder': 'Cevabınızı yazın...',
+        'solved_input_label': '✓ Doğru Cevap Kaydedildi',
+        'writeup_title_placeholder': 'Örn: SOC Vakası 1 - Log Korelasyonu & İhlal Analizi',
+        'writeup_content_placeholder': '1. Görev: access.log içinde 404 taraması yapan IP tespit edildi...\n2. Görev: auth.log üzerinde Accepted password satırı incelendi...',
+        'case_sensitive': False,
+        'kicker': 'NØHU BLUE TEAM // LAB 01',
+        'icon_emoji': '🛡️',
+        'tasks': [
+            {
+                'id': 'q1',
+                'number': 1,
+                'title': 'Saldırganın Kaynak IP Adresi',
+                'question': 'Web sunucusuna yoğun dizin taraması (404) ve SSH parola kırma (brute-force) saldırısı düzenleyen dış saldırgan IP adresi nedir?',
+                'hint': 'access.log içinde art arda 404 yanıtı alan ve auth.log içinde çok sayıda "Failed password" kaydı üreten IP adresini bulun.',
+                'points': 20,
+                'flag': '185.220.101.47'
+            },
+            {
+                'id': 'q2',
+                'number': 2,
+                'title': 'Ele Geçirilen SSH Hesabı',
+                'question': 'auth.log kayıtlarına göre saldırgan başarısız denemelerin ardından hangi sistem kullanıcısının hesabına parola ile ("Accepted password") giriş yapmıştır?',
+                'hint': 'auth.log sekmesinde "Accepted password" ifadesini filtreleyerek saldırgan IP ile eşleşen kullanıcı adını inceleyin.',
+                'points': 20,
+                'flag': 'deploy_svc'
+            },
+            {
+                'id': 'q3',
+                'number': 3,
+                'title': 'Sunucuya Yüklenen Zararlı Web Shell',
+                'question': 'Saldırgan /api/v1/upload uç noktası üzerinden sunucuya bir web shell yükleyip uzaktan komut (?cmd=) çalıştırmıştır. Zararlı dosyanın adı (uzantısıyla birlikte, örn: shell.php) nedir?',
+                'hint': 'access.log içinde POST /api/v1/upload sonrasında gelen /uploads/ ve ?cmd= isteklerine bakın.',
+                'points': 20,
+                'flag': 'sys_health.php',
+                'accepted_flags': ['sys_health.php', '/uploads/sys_health.php']
+            },
+            {
+                'id': 'q4',
+                'number': 4,
+                'title': 'Sızdırılan Veritabanı Yedek Dosyası',
+                'question': 'Saldırgan sunucudaki kritik bir veritabanı yedeğini dışarıya çekmiştir (Data Exfiltration). access.log üzerinde ~4.8 MB boyutla indirilen bu dosyanın adı (uzantısıyla birlikte) nedir?',
+                'hint': 'access.log içinde "Yüksek Boyut" filtresini kullanın veya /backups/ yoluna yapılan 200 OK GET isteğini inceleyin.',
+                'points': 20,
+                'flag': 'prod_users_dump_2026.sql.gz',
+                'accepted_flags': ['prod_users_dump_2026.sql.gz', '/backups/prod_users_dump_2026.sql.gz']
+            },
+            {
+                'id': 'q5',
+                'number': 5,
+                'title': 'Kalıcılık Komutundaki Gizli IOC Bayrağı',
+                'question': 'Saldırgan auth.log içinde sudo yetkisiyle Base64 kodlu bir zamanlanmış görev (cron) kalıcılığı oluşturmuştur. Base64 metnini SOC konsolundaki çözücü ile çözerek içerideki FLAG{...} bayrağını bulun.',
+                'hint': 'auth.log içinde "sudo" veya "base64" kelimesini arayın; echo ile pipe edilen Base64 dizgisini alt kısımdaki SOC Base64 Çözücüye yapıştırın.',
+                'points': 20,
+                'flag': 'FLAG{blue_soc_olay_2026}'
+            }
+        ]
     }
 }
 

