@@ -169,6 +169,12 @@
                     </span>
                 </div>
 
+                <div class="px-3.5 py-1.5 rounded-full bg-amber-950/80 border border-amber-600/80 text-amber-300 font-bold flex items-center gap-1.5" title="Erken bitirilen her saniye için ek puan!">
+                    <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i>
+                    <span>HIZ BONUSU:</span>
+                    <span>+{{ (lab.points * 0.5)|int }} Puan'a kadar</span>
+                </div>
+
                 <div class="px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-emerald-800/70 text-emerald-300 font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-star text-emerald-400"></i>
                     <span>PUAN:</span>
@@ -715,7 +721,7 @@ async function verifyTaskFlag(taskId) {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
             },
-            body: JSON.stringify({ task_id: taskId, flag: val })
+            body: JSON.stringify({ task_id: taskId, flag: val, remaining_seconds: (typeof timeLeft === 'number') ? timeLeft : null })
         });
         const data = await res.json();
 

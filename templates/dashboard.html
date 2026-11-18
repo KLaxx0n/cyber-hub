@@ -238,7 +238,15 @@
                                 <span class="text-blue-400 bg-blue-950 px-2 py-0.5 rounded border border-blue-800">Blue Team</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-4 text-emerald-400 font-bold">+{{ item.earned_points }} P</td>
+                        <td class="py-3 px-4 font-bold">
+                            <span class="text-emerald-400">+{{ item.earned_points }} P</span>
+                            {% if item.speed_bonus and item.speed_bonus > 0 %}
+                                <span class="text-[10px] text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-700/80 ml-1.5" title="Hız Bonusu: +{{ item.speed_bonus }} P">⚡ +{{ item.speed_bonus }}</span>
+                            {% endif %}
+                            {% if item.is_first_blood %}
+                                <span class="text-[10px] text-rose-300 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-800 ml-1" title="İlk Kan Bonusu: +50 P">🩸 FB</span>
+                            {% endif %}
+                        </td>
                         <td class="py-3 px-4 text-slate-400">{{ item.attempts }}</td>
                         <td class="py-3 px-4 text-slate-400">{{ item.completed_at.strftime('%d.%m.%Y %H:%M') if item.completed_at else '-' }}</td>
                         <td class="py-3 px-4 text-right">

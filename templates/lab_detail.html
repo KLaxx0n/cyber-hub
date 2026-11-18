@@ -11,14 +11,20 @@
             <i class="fa-solid fa-arrow-left mr-2"></i>{{ 'Red Team' if lab.category == 'red_team' else ('Blue Team' if lab.category == 'blue_team' else 'Purple Team') }} Lablarına Dön
         </a>
 
-        <!-- Lab Timer Display (setInterval) -->
-        <div class="flex items-center space-x-3 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl">
-            <i class="fa-solid fa-stopwatch text-slate-400"></i>
-            <span class="text-xs font-mono text-slate-400 uppercase">Kalan Süre:</span>
-            <input type="hidden" id="lab-time-limit" value="{{ lab.time_limit_sec }}">
-            <span id="lab-timer-display" class="font-mono text-lg font-bold text-cyan-400 tracking-wider">
-                --:--
-            </span>
+        <!-- Lab Timer & Speed Bonus Display -->
+        <div class="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-950/70 border border-amber-600/70 text-amber-300 text-xs font-mono shadow-sm" title="Ne kadar hızlı çözerseniz o kadar çok ekstra hız bonusu kazanırsınız!">
+                <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i>
+                <span>Hız Bonusu: <strong>+{{ (lab.points * 0.5)|int }} Puan'a</strong> kadar</span>
+            </div>
+            <div class="flex items-center space-x-3 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl">
+                <i class="fa-solid fa-stopwatch text-cyan-400"></i>
+                <span class="text-xs font-mono text-slate-400 uppercase">Kalan Süre:</span>
+                <input type="hidden" id="lab-time-limit" value="{{ lab.time_limit_sec }}">
+                <span id="lab-timer-display" class="font-mono text-lg font-bold text-cyan-400 tracking-wider">
+                    --:--
+                </span>
+            </div>
         </div>
     </div>
 

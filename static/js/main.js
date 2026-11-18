@@ -74,8 +74,10 @@ function initLabTimer() {
     if (!timerDisplay || !timeLimitInput) return;
 
     let remainingSeconds = parseInt(timeLimitInput.value) || 600;
+    window.labRemainingSeconds = remainingSeconds;
 
     function renderTime() {
+        window.labRemainingSeconds = remainingSeconds;
         const minutes = Math.floor(remainingSeconds / 60);
         const seconds = remainingSeconds % 60;
         timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -137,13 +139,18 @@ function initFlagSubmission() {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const remainingSec = (typeof window.labRemainingSeconds === 'number') ? window.labRemainingSeconds : null;
             const res = await fetch('/api/submit-flag', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify({ lab_id: labId, flag: flagVal })
+                body: JSON.stringify({ 
+                    lab_id: labId, 
+                    flag: flagVal,
+                    remaining_seconds: remainingSec
+                })
             });
 
             const data = await res.json();
@@ -152,13 +159,23 @@ function initFlagSubmission() {
                 feedbackBox.classList.remove('hidden', 'bg-emerald-950/70', 'border-emerald-500', 'bg-red-950/70', 'border-red-500');
 
                 if (data.success) {
+                    if (data.new_score) {
+                        const ns = document.getElementById('navbar-user-score');
+                        if (ns) ns.textContent = `${data.new_score} P`;
+                    }
+
                     feedbackBox.classList.add('bg-emerald-950/70', 'border-emerald-500', 'text-emerald-200');
                     feedbackBox.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
-                            <div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mt-0.5"></i>
+                            <div class="space-y-1">
                                 <h4 class="font-bold text-emerald-300">BAŞARILI!</h4>
-                                <p class="text-sm">${data.message}</p>
+                                <p class="text-sm leading-relaxed">${data.message}</p>
+                                ${data.speed_bonus > 0 ? `
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-950 border border-amber-600 text-amber-300 text-xs font-mono font-bold">
+                                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                                    <span>Hız Bonusu: +${data.speed_bonus} Ekstra Puan!</span>
+                                </div>` : ''}
                             </div>
                         </div>
                     `;

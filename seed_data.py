@@ -49,6 +49,9 @@ def seed_database(app):
         safe_add_column(db.engine, 'user_lab_progress', 'hint1_unlocked', 'BOOLEAN DEFAULT FALSE')
         safe_add_column(db.engine, 'user_lab_progress', 'hint2_unlocked', 'BOOLEAN DEFAULT FALSE')
         safe_add_column(db.engine, 'user_lab_progress', 'solved_tasks', "TEXT DEFAULT '[]'")
+        safe_add_column(db.engine, 'user_lab_progress', 'started_at', 'TIMESTAMP')
+        safe_add_column(db.engine, 'user_lab_progress', 'speed_bonus', 'INTEGER DEFAULT 0')
+        safe_add_column(db.engine, 'user_lab_progress', 'solve_time_sec', 'INTEGER DEFAULT 0')
 
         # Predefined Labs based on project report
         labs_data = [

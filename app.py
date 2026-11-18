@@ -1007,6 +1007,14 @@ def lab_detail(slug):
         return redirect(url_for('red_team' if lab.category == 'red_team' else ('blue_team' if lab.category == 'blue_team' else 'purple_team')))
     
     progress = UserLabProgress.query.filter_by(user_id=user.id, lab_id=lab.id).first()
+    if not progress:
+        progress = UserLabProgress(user_id=user.id, lab_id=lab.id, started_at=datetime.utcnow())
+        db.session.add(progress)
+        db.session.commit()
+    elif not progress.started_at:
+        progress.started_at = datetime.utcnow()
+        db.session.commit()
+
     is_solved = progress.is_completed if progress else False
 
     # First blood kullanıcısı kim?
@@ -1227,25 +1235,59 @@ def submit_flag():
         # First Blood kontrolü: Bu labı platformda daha önce çözen var mı?
         prior_solvers = UserLabProgress.query.filter_by(lab_id=lab.id, is_completed=True).count()
         is_first = (prior_solvers == 0)
-        
-        bonus_points = 50 if is_first else 0
-        total_earned = lab.points + bonus_points
+        first_blood_bonus = 50 if is_first else 0
+
+        # Dinamik Hız Bonusu: Labı ne kadar kısa sürede tamamlarsa o kadar yüksek ekstra puan kazanır
+        time_limit = lab.time_limit_sec or 600
+        now = datetime.utcnow()
+        started_at = progress.started_at or now
+
+        client_remaining = data.get('remaining_seconds')
+        if client_remaining is not None:
+            try:
+                remaining_sec = max(0, min(time_limit, int(client_remaining)))
+                elapsed_sec = max(1, time_limit - remaining_sec)
+            except (ValueError, TypeError):
+                elapsed_sec = max(1, int((now - started_at).total_seconds()))
+                remaining_sec = max(0, time_limit - elapsed_sec)
+        else:
+            elapsed_sec = max(1, int((now - started_at).total_seconds()))
+            remaining_sec = max(0, time_limit - elapsed_sec)
+
+        # Taban puanın %50'sine kadar hız bonusu (kalan süre oranında)
+        max_speed_bonus = int(lab.points * 0.50)
+        speed_bonus = int(round(max_speed_bonus * (remaining_sec / time_limit))) if time_limit > 0 else 0
+
+        total_earned = lab.points + first_blood_bonus + speed_bonus
 
         progress.is_completed = True
         progress.is_first_blood = is_first
+        progress.speed_bonus = speed_bonus
+        progress.solve_time_sec = elapsed_sec
         progress.earned_points = total_earned
-        progress.completed_at = datetime.utcnow()
+        progress.completed_at = now
         user.score += total_earned
         db.session.commit()
 
-        msg = f'TEBRİKLER! Bayrak başarıyla doğrulandı. +{lab.points} Puan kazandınız!'
+        mins = elapsed_sec // 60
+        secs = elapsed_sec % 60
+        time_str = f"{mins:02d}:{secs:02d}"
+
+        bonus_details = [f"+{lab.points} Taban Puan"]
+        if speed_bonus > 0:
+            bonus_details.append(f"⚡ +{speed_bonus} Hız Bonusu ({time_str} sürede)")
         if is_first:
-            msg = f'🩸 İLK KAN (FIRST BLOOD)! Bu laboratuvarı platformda ilk çözen öncü ajan oldunuz! (+{lab.points} Temel + 50 Bonus = +{total_earned} Puan)'
+            bonus_details.append("🩸 +50 İlk Kan Bonusu")
+
+        msg = f"TEBRİKLER! Bayrak başarıyla doğrulandı! ({' + '.join(bonus_details)} = Toplam +{total_earned} Puan)"
 
         return jsonify({
             'success': True,
             'already_completed': False,
             'is_first_blood': is_first,
+            'speed_bonus': speed_bonus,
+            'elapsed_sec': elapsed_sec,
+            'time_str': time_str,
             'earned_points': total_earned,
             'new_score': user.score,
             'message': msg
@@ -1331,6 +1373,7 @@ def submit_lab_task(slug):
     user.score = (user.score or 0) + task_pts
 
     bonus_points = 0
+    speed_bonus = 0
     newly_completed_lab = False
     if len(solved_tasks) == len(cfg['tasks']) and not progress.is_completed:
         prior_solvers = UserLabProgress.query.filter(
@@ -1339,10 +1382,36 @@ def submit_lab_task(slug):
             UserLabProgress.user_id != user.id
         ).count()
         is_first = (prior_solvers == 0)
-        bonus_points = 50 if is_first else 0
+        first_blood_bonus = 50 if is_first else 0
+
+        # Dinamik Hız Bonusu
+        time_limit = lab.time_limit_sec or 900
+        now = datetime.utcnow()
+        started_at = progress.started_at or now
+
+        client_remaining = data.get('remaining_seconds')
+        if client_remaining is not None:
+            try:
+                remaining_sec = max(0, min(time_limit, int(client_remaining)))
+                elapsed_sec = max(1, time_limit - remaining_sec)
+            except (ValueError, TypeError):
+                elapsed_sec = max(1, int((now - started_at).total_seconds()))
+                remaining_sec = max(0, time_limit - elapsed_sec)
+        else:
+            elapsed_sec = max(1, int((now - started_at).total_seconds()))
+            remaining_sec = max(0, time_limit - elapsed_sec)
+
+        max_speed_bonus = int(lab.points * 0.50)
+        speed_bonus = int(round(max_speed_bonus * (remaining_sec / time_limit))) if time_limit > 0 else 0
+
+        total_bonus = first_blood_bonus + speed_bonus
+        bonus_points = total_bonus
+
         progress.is_completed = True
         progress.is_first_blood = is_first
-        progress.completed_at = datetime.utcnow()
+        progress.speed_bonus = speed_bonus
+        progress.solve_time_sec = elapsed_sec
+        progress.completed_at = now
         progress.earned_points += bonus_points
         user.score += bonus_points
         newly_completed_lab = True
@@ -1353,10 +1422,12 @@ def submit_lab_task(slug):
     first_blood_username = first_blood.user.username if first_blood and first_blood.user else None
 
     if newly_completed_lab:
+        bonus_texts = [f"+{task_pts} Görev Puanı"]
+        if speed_bonus > 0:
+            bonus_texts.append(f"⚡ +{speed_bonus} Hız Bonusu")
         if progress.is_first_blood:
-            msg = f'🩸 İLK KAN (FIRST BLOOD)! Tüm görevler tamamlandı! (+{task_pts} Görev + 50 İlk Kan Bonusu)'
-        else:
-            msg = f'Tebrikler! Tüm görevler tamamlandı (+{task_pts} Puan).'
+            bonus_texts.append("🩸 +50 İlk Kan Bonusu")
+        msg = f"🎉 Tebrikler! Tüm görevler tamamlandı! ({' + '.join(bonus_texts)})"
     else:
         msg = f'Tebrikler! Doğru cevap (+{task_pts} Puan).'
 

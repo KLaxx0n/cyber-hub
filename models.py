@@ -293,6 +293,9 @@ class UserLabProgress(db.Model):
     earned_points = db.Column(db.Integer, default=0)
     solved_tasks = db.Column(db.Text, default='[]')
     completed_at = db.Column(db.DateTime, nullable=True)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    speed_bonus = db.Column(db.Integer, default=0)
+    solve_time_sec = db.Column(db.Integer, default=0)
     attempts = db.Column(db.Integer, default=0)
 
     def get_solved_tasks(self):
