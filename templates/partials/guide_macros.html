@@ -1,0 +1,25 @@
+{% macro prep_guide_button(guide, video=None, btn_class='', label_text='', icon_class='fa-solid fa-book-open text-red-400 shrink-0', show_sliders=False) %}
+<button type="button"
+        {% if guide %}
+        data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
+        data-pdf-title="{{ guide.label }}"
+        data-pdf-filename="{{ guide.filename.split('/')[-1] }}"
+        {% endif %}
+        {% if video %}
+        data-video-url="{{ url_for('static', filename=video.filename) }}"
+        data-video-poster="{{ url_for('static', filename=video.poster) if video.poster else '' }}"
+        data-video-title="{{ video.label }}"
+        data-video-filename="{{ video.filename.split('/')[-1] }}"
+        data-video-duration="{{ video.duration or '' }}"
+        data-video-desc="{{ video.desc or '' }}"
+        data-video-chapters="{{ video.chapters|tojson|forceescape }}"
+        {% endif %}
+        onclick="openPdfGuideFromBtn(this)"
+        class="min-w-0 {{ btn_class }}">
+    <i class="{{ icon_class }}"></i>
+    <span>{{ label_text }}</span>
+    {% if show_sliders %}
+    <i class="fa-solid fa-sliders text-[10px] text-slate-400 shrink-0"></i>
+    {% endif %}
+</button>
+{% endmacro %}

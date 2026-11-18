@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'partials/guide_macros.html' import prep_guide_button %}
 
 {% set is_blue = (lab.category == 'blue_team') %}
 {% set is_purple = (lab.category == 'purple_team') %}
@@ -167,17 +168,17 @@
 
         <div class="space-y-3">
             {% set guide = lab_config.get('guide_pdf') %}
-            {% if guide %}
-            <button type="button"
-                    data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
-                    data-pdf-title="{{ guide.label }}"
-                    data-pdf-filename="{{ guide.filename.split('/')[-1] }}"
-                    onclick="openPdfGuideFromBtn(this)"
-                    class="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/70 text-cyan-300 font-mono font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-                <i class="fa-solid fa-file-pdf text-amber-400"></i>
-                <span>{{ guide.label }}</span>
-            </button>
-            <p class="text-[11px] text-slate-400 font-mono">Süreniz başlamadan önce rehberi sitede okuyabilir veya indirebilirsiniz.</p>
+            {% set video = lab_config.get('guide_video') %}
+            {% if guide or video %}
+            {{ prep_guide_button(
+                guide,
+                video,
+                'w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/70 text-cyan-300 font-mono font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer',
+                (guide.label if guide else video.label),
+                'fa-solid fa-book-open text-amber-400 shrink-0',
+                True
+            ) }}
+            <p class="text-[11px] text-slate-400 font-mono">Süreniz başlamadan önce {{ 'video anlatımı izleyebilir, rehberi okuyabilir veya indirebilirsiniz.' if video else 'rehberi sitede okuyabilir veya indirebilirsiniz.' }}</p>
             {% endif %}
             <button type="button" id="start-lab-btn" onclick="startLab()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r {{ theme.gradient_btn }} text-white font-bold text-sm tracking-wide transition-all">
                 <i class="fa-solid fa-play mr-2"></i>{% if solved_task_ids|length > 0 and not is_solved %}Kaldığın Yerden Başla{% else %}Lab'a Başla{% endif %}
@@ -458,25 +459,25 @@
                 </div>
 
                 {% set guide = lab_config.get('guide_pdf') %}
-                {% if guide %}
-                <!-- Ön Hazırlık & Öğrenim Rehberi (PDF) -->
+                {% set video = lab_config.get('guide_video') %}
+                {% if guide or video %}
+                <!-- Ön Hazırlık & Öğrenim Rehberi (Video & PDF Seçenekleri) -->
                 <div class="cyber-card p-5 border-slate-800 font-mono text-xs">
                     <div class="flex items-center gap-2 text-slate-200 font-bold mb-2">
                         <i class="fa-solid fa-book-open text-cyan-400"></i>
                         <span>Ön Hazırlık &amp; Öğrenim Rehberi</span>
                     </div>
                     <p class="text-[11px] text-slate-400 leading-relaxed mb-3 font-sans">
-                        {{ guide.desc }}
+                        {{ guide.desc if guide else video.desc }}
                     </p>
-                    <button type="button"
-                            data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
-                            data-pdf-title="{{ guide.label }}"
-                            data-pdf-filename="{{ guide.filename.split('/')[-1] }}"
-                            onclick="openPdfGuideFromBtn(this)"
-                            class="w-full py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-file-pdf text-amber-400"></i>
-                        <span>Rehber PDF'i Aç / İndir</span>
-                    </button>
+                    {{ prep_guide_button(
+                        guide,
+                        video,
+                        'w-full py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer',
+                        'Hazırlık Rehberini Aç',
+                        'fa-solid fa-book-open text-amber-400 shrink-0',
+                        True
+                    ) }}
                 </div>
                 {% endif %}
 

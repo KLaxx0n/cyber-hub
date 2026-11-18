@@ -1015,6 +1015,11 @@ def _render_team_labs(category, template_name):
         for slug, cfg in MULTI_TASK_LABS.items()
         if cfg.get('guide_pdf')
     }
+    lab_videos = {
+        slug: cfg['guide_video']
+        for slug, cfg in MULTI_TASK_LABS.items()
+        if cfg.get('guide_video')
+    }
     return render_template(
         template_name,
         labs=labs,
@@ -1022,7 +1027,8 @@ def _render_team_labs(category, template_name):
         user_progress_map=user_progress_map,
         task_counts=task_counts,
         lab_warnings=lab_warnings,
-        lab_guides=lab_guides
+        lab_guides=lab_guides,
+        lab_videos=lab_videos
     )
 
 @app.route('/red-team')

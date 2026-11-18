@@ -10,12 +10,12 @@
     <div id="pdf-choice-view" class="cyber-card border-2 border-cyan-600/80 rounded-2xl p-6 sm:p-7 max-w-md w-full bg-slate-950/95 shadow-[0_0_40px_rgba(6,182,212,0.28)]">
         <div class="flex items-start justify-between gap-3 mb-4">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl bg-cyan-950/80 border border-cyan-700/80 flex items-center justify-center text-amber-400 text-xl shrink-0">
-                    <i class="fa-solid fa-file-pdf"></i>
+                <div class="w-11 h-11 rounded-xl bg-cyan-950/80 border border-cyan-700/80 flex items-center justify-center text-xl shrink-0">
+                    <i id="pdf-choice-header-icon" class="fa-solid fa-file-pdf text-amber-400"></i>
                 </div>
                 <div>
                     <div class="text-[10px] font-mono uppercase tracking-wider text-cyan-400">Ön Hazırlık &amp; Öğrenim Rehberi</div>
-                    <h3 id="pdf-modal-title" class="text-sm sm:text-base font-bold text-white leading-snug">PDF Rehberi</h3>
+                    <h3 id="pdf-modal-title" class="text-sm sm:text-base font-bold text-white leading-snug">Hazırlık Rehberi</h3>
                 </div>
             </div>
             <button type="button" onclick="closePdfGuideModal()" title="Kapat"
@@ -29,28 +29,43 @@
         </p>
 
         <div class="space-y-3 font-mono text-xs">
+            <button type="button" id="video-choice-btn" onclick="openVideoFromGuideChoice()"
+                    class="hidden w-full p-3.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all shadow-lg shadow-red-950/50 items-center justify-between gap-3 text-left cursor-pointer border border-red-400/30">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-circle-play text-lg shrink-0"></i>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span>Video Anlatımı İzle</span>
+                            <span id="video-choice-duration-badge" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-black/30 border border-white/20 text-rose-100"></span>
+                        </div>
+                        <div class="text-[10px] font-sans font-normal text-rose-100/90 mt-0.5">Bölüm geçişli Türkçe eğitim videosunu oynatıcıda aç</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs shrink-0"></i>
+            </button>
+
             <button type="button" id="pdf-embed-btn" onclick="openEmbeddedPdfViewer()"
                     class="w-full p-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold transition-all shadow-lg shadow-cyan-950/50 flex items-center justify-between gap-3 text-left cursor-pointer">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-eye text-base"></i>
+                    <i class="fa-solid fa-file-pdf text-base shrink-0"></i>
                     <div>
-                        <div>Site İçinde Gömülü Aç</div>
-                        <div class="text-[10px] font-sans font-normal text-cyan-100/90 mt-0.5">Sayfadan ayrılmadan yerleşik okuyucuda incele</div>
+                        <div>PDF Rehberini Site İçinde Aç</div>
+                        <div class="text-[10px] font-sans font-normal text-cyan-100/90 mt-0.5">Sayfadan ayrılmadan yerleşik PDF okuyucuda incele</div>
                     </div>
                 </div>
-                <i class="fa-solid fa-chevron-right text-xs"></i>
+                <i class="fa-solid fa-chevron-right text-xs shrink-0"></i>
             </button>
 
             <a id="pdf-choice-download-link" href="#" download onclick="setTimeout(closePdfGuideModal, 150)"
                class="w-full p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/70 text-slate-200 font-bold transition-all flex items-center justify-between gap-3 text-left">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-download text-base text-emerald-400"></i>
+                    <i class="fa-solid fa-download text-base text-emerald-400 shrink-0"></i>
                     <div>
-                        <div>Cihaza İndir (.pdf)</div>
+                        <div>PDF Rehberini Cihaza İndir (.pdf)</div>
                         <div class="text-[10px] font-sans font-normal text-slate-400 mt-0.5">Çevrimdışı okumak veya mobil cihaz için indir</div>
                     </div>
                 </div>
-                <i class="fa-solid fa-arrow-down text-xs text-emerald-400"></i>
+                <i class="fa-solid fa-arrow-down text-xs text-emerald-400 shrink-0"></i>
             </a>
         </div>
     </div>
@@ -116,6 +131,7 @@
     let activePdfUrl = '';
     let activePdfTitle = '';
     let activePdfFilename = '';
+    let activeVideoMeta = null;
     let loadedPdfDoc = null;
     let currentZoom = 1.0;
     let pdfJsPromise = null;
@@ -207,18 +223,40 @@
         }
     }
 
+    function extractVideoMetaFromBtn(btn) {
+        if (!btn) return null;
+        const url = btn.getAttribute('data-video-url') || '';
+        if (!url) return null;
+        let chapters = [];
+        const rawChapters = btn.getAttribute('data-video-chapters') || '';
+        if (rawChapters) {
+            try { chapters = JSON.parse(rawChapters); } catch (e) { chapters = []; }
+        }
+        return {
+            url,
+            poster: btn.getAttribute('data-video-poster') || '',
+            title: btn.getAttribute('data-video-title') || 'Video Anlatım',
+            filename: btn.getAttribute('data-video-filename') || 'egitim_videosu.mp4',
+            duration: btn.getAttribute('data-video-duration') || '',
+            desc: btn.getAttribute('data-video-desc') || '',
+            chapters: Array.isArray(chapters) ? chapters : [],
+        };
+    }
+
     window.openPdfGuideFromBtn = function (btn) {
         if (!btn) return;
         const url = btn.getAttribute('data-pdf-url') || '';
-        const title = btn.getAttribute('data-pdf-title') || 'Ön Hazırlık Rehberi (PDF)';
+        const title = btn.getAttribute('data-pdf-title') || 'Ön Hazırlık Rehberi';
         const filename = btn.getAttribute('data-pdf-filename') || 'rehber.pdf';
-        window.openPdfGuideModal(url, title, filename);
+        const videoMeta = extractVideoMetaFromBtn(btn);
+        window.openPdfGuideModal(url, title, filename, videoMeta);
     };
 
-    window.openPdfGuideModal = function (url, title, filename) {
-        activePdfUrl = url;
-        activePdfTitle = title || 'Ön Hazırlık Rehberi (PDF)';
+    window.openPdfGuideModal = function (url, title, filename, videoMeta = null) {
+        activePdfUrl = url || '';
+        activePdfTitle = title || 'Ön Hazırlık Rehberi';
         activePdfFilename = filename || 'rehber.pdf';
+        activeVideoMeta = (videoMeta && videoMeta.url) ? videoMeta : null;
         loadedPdfDoc = null;
         currentZoom = 1.0;
         renderGeneration++;
@@ -231,17 +269,54 @@
         document.getElementById('pdf-modal-title').textContent = activePdfTitle;
         document.getElementById('pdf-viewer-title').textContent = activePdfTitle;
 
+        const headerIcon = document.getElementById('pdf-choice-header-icon');
+        if (headerIcon) {
+            headerIcon.className = activeVideoMeta
+                ? 'fa-solid fa-graduation-cap text-cyan-300'
+                : 'fa-solid fa-file-pdf text-amber-400';
+        }
+
+        const videoChoiceBtn = document.getElementById('video-choice-btn');
+        const videoDurationBadge = document.getElementById('video-choice-duration-badge');
+        if (videoChoiceBtn) {
+            if (activeVideoMeta) {
+                videoChoiceBtn.classList.remove('hidden');
+                videoChoiceBtn.classList.add('flex');
+                if (videoDurationBadge) {
+                    if (activeVideoMeta.duration) {
+                        videoDurationBadge.textContent = activeVideoMeta.duration;
+                        videoDurationBadge.classList.remove('hidden');
+                    } else {
+                        videoDurationBadge.classList.add('hidden');
+                    }
+                }
+            } else {
+                videoChoiceBtn.classList.add('hidden');
+                videoChoiceBtn.classList.remove('flex');
+            }
+        }
+
+        const pdfEmbedBtn = document.getElementById('pdf-embed-btn');
         const choiceDl = document.getElementById('pdf-choice-download-link');
         const viewerDl = document.getElementById('pdf-viewer-download-link');
         const newTabLink = document.getElementById('pdf-viewer-newtab-link');
 
+        if (pdfEmbedBtn) {
+            pdfEmbedBtn.classList.toggle('hidden', !activePdfUrl);
+            pdfEmbedBtn.classList.toggle('flex', Boolean(activePdfUrl));
+        }
+        if (choiceDl) {
+            choiceDl.classList.toggle('hidden', !activePdfUrl);
+            choiceDl.classList.toggle('flex', Boolean(activePdfUrl));
+        }
+
         [choiceDl, viewerDl].forEach(el => {
             if (el) {
-                el.setAttribute('href', activePdfUrl);
+                el.setAttribute('href', activePdfUrl || '#');
                 el.setAttribute('download', activePdfFilename);
             }
         });
-        if (newTabLink) newTabLink.setAttribute('href', activePdfUrl);
+        if (newTabLink) newTabLink.setAttribute('href', activePdfUrl || '#');
 
         if (frame) {
             frame.src = 'about:blank';
@@ -253,6 +328,29 @@
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    };
+
+    window.openVideoFromGuideChoice = function () {
+        if (!activeVideoMeta || !activeVideoMeta.url || typeof window.openVideoGuideModal !== 'function') return;
+        const pdfSnapshot = activePdfUrl
+            ? { url: activePdfUrl, title: activePdfTitle, filename: activePdfFilename }
+            : null;
+        const videoSnapshot = activeVideoMeta;
+        closePdfGuideModal();
+        window.openVideoGuideModal({
+            ...videoSnapshot,
+            pdf: pdfSnapshot,
+            canGoBackToChoices: true,
+        });
+    };
+
+    window.reopenGuideChoiceModal = function (pdfMeta, videoMeta) {
+        window.openPdfGuideModal(
+            pdfMeta && pdfMeta.url ? pdfMeta.url : '',
+            (pdfMeta && pdfMeta.title) || (videoMeta && videoMeta.title) || 'Ön Hazırlık Rehberi',
+            (pdfMeta && pdfMeta.filename) || 'rehber.pdf',
+            videoMeta || null
+        );
     };
 
     window.openEmbeddedPdfViewer = async function () {

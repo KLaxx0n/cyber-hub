@@ -1,0 +1,295 @@
+<!-- Shared Video Guide Modal with Chapter Navigation -->
+<div id="video-guide-modal"
+     class="fixed inset-0 z-[145] hidden items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-6"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="video-modal-title"
+     onclick="if(event.target === this) closeVideoGuideModal()">
+
+    <div class="cyber-card border border-red-700/70 rounded-2xl max-w-5xl w-full max-h-[92vh] bg-slate-950/95 shadow-[0_0_50px_rgba(220,38,38,0.28)] flex flex-col overflow-hidden">
+        <!-- Modal Header -->
+        <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-2 font-mono text-xs shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-red-950/90 border border-red-700/80 flex items-center justify-center text-red-400 shrink-0">
+                    <i class="fa-solid fa-circle-play text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[10px] uppercase tracking-wider text-red-400">Ön Hazırlık Video Anlatımı</div>
+                    <h3 id="video-modal-title" class="text-xs sm:text-sm font-bold text-white truncate">Video Öğretim Rehberi</h3>
+                </div>
+                <span id="video-duration-badge" class="hidden sm:inline-flex px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 text-[11px] shrink-0"></span>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" id="video-back-choices-btn" onclick="backToGuideChoicesFromVideo()"
+                        class="hidden px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                    <span>Seçenekler</span>
+                </button>
+                <button type="button" id="video-switch-pdf-btn" onclick="switchVideoToPdfGuide()"
+                        class="hidden px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 transition-colors items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf text-[11px]"></i>
+                    <span class="hidden sm:inline">PDF Rehberi</span>
+                </button>
+                <a id="video-download-link" href="#" download
+                   class="px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-download text-[11px]"></i>
+                    <span class="hidden sm:inline">MP4 İndir</span>
+                </a>
+                <button type="button" onclick="closeVideoGuideModal()"
+                        class="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-700 text-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span class="hidden sm:inline">Kapat</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="bg-black flex items-center justify-center w-full overflow-hidden">
+            <video id="video-guide-player"
+                   class="w-full aspect-video max-h-[62vh] bg-black focus:outline-none"
+                   controls
+                   playsinline
+                   preload="metadata">
+                Tarayıcınız HTML5 video oynatmayı desteklemiyor.
+            </video>
+        </div>
+
+        <!-- Description & Interactive Chapter Navigation -->
+        <div class="px-4 py-3 border-t border-slate-800 bg-slate-950/90 space-y-2.5 overflow-y-auto shrink-0">
+            <p id="video-modal-desc" class="text-xs text-slate-300 leading-relaxed hidden"></p>
+
+            <div id="video-chapters-wrapper" class="hidden">
+                <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-ol text-red-400"></i>
+                    <span>Bölümlere Hızlı Geçiş</span>
+                </div>
+                <div id="video-chapters-bar" class="flex flex-wrap gap-1.5 font-mono text-[11px]"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let activeChapters = [];
+    let linkedPdfMeta = null;
+    let currentVideoMeta = null;
+
+    function formatTimeSec(sec) {
+        const s = Math.max(0, Math.floor(sec));
+        const m = Math.floor(s / 60);
+        const rem = s % 60;
+        return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+    }
+
+    function updateActiveChapterHighlight() {
+        const player = document.getElementById('video-guide-player');
+        const bar = document.getElementById('video-chapters-bar');
+        if (!player || !bar || !activeChapters.length) return;
+
+        const now = player.currentTime || 0;
+        let activeIdx = 0;
+        for (let i = 0; i < activeChapters.length; i++) {
+            if (now >= activeChapters[i].time) activeIdx = i;
+        }
+
+        const buttons = bar.querySelectorAll('button[data-chapter-idx]');
+        buttons.forEach(btn => {
+            const idx = Number(btn.getAttribute('data-chapter-idx'));
+            if (idx === activeIdx) {
+                btn.className = 'px-2.5 py-1.5 rounded-lg bg-red-950/90 border border-red-500 text-white font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(239,68,68,0.25)]';
+            } else {
+                btn.className = 'px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer';
+            }
+        });
+    }
+
+    function renderChapters(chapters) {
+        const wrapper = document.getElementById('video-chapters-wrapper');
+        const bar = document.getElementById('video-chapters-bar');
+        if (!wrapper || !bar) return;
+
+        bar.innerHTML = '';
+        activeChapters = Array.isArray(chapters) ? chapters : [];
+        if (!activeChapters.length) {
+            wrapper.classList.add('hidden');
+            return;
+        }
+
+        wrapper.classList.remove('hidden');
+        activeChapters.forEach((ch, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.setAttribute('data-chapter-idx', String(idx));
+            btn.innerHTML = `<span class="text-red-400">${formatTimeSec(ch.time)}</span><span>${ch.title}</span>`;
+            btn.onclick = function () {
+                const player = document.getElementById('video-guide-player');
+                if (!player) return;
+                player.currentTime = Number(ch.time) || 0;
+                player.play().catch(() => {});
+                updateActiveChapterHighlight();
+            };
+            bar.appendChild(btn);
+        });
+        updateActiveChapterHighlight();
+    }
+
+    window.openVideoGuideFromBtn = function (btn) {
+        if (!btn) return;
+        const url = btn.getAttribute('data-video-url') || '';
+        const poster = btn.getAttribute('data-video-poster') || '';
+        const title = btn.getAttribute('data-video-title') || 'Video Öğretim Rehberi';
+        const filename = btn.getAttribute('data-video-filename') || 'egitim_videosu.mp4';
+        const duration = btn.getAttribute('data-video-duration') || '';
+        const desc = btn.getAttribute('data-video-desc') || '';
+
+        let chapters = [];
+        const rawChapters = btn.getAttribute('data-video-chapters');
+        if (rawChapters) {
+            try { chapters = JSON.parse(rawChapters); } catch (_) {}
+        }
+
+        const pdfUrl = btn.getAttribute('data-pdf-url');
+        const pdfTitle = btn.getAttribute('data-pdf-title');
+        const pdfFilename = btn.getAttribute('data-pdf-filename');
+        const pdfMeta = pdfUrl ? { url: pdfUrl, title: pdfTitle, filename: pdfFilename } : null;
+
+        window.openVideoGuideModal({
+            url,
+            poster,
+            title,
+            filename,
+            duration,
+            desc,
+            chapters,
+            pdf: pdfMeta,
+            canGoBackToChoices: Boolean(pdfMeta),
+        });
+    };
+
+    window.openVideoGuideModal = function (opts) {
+        const modal = document.getElementById('video-guide-modal');
+        const player = document.getElementById('video-guide-player');
+        const titleEl = document.getElementById('video-modal-title');
+        const durBadge = document.getElementById('video-duration-badge');
+        const descEl = document.getElementById('video-modal-desc');
+        const dlLink = document.getElementById('video-download-link');
+        const pdfBtn = document.getElementById('video-switch-pdf-btn');
+        const backBtn = document.getElementById('video-back-choices-btn');
+
+        if (!modal || !player) return;
+
+        if (opts && Object.prototype.hasOwnProperty.call(opts, 'pdf')) {
+            linkedPdfMeta = opts.pdf || null;
+        }
+        currentVideoMeta = (opts && opts.url) ? {
+            url: opts.url,
+            poster: opts.poster || '',
+            title: opts.title || 'Video Öğretim Rehberi',
+            filename: opts.filename || 'egitim_videosu.mp4',
+            duration: opts.duration || '',
+            desc: opts.desc || '',
+            chapters: Array.isArray(opts.chapters) ? opts.chapters : [],
+        } : null;
+
+        titleEl.textContent = opts.title || 'Video Öğretim Rehberi';
+        if (durBadge) {
+            if (opts.duration) {
+                durBadge.textContent = opts.duration;
+                durBadge.classList.remove('hidden');
+            } else {
+                durBadge.classList.add('hidden');
+            }
+        }
+        if (descEl) {
+            if (opts.desc) {
+                descEl.textContent = opts.desc;
+                descEl.classList.remove('hidden');
+            } else {
+                descEl.classList.add('hidden');
+            }
+        }
+        if (dlLink) {
+            dlLink.setAttribute('href', opts.url || '#');
+            dlLink.setAttribute('download', opts.filename || 'egitim_videosu.mp4');
+        }
+        if (backBtn) {
+            const showBack = Boolean(opts && (opts.canGoBackToChoices || linkedPdfMeta)) &&
+                typeof window.reopenGuideChoiceModal === 'function';
+            backBtn.classList.toggle('hidden', !showBack);
+            backBtn.classList.toggle('flex', showBack);
+        }
+        if (pdfBtn) {
+            if (linkedPdfMeta && typeof window.openPdfGuideModal === 'function') {
+                pdfBtn.classList.remove('hidden');
+                pdfBtn.classList.add('flex');
+            } else {
+                pdfBtn.classList.add('hidden');
+                pdfBtn.classList.remove('flex');
+            }
+        }
+
+        if (opts.poster) {
+            player.setAttribute('poster', opts.poster);
+        } else {
+            player.removeAttribute('poster');
+        }
+        if (player.getAttribute('src') !== opts.url) {
+            player.setAttribute('src', opts.url || '');
+            player.load();
+        }
+
+        renderChapters(opts.chapters || []);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    window.backToGuideChoicesFromVideo = function () {
+        if (typeof window.reopenGuideChoiceModal !== 'function') return;
+        const pdf = linkedPdfMeta;
+        const vid = currentVideoMeta;
+        window.closeVideoGuideModal();
+        window.reopenGuideChoiceModal(pdf, vid);
+    };
+
+    window.switchVideoToPdfGuide = function () {
+        if (!linkedPdfMeta || typeof window.openPdfGuideModal !== 'function') return;
+        const pdf = linkedPdfMeta;
+        const vid = currentVideoMeta;
+        window.closeVideoGuideModal();
+        window.openPdfGuideModal(pdf.url, pdf.title, pdf.filename, vid);
+        if (typeof window.openEmbeddedPdfViewer === 'function') {
+            window.openEmbeddedPdfViewer();
+        }
+    };
+
+    window.closeVideoGuideModal = function () {
+        const modal = document.getElementById('video-guide-modal');
+        const player = document.getElementById('video-guide-player');
+        if (player) {
+            player.pause();
+        }
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const player = document.getElementById('video-guide-player');
+        if (player) {
+            player.addEventListener('timeupdate', updateActiveChapterHighlight);
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('video-guide-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                window.closeVideoGuideModal();
+            }
+        }
+    });
+})();
+</script>

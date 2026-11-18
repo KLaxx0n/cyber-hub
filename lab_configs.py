@@ -93,8 +93,26 @@ MULTI_TASK_LABS = {
         },
         'guide_pdf': {
             'filename': 'guides/red_team_lab2_ohsint_ogrenim_rehberi.pdf',
-            'label': 'OhSINT & ExifTool Hazırlık Rehberi (PDF)',
-            'desc': 'Labı başlatmadan önce ExifTool kurulumu, Linux dosya izinleri ve WiGLE.net yöntemini okuyabilirsiniz.'
+            'label': 'OhSINT & ExifTool Hazırlık Rehberi',
+            'desc': 'Labı başlatmadan önce sesli video anlatımı izleyebilir veya ExifTool, Linux dosya izinleri ve WiGLE.net PDF rehberini inceleyebilirsiniz.'
+        },
+        'guide_video': {
+            'filename': 'videos/red_team_lab2_ohsint_egitim_videosu.mp4',
+            'poster': 'videos/red_team_lab2_ohsint_poster.jpg',
+            'label': 'OhSINT & ExifTool Video Anlatım (06:06)',
+            'short_label': 'Video Anlatım (06:06)',
+            'desc': 'Sesli ve animasyonlu eğitim videosuyla EXIF analizi, ExifTool kurulumu, POSIX dosya izinleri ve WiGLE.net yöntemlerini izleyip bölümler arasında geçiş yapın.',
+            'duration': '06:06',
+            'chapters': [
+                {'title': 'Giriş', 'time': 0},
+                {'title': '1. OSINT & EXIF', 'time': 21},
+                {'title': '2. ExifTool', 'time': 66},
+                {'title': '3. Dosya İzinleri', 'time': 121},
+                {'title': '4. Kullanıcı Avı', 'time': 181},
+                {'title': '5. BSSID & WiGLE', 'time': 234},
+                {'title': '6. Çözüm Akışı', 'time': 287},
+                {'title': 'Sık Hatalar', 'time': 323},
+            ],
         },
         'tasks': [
             {
