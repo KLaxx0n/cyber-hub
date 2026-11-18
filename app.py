@@ -82,6 +82,27 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Helper: Lab Access Required Decorator (Blocks 'unregistered' / Kayıtsız role from labs)
+def lab_access_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
+            return redirect(url_for('login', next=request.url))
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            flash('Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.', 'warning')
+            return redirect(url_for('login'))
+        if user.is_unregistered:
+            msg = 'Laboratuvarlara erişim izniniz yok. Hesabınız "Kayıtsız" rolünde olduğu için yöneticinin rolünüzü "Öğrenci" olarak onaylaması gerekmektedir.'
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({'success': False, 'message': msg}), 403
+            flash(msg, 'warning')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Helper: Leader Required Decorator (Team Leaders & SuperAdmins)
 def leader_required(f):
     @wraps(f)
@@ -262,7 +283,7 @@ def register():
             verification_code_expires_at=None,
             is_leader=True if is_root else False,
             is_founder=True if is_root else False,
-            role='root' if is_root else 'student',
+            role='root' if is_root else 'unregistered',
             score=0,
             is_suspended=False,
             failed_login_attempts=0
@@ -275,7 +296,10 @@ def register():
         session.clear()
         session['user_id'] = new_user.id
         session.permanent = True
-        flash(f'🎉 Kaydınız başarıyla tamamlandı! Hoş geldiniz, {new_user.username}.', 'success')
+        if is_root:
+            flash(f'🎉 Kaydınız başarıyla tamamlandı! Hoş geldiniz, {new_user.username}.', 'success')
+        else:
+            flash(f'🎉 Kaydınız alındı, hoş geldiniz {new_user.username}! Hesabınız şu anda "Kayıtsız" rolündedir; yönetici tarafından "Öğrenci" rolüne onaylandığında laboratuvarlara erişebilirsiniz.', 'info')
         return redirect(url_for('dashboard'))
 
     return render_template('register.html')
@@ -772,7 +796,8 @@ def admin_panel():
     blue_count = sum(1 for u in all_users if u.assigned_team == 'blue_team')
     superadmin_count = sum(1 for u in all_users if u.is_superadmin)
     leader_count = sum(1 for u in all_users if u.role == 'leader' and not u.is_superadmin)
-    student_count = sum(1 for u in all_users if u.role == 'student' or not u.role)
+    student_count = sum(1 for u in all_users if (u.role == 'student' or not u.role) and not u.is_superadmin and not u.is_team_leader)
+    unregistered_count = sum(1 for u in all_users if u.is_unregistered)
     total_completed = UserLabProgress.query.filter_by(is_completed=True).count()
     total_score = sum(u.score for u in all_users)
     suspended_count = sum(1 for u in all_users if u.is_suspended)
@@ -788,6 +813,7 @@ def admin_panel():
                            superadmin_count=superadmin_count,
                            leader_count=leader_count,
                            student_count=student_count,
+                           unregistered_count=unregistered_count,
                            total_completed=total_completed,
                            total_score=total_score)
 
@@ -875,7 +901,7 @@ def admin_set_role(user_id):
     current_u = User.query.get(session.get('user_id'))
     new_role = request.form.get('role', 'student')
     
-    if new_role not in ['student', 'leader', 'superadmin', 'root']:
+    if new_role not in ['unregistered', 'student', 'leader', 'superadmin', 'root']:
         flash('Geçersiz rol seçimi.', 'danger')
         return redirect(url_for('admin_panel'))
         
@@ -890,6 +916,11 @@ def admin_set_role(user_id):
         target_user.role = 'leader'
         target_user.is_leader = True
         target_user.is_founder = False
+    elif new_role == 'unregistered':
+        canonical_role = 'unregistered'
+        target_user.role = 'unregistered'
+        target_user.is_leader = False
+        target_user.is_founder = False
     else: # student
         canonical_role = 'student'
         target_user.role = 'student'
@@ -902,7 +933,8 @@ def admin_set_role(user_id):
         'root': 'Root (Süper Yönetici)',
         'superadmin': 'Root (Süper Yönetici)',
         'leader': 'Takım Lideri',
-        'student': 'Öğrenci'
+        'student': 'Öğrenci',
+        'unregistered': 'Kayıtsız'
     }
     flash(f"'{target_user.username}' kullanıcısının rolü '{role_names.get(canonical_role)}' olarak başarıyla güncellendi.", 'success')
     return redirect(url_for('admin_panel'))
@@ -1010,7 +1042,7 @@ def purple_team():
     return render_template('purple_team.html', labs=labs, user_completed_ids=user_completed_ids)
 
 @app.route('/lab/<slug>')
-@login_required
+@lab_access_required
 def lab_detail(slug):
     lab = Lab.query.filter_by(slug=slug).first_or_404()
     user = User.query.get(session['user_id'])
@@ -1072,7 +1104,7 @@ def _get_accessible_lab_or_redirect(slug, fallback_endpoint):
     return lab, None
 
 @app.route('/lab/red-bayrak-avi-1/target')
-@login_required
+@lab_access_required
 def bayrak_avi_1_target():
     _, denied = _get_accessible_lab_or_redirect('red-bayrak-avi-1', 'red_team')
     if denied:
@@ -1080,7 +1112,7 @@ def bayrak_avi_1_target():
     return render_template('labs/bayrak_avi_1_target.html')
 
 @app.route('/lab/red-ohsint-2/target')
-@login_required
+@lab_access_required
 def ohsint_2_target():
     _, denied = _get_accessible_lab_or_redirect('red-ohsint-2', 'red_team')
     if denied:
@@ -1089,7 +1121,7 @@ def ohsint_2_target():
     return send_from_directory(assets_dir, 'numune.jpg', as_attachment=True, download_name='numune.jpg')
 
 @app.route('/lab/blue-soc-olay-1/target')
-@login_required
+@lab_access_required
 def blue_soc_olay_1_target():
     _, denied = _get_accessible_lab_or_redirect('blue-soc-olay-1', 'blue_team')
     if denied:
@@ -1116,7 +1148,7 @@ def blue_soc_olay_1_target():
     )
 
 @app.route('/lab/blue-soc-olay-1/download/<filename>')
-@login_required
+@lab_access_required
 def blue_soc_olay_1_download(filename):
     if filename not in {'access.log', 'auth.log'}:
         return jsonify({'success': False, 'message': 'Dosya bulunamadı.'}), 404
@@ -1272,7 +1304,7 @@ def admin_delete_event(event_id):
 # ----------------- LAB SIMULATION & FLAG SUBMIT APIS ----------------- #
 
 @app.route('/api/submit-flag', methods=['POST'])
-@login_required
+@lab_access_required
 @csrf.exempt
 @limiter.limit("20 per minute")
 def submit_flag():
@@ -1378,7 +1410,7 @@ def submit_flag():
         })
 
 @app.route('/api/lab-task-submit/<slug>', methods=['POST'])
-@login_required
+@lab_access_required
 @csrf.exempt
 @limiter.limit("40 per minute")
 def submit_lab_task(slug):
@@ -1539,7 +1571,7 @@ def submit_lab_task(slug):
 # ----------------- KADEMELİ İPUCU SİSTEMİ (Madde 3) ----------------- #
 
 @app.route('/api/unlock-hint', methods=['POST'])
-@login_required
+@lab_access_required
 @csrf.exempt
 def unlock_hint():
     data = request.get_json() or {}
@@ -1586,7 +1618,7 @@ def unlock_hint():
 # ----------------- ÇÖZÜM RAPORLARI / WRITEUPS (Madde 3) ----------------- #
 
 @app.route('/api/submit-writeup', methods=['POST'])
-@login_required
+@lab_access_required
 @csrf.exempt
 def submit_writeup():
     data = request.get_json() or {}
@@ -1619,7 +1651,7 @@ def submit_writeup():
     })
 
 @app.route('/api/lab-writeups/<int:lab_id>', methods=['GET'])
-@login_required
+@lab_access_required
 def get_lab_writeups(lab_id):
     user = User.query.get(session['user_id'])
     lab = Lab.query.get_or_404(lab_id)
@@ -1652,7 +1684,7 @@ def get_lab_writeups(lab_id):
 
 # Interactive in-lab simulators (for rich lab interaction)
 @app.route('/api/lab-action/<slug>', methods=['POST'])
-@login_required
+@lab_access_required
 @csrf.exempt
 def lab_action(slug):
     lab = Lab.query.filter_by(slug=slug).first_or_404()

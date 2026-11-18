@@ -105,6 +105,8 @@
                                 <span class="bg-amber-950/90 text-amber-300 border border-amber-600 text-[10px] px-1.5 py-0.5 rounded font-bold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">👑 Root</span>
                             {% elif current_user.is_team_leader %}
                                 <span class="bg-sky-950/90 text-sky-300 border border-sky-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">🛡️ Lider</span>
+                            {% elif current_user.is_unregistered %}
+                                <span class="bg-orange-950/90 text-orange-300 border border-orange-600 text-[10px] px-1.5 py-0.5 rounded font-semibold font-mono whitespace-nowrap shrink-0 inline-flex items-center gap-1">⏳ Kayıtsız</span>
                             {% endif %}
                             {% if current_user.assigned_team == 'red_team' %}
                                 <span class="hidden xl:inline-flex bg-red-950 text-red-400 border border-red-800 text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap shrink-0">Red</span>
@@ -179,6 +181,8 @@
             </div>
         </div>
     </footer>
+
+    {% include 'partials/pdf_guide_modal.html' %}
 
     <!-- Main JS & Cyber Network JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

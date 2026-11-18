@@ -1,0 +1,345 @@
+<!-- Shared PDF Guide Choice & Embedded Reader Modal -->
+<div id="pdf-guide-modal"
+     class="fixed inset-0 z-[140] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="pdf-modal-title"
+     onclick="if(event.target === this) closePdfGuideModal()">
+
+    <!-- Stage 1: Choice Dialog -->
+    <div id="pdf-choice-view" class="cyber-card border-2 border-cyan-600/80 rounded-2xl p-6 sm:p-7 max-w-md w-full bg-slate-950/95 shadow-[0_0_40px_rgba(6,182,212,0.28)]">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-cyan-950/80 border border-cyan-700/80 flex items-center justify-center text-amber-400 text-xl shrink-0">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] font-mono uppercase tracking-wider text-cyan-400">Ön Hazırlık &amp; Öğrenim Rehberi</div>
+                    <h3 id="pdf-modal-title" class="text-sm sm:text-base font-bold text-white leading-snug">PDF Rehberi</h3>
+                </div>
+            </div>
+            <button type="button" onclick="closePdfGuideModal()" title="Kapat"
+                    class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors shrink-0">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-300 leading-relaxed mb-5">
+            Bu laboratuvar rehberini nasıl görüntülemek istersiniz?
+        </p>
+
+        <div class="space-y-3 font-mono text-xs">
+            <button type="button" id="pdf-embed-btn" onclick="openEmbeddedPdfViewer()"
+                    class="w-full p-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold transition-all shadow-lg shadow-cyan-950/50 flex items-center justify-between gap-3 text-left cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-eye text-base"></i>
+                    <div>
+                        <div>Site İçinde Gömülü Aç</div>
+                        <div class="text-[10px] font-sans font-normal text-cyan-100/90 mt-0.5">Sayfadan ayrılmadan yerleşik okuyucuda incele</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+
+            <a id="pdf-choice-download-link" href="#" download onclick="setTimeout(closePdfGuideModal, 150)"
+               class="w-full p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/70 text-slate-200 font-bold transition-all flex items-center justify-between gap-3 text-left">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-download text-base text-emerald-400"></i>
+                    <div>
+                        <div>Cihaza İndir (.pdf)</div>
+                        <div class="text-[10px] font-sans font-normal text-slate-400 mt-0.5">Çevrimdışı okumak veya mobil cihaz için indir</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-arrow-down text-xs text-emerald-400"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Stage 2: Embedded PDF Reader (PDF.js Canvas + Native Iframe Fallback) -->
+    <div id="pdf-viewer-view" class="hidden cyber-card border border-cyan-700/70 rounded-2xl max-w-5xl w-full h-[90vh] bg-slate-950/95 shadow-[0_0_45px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-2 font-mono text-xs shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <button type="button" onclick="backToPdfChoice()"
+                        class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                    <span>Seçenekler</span>
+                </button>
+                <span id="pdf-viewer-title" class="font-bold text-white truncate">PDF Rehberi</span>
+                <span id="pdf-page-badge" class="hidden sm:inline-flex px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 text-[11px] shrink-0"></span>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+                <div id="pdf-zoom-controls" class="hidden sm:flex items-center gap-1 mr-1 bg-slate-950 border border-slate-800 rounded-lg px-1.5 py-1">
+                    <button type="button" onclick="adjustPdfZoom(-0.2)" title="Uzaklaştır" class="px-1.5 text-slate-300 hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-minus text-[10px]"></i>
+                    </button>
+                    <span id="pdf-zoom-label" class="text-[11px] text-slate-300 px-1">100%</span>
+                    <button type="button" onclick="adjustPdfZoom(0.2)" title="Yakınlaştır" class="px-1.5 text-slate-300 hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                    </button>
+                </div>
+                <a id="pdf-viewer-newtab-link" href="#" target="_blank" rel="noopener noreferrer"
+                   class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                    <span class="hidden sm:inline">Yeni Sekme</span>
+                </a>
+                <a id="pdf-viewer-download-link" href="#" download
+                   class="px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-download text-[11px]"></i>
+                    <span>İndir</span>
+                </a>
+                <button type="button" onclick="closePdfGuideModal()"
+                        class="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-700 text-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span class="hidden sm:inline">Kapat</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="pdf-canvas-scroll" class="flex-1 overflow-auto bg-[#0b1220] p-4 sm:p-6">
+            <div id="pdf-loading-state" class="py-16 text-center font-mono text-xs text-cyan-300">
+                <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i>
+                <span>PDF rehberi yükleniyor...</span>
+            </div>
+            <div id="pdf-canvas-container" class="flex flex-col items-center gap-5"></div>
+        </div>
+
+        <iframe id="pdf-viewer-frame" src="about:blank" class="hidden w-full flex-1 bg-slate-900 border-0" title="PDF Öğrenim Rehberi"></iframe>
+    </div>
+</div>
+
+<script>
+(function () {
+    const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let activePdfUrl = '';
+    let activePdfTitle = '';
+    let activePdfFilename = '';
+    let loadedPdfDoc = null;
+    let currentZoom = 1.0;
+    let pdfJsPromise = null;
+    let renderGeneration = 0;
+
+    function loadPdfJs() {
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+            return Promise.resolve(window.pdfjsLib);
+        }
+        if (pdfJsPromise) return pdfJsPromise;
+
+        pdfJsPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = PDFJS_CDN;
+            s.async = true;
+            s.onload = () => {
+                if (window.pdfjsLib) {
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+                    resolve(window.pdfjsLib);
+                } else {
+                    reject(new Error('pdfjsLib unavailable'));
+                }
+            };
+            s.onerror = () => reject(new Error('Failed to load PDF.js'));
+            document.head.appendChild(s);
+        });
+        return pdfJsPromise;
+    }
+
+    async function renderPdfPages(doc, gen) {
+        const container = document.getElementById('pdf-canvas-container');
+        const loading = document.getElementById('pdf-loading-state');
+        const scrollBox = document.getElementById('pdf-canvas-scroll');
+        const pageBadge = document.getElementById('pdf-page-badge');
+        const zoomLabel = document.getElementById('pdf-zoom-label');
+
+        if (!container || !scrollBox) return;
+        container.innerHTML = '';
+        if (pageBadge) pageBadge.textContent = `${doc.numPages} Sayfa`;
+        if (zoomLabel) zoomLabel.textContent = `${Math.round(currentZoom * 100)}%`;
+
+        const availWidth = Math.max(300, Math.min(scrollBox.clientWidth - 40, 860));
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+            if (gen !== renderGeneration) return;
+            const page = await doc.getPage(pageNum);
+            const baseViewport = page.getViewport({ scale: 1 });
+            const scale = (availWidth / baseViewport.width) * currentZoom;
+            const viewport = page.getViewport({ scale });
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-700/80';
+            wrapper.style.width = `${Math.floor(viewport.width)}px`;
+            wrapper.style.height = `${Math.floor(viewport.height)}px`;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.floor(viewport.width * dpr);
+            canvas.height = Math.floor(viewport.height * dpr);
+            canvas.style.width = `${Math.floor(viewport.width)}px`;
+            canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const pageTag = document.createElement('div');
+            pageTag.className = 'absolute top-2 right-2 px-2 py-0.5 rounded bg-slate-900/80 text-slate-200 text-[10px] font-mono pointer-events-none';
+            pageTag.textContent = `${pageNum} / ${doc.numPages}`;
+
+            wrapper.appendChild(canvas);
+            wrapper.appendChild(pageTag);
+            container.appendChild(wrapper);
+
+            await page.render({ canvasContext: ctx, viewport }).promise;
+        }
+        if (loading) loading.classList.add('hidden');
+    }
+
+    function showIframeFallback() {
+        const scrollBox = document.getElementById('pdf-canvas-scroll');
+        const zoomControls = document.getElementById('pdf-zoom-controls');
+        const frame = document.getElementById('pdf-viewer-frame');
+        if (scrollBox) scrollBox.classList.add('hidden');
+        if (zoomControls) zoomControls.classList.add('hidden');
+        if (frame && activePdfUrl) {
+            frame.src = activePdfUrl;
+            frame.classList.remove('hidden');
+        }
+    }
+
+    window.openPdfGuideFromBtn = function (btn) {
+        if (!btn) return;
+        const url = btn.getAttribute('data-pdf-url') || '';
+        const title = btn.getAttribute('data-pdf-title') || 'Ön Hazırlık Rehberi (PDF)';
+        const filename = btn.getAttribute('data-pdf-filename') || 'rehber.pdf';
+        window.openPdfGuideModal(url, title, filename);
+    };
+
+    window.openPdfGuideModal = function (url, title, filename) {
+        activePdfUrl = url;
+        activePdfTitle = title || 'Ön Hazırlık Rehberi (PDF)';
+        activePdfFilename = filename || 'rehber.pdf';
+        loadedPdfDoc = null;
+        currentZoom = 1.0;
+        renderGeneration++;
+
+        const modal = document.getElementById('pdf-guide-modal');
+        const choiceView = document.getElementById('pdf-choice-view');
+        const viewerView = document.getElementById('pdf-viewer-view');
+        const frame = document.getElementById('pdf-viewer-frame');
+
+        document.getElementById('pdf-modal-title').textContent = activePdfTitle;
+        document.getElementById('pdf-viewer-title').textContent = activePdfTitle;
+
+        const choiceDl = document.getElementById('pdf-choice-download-link');
+        const viewerDl = document.getElementById('pdf-viewer-download-link');
+        const newTabLink = document.getElementById('pdf-viewer-newtab-link');
+
+        [choiceDl, viewerDl].forEach(el => {
+            if (el) {
+                el.setAttribute('href', activePdfUrl);
+                el.setAttribute('download', activePdfFilename);
+            }
+        });
+        if (newTabLink) newTabLink.setAttribute('href', activePdfUrl);
+
+        if (frame) {
+            frame.src = 'about:blank';
+            frame.classList.add('hidden');
+        }
+        viewerView.classList.add('hidden');
+        viewerView.classList.remove('flex');
+        choiceView.classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    window.openEmbeddedPdfViewer = async function () {
+        const choiceView = document.getElementById('pdf-choice-view');
+        const viewerView = document.getElementById('pdf-viewer-view');
+        const scrollBox = document.getElementById('pdf-canvas-scroll');
+        const container = document.getElementById('pdf-canvas-container');
+        const loading = document.getElementById('pdf-loading-state');
+        const zoomControls = document.getElementById('pdf-zoom-controls');
+        const frame = document.getElementById('pdf-viewer-frame');
+
+        choiceView.classList.add('hidden');
+        viewerView.classList.remove('hidden');
+        viewerView.classList.add('flex');
+
+        if (frame) {
+            frame.src = 'about:blank';
+            frame.classList.add('hidden');
+        }
+        if (scrollBox) scrollBox.classList.remove('hidden');
+        if (zoomControls) zoomControls.classList.remove('hidden');
+        if (container) container.innerHTML = '';
+        if (loading) loading.classList.remove('hidden');
+
+        const gen = ++renderGeneration;
+        try {
+            const pdfjs = await loadPdfJs();
+            const doc = await pdfjs.getDocument(activePdfUrl).promise;
+            if (gen !== renderGeneration) return;
+            loadedPdfDoc = doc;
+            await renderPdfPages(doc, gen);
+        } catch (err) {
+            console.warn('PDF.js fallback to native iframe:', err);
+            if (gen === renderGeneration) {
+                showIframeFallback();
+            }
+        }
+    };
+
+    window.adjustPdfZoom = function (delta) {
+        if (!loadedPdfDoc) return;
+        const next = Math.min(1.8, Math.max(0.6, +(currentZoom + delta).toFixed(2)));
+        if (next === currentZoom) return;
+        currentZoom = next;
+        const gen = ++renderGeneration;
+        renderPdfPages(loadedPdfDoc, gen);
+    };
+
+    window.backToPdfChoice = function () {
+        renderGeneration++;
+        const choiceView = document.getElementById('pdf-choice-view');
+        const viewerView = document.getElementById('pdf-viewer-view');
+        const frame = document.getElementById('pdf-viewer-frame');
+
+        if (frame) {
+            frame.src = 'about:blank';
+            frame.classList.add('hidden');
+        }
+        viewerView.classList.add('hidden');
+        viewerView.classList.remove('flex');
+        choiceView.classList.remove('hidden');
+    };
+
+    window.closePdfGuideModal = function () {
+        renderGeneration++;
+        const modal = document.getElementById('pdf-guide-modal');
+        const frame = document.getElementById('pdf-viewer-frame');
+        const container = document.getElementById('pdf-canvas-container');
+        if (frame) {
+            frame.src = 'about:blank';
+            frame.classList.add('hidden');
+        }
+        if (container) container.innerHTML = '';
+        loadedPdfDoc = null;
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('pdf-guide-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                window.closePdfGuideModal();
+            }
+        }
+    });
+})();
+</script>

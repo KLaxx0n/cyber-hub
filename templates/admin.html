@@ -59,8 +59,30 @@
             <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400 flex items-center gap-1">
                 <i class="fa-solid fa-user-graduate text-[10px]"></i> Öğrenci
             </span>
+            <span class="text-slate-600">&gt;</span>
+            <span class="px-2 py-0.5 rounded bg-orange-950/80 border border-orange-600/80 text-orange-300 flex items-center gap-1">
+                <i class="fa-solid fa-user-clock text-[10px] text-orange-400"></i> Kayıtsız (Lab Erişimi Yok)
+            </span>
         </div>
     </div>
+
+    <!-- Unregistered Pending Alert -->
+    {% if unregistered_count and unregistered_count > 0 and current_user.is_superadmin %}
+    <div class="mb-6 p-4 rounded-xl bg-orange-950/60 border border-orange-600/80 shadow-lg flex items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 text-orange-200">
+            <div class="w-10 h-10 rounded-lg bg-orange-950 border border-orange-700 flex items-center justify-center text-orange-300 text-lg shrink-0">
+                <i class="fa-solid fa-user-clock animate-pulse"></i>
+            </div>
+            <div>
+                <div class="font-bold text-sm text-white font-mono flex items-center gap-2">
+                    <span>ONAY BEKLEYEN {{ unregistered_count }} KAYITSIZ KULLANICI VAR</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-orange-600 text-white font-sans uppercase">Yeni Kayıt</span>
+                </div>
+                <div class="text-xs text-orange-200/80 mt-0.5">Kayıtsız rolündeki kullanıcılar laboratuvarlara erişemez. Aşağıdaki "Sistem Rolü" sütunundan rollerini "Öğrenci" yaparak lab erişimi verebilirsiniz.</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Quick Metrics Overview -->
     {% if suspended_count and suspended_count > 0 %}
@@ -91,7 +113,7 @@
                     <i class="fa-solid fa-users"></i>
                 </div>
             </div>
-            <p class="text-[11px] text-slate-500 mt-2 font-mono">Platformdaki tüm hesaplar</p>
+            <p class="text-[11px] text-slate-500 mt-2 font-mono">{{ student_count }} Öğrenci &bull; <span class="{{ 'text-orange-400 font-semibold' if unregistered_count else '' }}">{{ unregistered_count or 0 }} Kayıtsız</span></p>
         </div>
 
         <div class="cyber-card p-5 border-amber-900/50 rounded-xl">
@@ -246,9 +268,12 @@
                                         bg-amber-950/80 text-amber-300 border-amber-600
                                     {% elif u.is_team_leader %}
                                         bg-sky-950/80 text-sky-300 border-sky-600
+                                    {% elif u.is_unregistered %}
+                                        bg-orange-950/80 text-orange-300 border-orange-600
                                     {% else %}
                                         bg-slate-900/80 text-slate-400 border-slate-700
                                     {% endif %}" title="Rolü değiştirmek için seçiniz">
+                                    <option value="unregistered" {% if u.role == 'unregistered' %}selected{% endif %}>⏳ Kayıtsız</option>
                                     <option value="student" {% if u.role == 'student' or not u.role %}selected{% endif %}>🎓 Öğrenci</option>
                                     <option value="leader" {% if u.role == 'leader' %}selected{% endif %}>🛡️ Takım Lideri</option>
                                     <option value="root" {% if u.role in ['root', 'superadmin'] %}selected{% endif %}>👑 Root (Süper Yönetici)</option>

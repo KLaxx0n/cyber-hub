@@ -172,6 +172,10 @@
                             <span class="text-[10px] bg-sky-950/90 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600 font-mono" title="Takım Lideri">
                                 <i class="fa-solid fa-user-shield text-[9px] mr-0.5 text-sky-400"></i>Lider
                             </span>
+                            {% elif u.is_unregistered %}
+                            <span class="text-[10px] bg-orange-950/90 text-orange-300 px-1.5 py-0.5 rounded border border-orange-600 font-mono" title="Yönetici onayı bekleyen kayıtsız hesap">
+                                <i class="fa-solid fa-user-clock text-[9px] mr-0.5 text-orange-400"></i>Kayıtsız
+                            </span>
                             {% endif %}
                             {% if u.first_bloods_count > 0 %}
                             <span class="text-[10px] bg-rose-950/90 text-rose-300 px-1.5 py-0.5 rounded border border-rose-700 font-mono font-bold flex items-center gap-1" title="{{ u.first_bloods_count }} laboratuvarda İlk Kan elde etti">

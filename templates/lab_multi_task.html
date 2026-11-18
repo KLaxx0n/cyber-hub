@@ -168,13 +168,16 @@
         <div class="space-y-3">
             {% set guide = lab_config.get('guide_pdf') %}
             {% if guide %}
-            <a href="{{ url_for('static', filename=guide.filename) }}" target="_blank" rel="noopener noreferrer"
-               class="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/70 text-cyan-300 font-mono font-semibold text-xs flex items-center justify-center gap-2 transition-all">
+            <button type="button"
+                    data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
+                    data-pdf-title="{{ guide.label }}"
+                    data-pdf-filename="{{ guide.filename.split('/')[-1] }}"
+                    onclick="openPdfGuideFromBtn(this)"
+                    class="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/70 text-cyan-300 font-mono font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
                 <i class="fa-solid fa-file-pdf text-amber-400"></i>
                 <span>{{ guide.label }}</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </a>
-            <p class="text-[11px] text-slate-400 font-mono">Süreniz başlamadan önce rehberi yeni sekmede okuyabilirsiniz.</p>
+            </button>
+            <p class="text-[11px] text-slate-400 font-mono">Süreniz başlamadan önce rehberi sitede okuyabilir veya indirebilirsiniz.</p>
             {% endif %}
             <button type="button" id="start-lab-btn" onclick="startLab()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r {{ theme.gradient_btn }} text-white font-bold text-sm tracking-wide transition-all">
                 <i class="fa-solid fa-play mr-2"></i>{% if solved_task_ids|length > 0 and not is_solved %}Kaldığın Yerden Başla{% else %}Lab'a Başla{% endif %}
@@ -465,12 +468,15 @@
                     <p class="text-[11px] text-slate-400 leading-relaxed mb-3 font-sans">
                         {{ guide.desc }}
                     </p>
-                    <a href="{{ url_for('static', filename=guide.filename) }}" target="_blank" rel="noopener noreferrer"
-                       class="w-full py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-bold text-xs transition-all flex items-center justify-center gap-2">
+                    <button type="button"
+                            data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
+                            data-pdf-title="{{ guide.label }}"
+                            data-pdf-filename="{{ guide.filename.split('/')[-1] }}"
+                            onclick="openPdfGuideFromBtn(this)"
+                            class="w-full py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-file-pdf text-amber-400"></i>
-                        <span>Rehber PDF'i Aç</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                    </a>
+                        <span>Rehber PDF'i Aç / İndir</span>
+                    </button>
                 </div>
                 {% endif %}
 

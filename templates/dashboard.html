@@ -28,6 +28,10 @@
                         <span class="px-2.5 py-0.5 rounded-full bg-sky-950/90 border border-sky-600 text-sky-300 font-mono text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-user-shield text-[11px] text-sky-400"></i>Takım Lideri
                         </span>
+                        {% elif user.is_unregistered %}
+                        <span class="px-2.5 py-0.5 rounded bg-orange-950/90 border border-orange-600 text-orange-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-user-clock text-[11px] text-orange-400"></i>Kayıtsız
+                        </span>
                         {% else %}
                         <span class="px-2.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400 text-xs font-mono">
                             <i class="fa-solid fa-user-graduate text-[10px] mr-1"></i>Öğrenci
@@ -79,6 +83,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Unregistered (Kayıtsız) Role Restriction Banner -->
+    {% if user.is_unregistered %}
+    <div class="cyber-card p-5 mb-8 border border-orange-500/60 rounded-xl bg-gradient-to-r from-orange-950/40 via-slate-900/60 to-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+        <div class="flex items-start sm:items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-lg bg-orange-950 border border-orange-600 text-orange-400 flex items-center justify-center text-xl flex-shrink-0 shadow-md">
+                <i class="fa-solid fa-user-clock animate-pulse"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-white flex flex-wrap items-center gap-2">
+                    <span>Hesabınız "Kayıtsız" Rolünde — Yönetici Onayı Bekleniyor</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-orange-950 border border-orange-600 text-orange-300 font-mono font-bold">Kısıtlı Erişim</span>
+                </h3>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Site sayfalarını, etkinlik takvimini ve liderlik tablosunu görüntüleyebilirsiniz; ancak <strong>Red Team, Blue Team ve Purple Team laboratuvarlarına erişip bayrak gönderebilmek</strong> için yöneticinin rolünüzü <strong>Öğrenci</strong> olarak onaylaması gerekmektedir.
+                </p>
+            </div>
+        </div>
+        <a href="{{ url_for('events_page') }}" class="px-4 py-2 rounded-lg bg-orange-950/80 hover:bg-orange-900 border border-orange-600/80 text-orange-200 font-bold text-xs font-mono flex items-center space-x-2 transition-all shrink-0">
+            <i class="fa-regular fa-calendar-days"></i>
+            <span>Etkinliklere Göz At</span>
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Kazanılan Başarım Rozetleri (Badges) (Madde 1) -->
     <div class="cyber-card p-6 mb-8 border border-slate-800 rounded-xl shadow-md">

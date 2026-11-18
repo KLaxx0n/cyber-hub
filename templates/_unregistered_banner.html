@@ -1,0 +1,21 @@
+{% if current_user and current_user.is_unregistered %}
+<div class="cyber-card p-5 mb-8 border border-orange-500/60 rounded-xl bg-gradient-to-r from-orange-950/40 via-slate-900/60 to-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+    <div class="flex items-start sm:items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-lg bg-orange-950 border border-orange-600 text-orange-400 flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-user-clock"></i>
+        </div>
+        <div>
+            <h3 class="text-sm font-bold text-white flex flex-wrap items-center gap-2">
+                <span>Hesabınız "Kayıtsız" Rolünde — Laboratuvar Erişimi Kısıtlı</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-orange-950 border border-orange-600 text-orange-300 font-mono">Onay Bekleniyor</span>
+            </h3>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                Laboratuvar listesini inceleyebilirsiniz; ancak görevleri başlatıp bayrak gönderebilmek için yöneticinin rolünüzü <strong>Öğrenci</strong> olarak onaylaması gerekmektedir.
+            </p>
+        </div>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="px-4 py-2 rounded-lg bg-orange-950/80 hover:bg-orange-900 border border-orange-600/80 text-orange-200 font-bold text-xs font-mono shrink-0 transition-colors">
+        Panelime Git &rarr;
+    </a>
+</div>
+{% endif %}

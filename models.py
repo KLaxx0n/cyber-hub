@@ -17,7 +17,7 @@ class User(db.Model):
     score = db.Column(db.Integer, default=0)
     is_leader = db.Column(db.Boolean, default=False)
     is_founder = db.Column(db.Boolean, default=False)
-    role = db.Column(db.String(20), default='student') # 'superadmin', 'leader', 'student'
+    role = db.Column(db.String(20), default='unregistered') # 'superadmin'/'root', 'leader', 'student', 'unregistered'
     failed_login_attempts = db.Column(db.Integer, default=0)
     is_suspended = db.Column(db.Boolean, default=False)
     verification_code_expires_at = db.Column(db.DateTime, nullable=True)
@@ -149,8 +149,8 @@ class User(db.Model):
 
     @property
     def is_superadmin(self):
-        # 1. Eğer kullanıcının aktif rolü 'leader' veya 'student' ise kesinlikle süper yönetici olamaz
-        if self.role in ['leader', 'student']:
+        # 1. Eğer kullanıcının aktif rolü 'leader', 'student' veya 'unregistered' ise kesinlikle süper yönetici olamaz
+        if self.role in ['leader', 'student', 'unregistered']:
             return False
         # 2. Aktif rolü 'superadmin' veya 'root' olan kullanıcı tam yetkili Süper Yöneticidir
         if self.role in ['superadmin', 'root']:
@@ -158,12 +158,19 @@ class User(db.Model):
         # 3. Ana root hesabı (Sefa_Gumus) korunur
         if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
             return True
-        # 4. Founder bayrağı yalnızca öğrenci/lidere düşürülmemişse superadmin sayılır
-        return bool(self.is_founder and self.role not in ['student', 'leader'])
+        # 4. Founder bayrağı yalnızca alt rollere düşürülmemişse superadmin sayılır
+        return bool(self.is_founder and self.role not in ['student', 'leader', 'unregistered'])
 
     @property
     def is_team_leader(self):
+        if self.role == 'unregistered':
+            return False
         return self.role == 'leader' or bool(self.is_leader) or self.is_superadmin
+
+    @property
+    def is_unregistered(self):
+        """Return True when the user holds the restricted 'unregistered' (Kayıtsız) role."""
+        return (not self.is_superadmin) and (not self.is_team_leader) and (self.role == 'unregistered')
 
     @property
     def role_badge(self):
@@ -182,6 +189,14 @@ class User(db.Model):
                 'short': 'Lider',
                 'class': 'text-sky-300 bg-sky-950/90 border-sky-600/80',
                 'icon': 'fa-solid fa-user-shield text-sky-400'
+            }
+        elif self.is_unregistered:
+            return {
+                'key': 'unregistered',
+                'name': 'Kayıtsız',
+                'short': 'Kayıtsız',
+                'class': 'text-orange-300 bg-orange-950/90 border-orange-600/80',
+                'icon': 'fa-solid fa-user-clock text-orange-400'
             }
         else:
             return {
@@ -240,6 +255,7 @@ class User(db.Model):
             'role': self.role,
             'is_leader': self.is_team_leader,
             'is_superadmin': self.is_superadmin,
+            'is_unregistered': self.is_unregistered,
             'completed_labs': self.completed_labs_count()
         }
 
