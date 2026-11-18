@@ -425,24 +425,14 @@ def login():
             db.session.commit()
 
         # Doğrulanmamış hesap kontrolü (Doğrulanmamışsa girişe izin verme, verify sayfasına yönlendir)
-        if not user.is_verified and not user.is_superadmin and (user.username or '').lower() != 'klaxx0n':
+        if not user.is_verified and not user.is_superadmin:
             flash('Hesabınız henüz onaylanmamıştır. Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girerek hesabınızı aktifleştirin.', 'warning')
             return redirect(url_for('verify', email=user.email))
 
         # Root (Süper Yönetici) kullanıcıların rol ve yetkilerini garantiye al
-        if user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
+        if (user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (user.email and user.email.lower() == 'gsefa5683@gmail.com'):
             user.role = 'root'
             user.is_founder = True
-            user.is_leader = True
-            user.is_verified = True
-            user.is_suspended = False
-            user.failed_login_attempts = 0
-            db.session.commit()
-
-        # Takım Lideri (KLaxx0n) yetkilerini garantiye al (Süper Yönetici değil, yalnızca Takım Lideri)
-        if user.username and user.username.lower() == 'klaxx0n':
-            user.role = 'leader'
-            user.is_founder = False
             user.is_leader = True
             user.is_verified = True
             user.is_suspended = False
