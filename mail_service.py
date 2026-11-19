@@ -421,7 +421,7 @@ def send_feedback_notification_email(
     category,
     rating,
     message,
-    target_email='iletisim@nöhü-cyberhub.com.tr',
+    target_email='cyberhubsecurity.tr@gmail.com',
 ):
     """Send user feedback notification email to the site's contact mailbox."""
     safe_name = html.escape(sender_name or 'Ziyaretçi')
