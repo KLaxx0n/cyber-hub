@@ -23,11 +23,21 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: MAIL_SERVER
-        value: smtp.gmail.com
+        value: smtp.turkticaret.net
       - key: MAIL_PORT
         value: "587"
+      - key: MAIL_USE_TLS
+        value: "True"
+      - key: MAIL_USE_SSL
+        value: "False"
+      - key: MAIL_ACCESS_PROTOCOL
+        value: IMAP
+      - key: MAIL_INCOMING_SERVER
+        value: imap.turkticaret.net
+      - key: MAIL_INCOMING_PORT
+        value: "993"
       - key: MAIL_USERNAME
-        sync: false
+        value: iletisim@nöhü-cyberhub.com.tr
       - key: MAIL_PASSWORD
         sync: false
       - key: BREVO_API_KEY

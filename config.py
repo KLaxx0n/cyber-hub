@@ -37,12 +37,18 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
 
-    # E-Posta / SMTP ve HTTP API Ayarları
+    # E-Posta / SMTP, IMAP/POP3 ve HTTP API Ayarları (Türkticaret.Net & Kurumsal Mail Uyumlu)
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
-    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.turkticaret.net')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'cyberhubsecurity.tr@gmail.com'
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'iletisim@nöhü-cyberhub.com.tr'
+    MAIL_SENDER_NAME = os.environ.get('MAIL_SENDER_NAME', 'NÖHÜ Siber Güvenlik Lab')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or MAIL_USERNAME
+    MAIL_ACCESS_PROTOCOL = os.environ.get('MAIL_ACCESS_PROTOCOL', 'IMAP')
+    MAIL_INCOMING_SERVER = os.environ.get('MAIL_INCOMING_SERVER', 'imap.turkticaret.net')
+    MAIL_INCOMING_PORT = int(os.environ.get('MAIL_INCOMING_PORT', 993))
     import base64
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('ZW1mZHVnZWdkd3dycnRidQ==').decode()
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('M0gxXlFsbHYkTVJncmtPJA==').decode()

@@ -26,7 +26,7 @@ from mail_service import send_verification_email, send_password_reset_email, sen
 from lab_configs import MULTI_TASK_LABS, get_public_tasks
 import team_config
 
-SUPPORT_EMAIL = 'cyberhubsecurity.tr@gmail.com'
+SUPPORT_EMAIL = 'iletisim@nöhü-cyberhub.com.tr'
 
 _team_config_mtime = None
 
