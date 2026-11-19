@@ -1298,6 +1298,14 @@ def ohsint_2_target():
     assets_dir = os.path.join(app.root_path, 'lab_assets')
     return send_from_directory(assets_dir, 'numune.jpg', as_attachment=True, download_name='numune.jpg')
 
+@app.route('/lab/red-hayalet-kapi-3/target')
+@lab_access_required
+def hayalet_kapi_3_target():
+    _, denied = _get_accessible_lab_or_redirect('red-hayalet-kapi-3', 'red_team')
+    if denied:
+        return denied
+    return render_template('labs/hayalet_kapi_3_target.html')
+
 @app.route('/lab/blue-soc-olay-1/target')
 @lab_access_required
 def blue_soc_olay_1_target():

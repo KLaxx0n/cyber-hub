@@ -40,8 +40,12 @@
         </span>
     </div>
 
-    <!-- Labs Grid + Coming Soon Card -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Labs Grid Container -->
+    <div class="relative min-h-[460px]">
+        {% include 'partials/_unregistered_lab_overlay.html' %}
+
+        <!-- Labs Grid + Coming Soon Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 {% if current_user and current_user.is_unregistered %}unregistered-locked-grid{% endif %}" {% if current_user and current_user.is_unregistered %}aria-hidden="true"{% endif %}>
         {% for lab in labs %}
         {% set is_done = lab.id in user_completed_ids %}
         {% set prog = user_progress_map.get(lab.id) %}
@@ -136,7 +140,7 @@
                 </div>
 
                 {% set guide = lab_guides.get(lab.slug) if lab_guides is defined else None %}
-                {% if guide %}
+                {% if (not current_user or not current_user.is_unregistered) and guide %}
                 <button type="button"
                         data-pdf-url="{{ url_for('static', filename=guide.filename) }}"
                         data-pdf-title="{{ guide.label }}"
@@ -151,12 +155,11 @@
 
                 <!-- Action Button -->
                 {% if current_user and current_user.is_unregistered %}
-                <a href="{{ url_for('dashboard') }}"
-                   class="w-full py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all bg-orange-950/70 hover:bg-orange-900/70 text-orange-300 border border-orange-700/80"
-                   title="Laboratuvarlara erişmek için yönetici tarafından Öğrenci rolüne onaylanmalısınız.">
+                <div class="w-full py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all bg-orange-950/70 text-orange-300 border border-orange-700/80 cursor-not-allowed select-none"
+                     title="Laboratuvarlara erişmek için yönetici tarafından Öğrenci rolüne onaylanmalısınız.">
                     <i class="fa-solid fa-lock"></i>
-                    <span>Kayıtsız Rolü — Onay Bekleniyor</span>
-                </a>
+                    <span>Kayıt Onay Bekliyor</span>
+                </div>
                 {% else %}
                 <a href="{{ url_for('lab_detail', slug=lab.slug) }}"
                    class="w-full py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md {{ 'bg-emerald-700/80 hover:bg-emerald-600 text-white border border-emerald-500/60' if is_done else 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-sky-950/50' }}">
@@ -202,6 +205,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
 </div>

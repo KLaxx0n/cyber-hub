@@ -253,3 +253,39 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 16px -4px rgba(34, 211, 238, 0.35);
 }
 
+/* ============================================================
+   Kayıtsız (Unregistered) Rolü Laboratuvar Kilit & Blur Efektleri
+   ============================================================ */
+.unregistered-locked-grid {
+  filter: blur(14px) !important;
+  -webkit-filter: blur(14px) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  opacity: 0.28 !important;
+  transition: all 0.3s ease;
+}
+
+.unregistered-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  background: rgba(6, 9, 15, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+@media (min-width: 768px) {
+  .unregistered-lock-overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+

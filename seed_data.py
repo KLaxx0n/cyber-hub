@@ -96,6 +96,24 @@ def seed_database(app):
                 'is_published': True
             },
             {
+                'slug': 'red-hayalet-kapi-3',
+                'title': 'Operasyon: Hayalet Kapı',
+                'category': 'red_team',
+                'sub_category': 'Keşif (Recon) & Nmap / Gobuster',
+                'difficulty': 'Orta',
+                'points': 100,
+                'time_limit_sec': 720, # 12 dakika
+                'description': 'Simüle Kali terminalinde dosya sisteminde gezinip bayrağı bulun; ardından Nmap ve Gobuster ile hedef sunucunun servislerini ve gizli dizinlerini keşfedin.',
+                'scenario': 'Hedef sunucu (10.10.42.19) üzerinde yetkisiz bir yönetim kapısı ve unutulmuş yedek dosyaları bulunduğu şüphesi var. Red Team operatörü olarak keşif (reconnaissance) aşamasını tamamlamanız gerekmektedir.',
+                'instructions': 'Hedef terminali yeni sekmede açın. Önce nohu klasöründeki bayrağı okuyun, ardından Nmap (-sV, -sC) ve Gobuster (dir -u) taramalarıyla 5 görevin her birine ait cevabı teslim edin. (Her görev 20 puan, toplam 100 puan, baraj 50 puandır.)',
+                'hint': 'Terminalde help yazarak komutları görün; nmap -sV / -sC ve gobuster dir -u http://10.10.42.19 çıktılarını inceleyin.',
+                'hint1': 'Terminalde "cd nohu" ve "cat flag.txt" ile bayrağı okuyun. Servis sürümleri için "nmap -sV 10.10.42.19", http-title için "nmap -sC 10.10.42.19", gizli dizinler için "gobuster dir -u http://10.10.42.19" komutlarını çalıştırın.',
+                'hint2': 'Kritik İpucu (-10 Puan): Task 2 için nginx 1.24.0, Task 3 için Nohu Simulation Gateway, Task 4 için 302 dönen /shadow_auth yolu, Task 5 için /backups/ altındaki snapshot_2026.tar.gz dosyasına odaklanın.',
+                'flag': 'FLAG{hayalet_kapi_lab_3_multi_task_completed}',
+                'lab_type': 'multi_task',
+                'is_published': True
+            },
+            {
                 'slug': 'red-sqli-basic',
                 'title': 'OWASP Top 10: SQL Injection Zafiyeti',
                 'category': 'red_team',

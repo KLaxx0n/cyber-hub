@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NØHU CyberHub | Operasyon: Hayalet Kapı - Hedef Terminal</title>
+    <style>
+        :root {
+            --bg-outer: #050811;
+            --bg-frame: #0b101b;
+            --bg-card: #0e1524;
+            --bg-inner: #070b14;
+            --border-subtle: rgba(148, 163, 184, 0.14);
+            --border-red: rgba(239, 68, 68, 0.36);
+            --accent-red: #ef4444;
+            --accent-red-soft: #f87171;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px 16px;
+            background: radial-gradient(circle at 20% 10%, rgba(239, 68, 68, 0.08), transparent 45%),
+                        radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.05), transparent 40%),
+                        var(--bg-outer);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        .app-shell {
+            max-width: 1320px;
+            margin: 0 auto;
+            background: var(--bg-frame);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+            overflow: hidden;
+        }
+
+        /* Üst Bar - Görseldeki yerleşime uygun */
+        .topbar {
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(11, 16, 27, 0.96));
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 14px 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .brand-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .brand-logo {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.05;
+        }
+        .brand-logo strong {
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            color: #fff;
+        }
+        .brand-logo span {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.8px;
+            color: var(--accent-red);
+            margin-top: 2px;
+        }
+        .ghost-door-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: radial-gradient(circle at 55% 40%, rgba(239, 68, 68, 0.25), #070b14 82%);
+            border: 1px solid var(--border-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .op-tag {
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.8px;
+            color: #e2e8f0;
+            text-transform: uppercase;
+        }
+        .op-tag span {
+            color: var(--accent-red);
+            margin-right: 6px;
+        }
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .pill {
+            padding: 7px 13px;
+            border-radius: 18px;
+            font-family: monospace;
+            font-size: 0.84rem;
+            font-weight: 700;
+            background: var(--bg-inner);
+            border: 1px solid var(--border-subtle);
+        }
+        .pill-time {
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+        .pill-score {
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .btn-outline {
+            background: #111827;
+            color: #e2e8f0;
+            border: 1px solid var(--border-subtle);
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-red);
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        /* İki Sütunlu Ana Gövde */
+        .layout {
+            padding: 26px;
+            display: grid;
+            grid-template-columns: 1.08fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 980px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        /* Sol Panel: Operasyon Başlığı ve Görev Kartları */
+        .hero-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 18px;
+        }
+        .hero-box h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            color: #fff;
+        }
+        .hero-box p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+        .hero-box code {
+            background: var(--bg-inner);
+            color: #fca5a5;
+            padding: 2px 6px;
+            border-radius: 5px;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            transition: border-color 0.15s ease;
+        }
+        .task-card:hover {
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .task-card.done {
+            border-left-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        .task-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .task-kicker {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--accent-red-soft);
+        }
+        .task-card.done .task-kicker {
+            color: #34d399;
+        }
+        .task-pts {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-inner);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+        }
+        .task-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .task-q {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            line-height: 1.45;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ans-input {
+            flex: 1;
+            min-width: 180px;
+            background: var(--bg-inner);
+            border: 1px solid #243044;
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 7px;
+            font-family: monospace;
+            font-size: 0.88rem;
+            outline: none;
+        }
+        .ans-input:focus {
+            border-color: var(--accent-red);
+        }
+        .ans-input.ok {
+            border-color: var(--accent-green);
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.12);
+        }
+        .ans-input.err {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.12);
+        }
+        .btn-send {
+            background: var(--accent-red);
+            color: #fff;
+            border: none;
+            padding: 9px 15px;
+            border-radius: 7px;
+            font-weight: 700;
+            font-size: 0.86rem;
+            cursor: pointer;
+        }
+        .btn-send:hover:not(:disabled) {
+            background: #dc2626;
+        }
+        .btn-send:disabled {
+            background: #13221c;
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            cursor: default;
+        }
+        .btn-hint {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fde68a;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 9px 12px;
+            border-radius: 7px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .btn-hint:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+        .hint-panel {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--accent-yellow);
+            color: #fde68a;
+            font-size: 0.84rem;
+            border-radius: 5px;
+        }
+        .feedback {
+            margin-top: 6px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            min-height: 16px;
+        }
+
+        /* Sağ Panel: Görseldeki gibi koyu terminal penceresi + kırmızı Red Team prompt */
+        .terminal-window {
+            background: #060912;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            position: sticky;
+            top: 20px;
+        }
+        .term-header {
+            background: #101726;
+            padding: 11px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .dots {
+            display: flex;
+            gap: 7px;
+        }
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-r { background: #ef4444; }
+        .dot-y { background: #f59e0b; }
+        .dot-g { background: #10b981; }
+        .term-title {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+        }
+        .term-body {
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.84rem;
+            line-height: 1.54;
+            height: 540px;
+            overflow-y: auto;
+            color: #e2e8f0;
+        }
+        .kali-top { color: #ef4444; font-weight: bold; }
+        .kali-user { color: #f87171; font-weight: bold; }
+        .kali-at { color: #94a3b8; }
+        .kali-host { color: #ef4444; font-weight: bold; }
+        .kali-path { color: #e2e8f0; }
+        .kali-sym { color: #ef4444; font-weight: bold; }
+        .term-line {
+            margin-bottom: 6px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .term-input-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .term-cmd-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            font-family: inherit;
+            font-size: 0.86rem;
+            outline: none;
+        }
+        .quick-cmds {
+            padding: 10px 16px;
+            background: #0c1220;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .quick-btn {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fecaca;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .quick-btn:hover {
+            background: rgba(239, 68, 68, 0.22);
+            color: #fff;
+        }
+
+        /* Bitiş Modalı */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 520px;
+            width: 92%;
+            text-align: center;
+        }
+        .modal-card h2 { margin-top: 0; }
+        .modal-card p { color: #cbd5e1; line-height: 1.5; }
+        .motto {
+            display: none;
+            margin: 14px 0;
+            padding: 12px;
+            border-left: 4px solid var(--accent-red);
+            background: rgba(239, 68, 68, 0.12);
+            color: #fecaca;
+            font-style: italic;
+            border-radius: 6px;
+        }
+        .modal-btn {
+            background: var(--accent-red);
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .brief-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .brief-list li {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+        .brief-list li b { color: #f1f5f9; }
+        .brief-note {
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--accent-yellow);
+            color: #fde68a;
+            font-size: 0.84rem;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <nav class="topbar">
+        <div class="brand-left">
+            <div class="brand-logo">
+                <strong>NØHU</strong>
+                <span>RED TEAM</span>
+            </div>
+            <div class="ghost-door-badge" title="Operasyon: Hayalet Kapı">
+                <svg width="36" height="36" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="6" width="32" height="52" rx="3" fill="#090d16" stroke="#ef4444" stroke-width="2.2"/>
+                    <path d="M27 8H40V56H27V8Z" fill="rgba(239,68,68,0.22)"/>
+                    <path d="M10 6L27 11V53L10 58V6Z" fill="#161f33" stroke="#94a3b8" stroke-width="1.6"/>
+                    <circle cx="23.5" cy="33" r="1.4" fill="#ef4444"/>
+                    <path d="M38 17C31.5 17 27 21.8 27 28.2V43.5C27 45.2 28.8 46.1 30.2 45L32.8 42.8C33.7 42.1 35 42.1 35.9 42.9L38 44.8L40.1 42.9C41 42.1 42.3 42.1 43.2 42.8L45.8 45C47.2 46.1 49 45.2 49 43.5V28.2C49 21.8 44.5 17 38 17Z" fill="#f8fafc"/>
+                    <ellipse cx="34.5" cy="27.5" rx="1.9" ry="2.4" fill="#090d16"/>
+                    <ellipse cx="41.5" cy="27.5" rx="1.9" ry="2.4" fill="#090d16"/>
+                    <circle cx="34.9" cy="26.8" r="0.65" fill="#ef4444"/>
+                    <circle cx="41.9" cy="26.8" r="0.65" fill="#ef4444"/>
+                    <ellipse cx="38" cy="33" rx="1.6" ry="2.1" fill="#090d16"/>
+                </svg>
+            </div>
+            <div class="op-tag"><span>//</span> OPERASYON: HAYALET KAPI</div>
+        </div>
+        <div class="nav-controls">
+            <span class="pill pill-time">HEDEF: 10.10.42.19</span>
+            <span class="pill pill-score">KALI TERMİNALİ</span>
+        </div>
+    </nav>
+
+    <main class="layout">
+        <div>
+            <div class="hero-box">
+                <h1>Operasyon: Hayalet Kapı.</h1>
+                <p>Hedef IP: <code>10.10.42.19</code>. Sağdaki simüle Kali terminalinde önce <code>nohu</code> klasöründeki bayrağı bul, ardından Nmap ve Gobuster keşif adımlarını tamamla.</p>
+            </div>
+            <ul class="brief-list">
+                <li><b>Adım 1 — Dosya Sistemi:</b> <code>ls</code>, <code>pwd</code>, <code>cd</code> ve <code>cat</code> komutlarıyla <code>nohu</code> klasöründeki bayrağı oku.</li>
+                <li><b>Adım 2 — Nmap Servis Taraması:</b> Hedefteki açık portları ve servis sürümlerini tespit et.</li>
+                <li><b>Adım 3 — Nmap Script Taraması:</b> Varsayılan NSE script çıktısını incele.</li>
+                <li><b>Adım 4 — Gobuster Dizin Taraması:</b> Web sunucusundaki gizli yolları ve yedek dosyaları keşfet.</li>
+            </ul>
+            <div class="brief-note">
+                Bulduğun cevapları CyberHub lab sayfasındaki görev kutularına gir. Kullanılabilir komutları görmek için terminale <code>help</code> yazabilirsin.
+            </div>
+        </div>
+
+        <aside class="terminal-window">
+            <div class="term-header">
+                <div class="dots">
+                    <span class="dot dot-r"></span>
+                    <span class="dot dot-y"></span>
+                    <span class="dot dot-g"></span>
+                </div>
+                <div class="term-title" id="termHeaderTitle">kali@nohu-cyberhub: ~</div>
+            </div>
+            <div class="term-body" id="termBody" onclick="document.getElementById('cmdInput').focus()">
+                <div class="term-line"><span class="kali-top">┌──(</span><span class="kali-user">kali</span><span class="kali-at">@</span><span class="kali-host">nohu-cyberhub</span><span class="kali-top">)-[</span><span class="kali-path">~</span><span class="kali-top">]</span><br><span class="kali-top">└─</span><span class="kali-sym">$</span> ops-init --target 10.10.42.19</div>
+                <div class="term-line" style="color:#94a3b8;">Red Team terminali hazır. Kullanılabilir komutları görmek için 'help' yaz.</div>
+                <div class="term-input-line" id="activeInputLine">
+                    <span id="activePrompt"></span>
+                    <input type="text" class="term-cmd-input" id="cmdInput" placeholder="Komut gir..." onkeydown="handleTermKey(event)" autocomplete="off" spellcheck="false" autofocus>
+                </div>
+            </div>
+            <div class="quick-cmds">
+                <button class="quick-btn" onclick="runCommand('help')">help</button>
+                <button class="quick-btn" onclick="runCommand('ls')">ls</button>
+                <button class="quick-btn" onclick="runCommand('clear')">clear</button>
+            </div>
+        </aside>
+    </main>
+</div>
+
+<script>
+    let cmdHistory = [];
+    let histIndex = -1;
+
+    const FS = {
+        "/home/kali": {
+            type: "dir",
+            children: {
+                "nohu": {
+                    type: "dir",
+                    children: {
+                        "flag.txt": {
+                            type: "file",
+                            content: atob("RkxBR3toYXlhbGV0X2thcGlfbm9odV9mbGFnXzk5fQ==")
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    let currentPath = "/home/kali";
+
+    function formatDisplayPath(absPath) {
+        if (absPath === "/home/kali") return "~";
+        if (absPath.startsWith("/home/kali/")) return "~/" + absPath.slice("/home/kali/".length);
+        return absPath;
+    }
+
+    function getPromptHtml() {
+        const disp = formatDisplayPath(currentPath);
+        return `<span class="kali-user">kali</span><span class="kali-at">@</span><span class="kali-host">nohu-cyberhub</span><span class="kali-path">:${disp}</span><span class="kali-sym">$</span>`;
+    }
+
+    function syncPromptUi() {
+        const disp = formatDisplayPath(currentPath);
+        document.getElementById("activePrompt").innerHTML = getPromptHtml();
+        document.getElementById("termHeaderTitle").textContent = `kali@nohu-cyberhub: ${disp}`;
+    }
+
+    function getNodeAt(absPath) {
+        if (absPath === "/home/kali") return FS["/home/kali"];
+        if (absPath === "/home/kali/nohu") return FS["/home/kali"].children.nohu;
+        return null;
+    }
+
+    const PING_OUT = "Starting Nmap 7.94SVN ( https://nmap.org )\nNmap scan report for 10.10.42.19\nHost is up (0.012s latency).\nNmap done: 1 IP address (1 host up) scanned in 0.14 seconds";
+    const SV_OUT = "Starting Nmap 7.94SVN ( https://nmap.org )\nNmap scan report for 10.10.42.19\nHost is up (0.014s latency).\n\nPORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 9.6p1 Ubuntu\n80/tcp   open  http    nginx 1.24.0\n8080/tcp open  http    Apache httpd 2.4.58\n\nService detection performed.";
+    const SC_OUT = "Starting Nmap 7.94SVN ( https://nmap.org )\nNmap scan report for 10.10.42.19\nHost is up (0.015s latency).\n\nPORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 9.6p1 Ubuntu\n80/tcp   open  http    nginx 1.24.0\n|_http-title: Nohu Simulation Gateway\n8080/tcp open  http    Apache httpd 2.4.58\n\nNSE: Script scanning completed.";
+    const GOBUSTER_OUT = "===============================================================\nGobuster v3.6\n===============================================================\n[+] Url:                     http://10.10.42.19\n[+] Method:                  GET\n[+] Threads:                 10\n[+] Wordlist:                /usr/share/wordlists/dirb/common.txt\n[+] Status codes:            200,204,301,302,307,401,403\n===============================================================\n/assets               (Status: 301) [Size: 169] [--> http://10.10.42.19/assets/]\n/shadow_auth          (Status: 302) [Size: 0] [--> http://10.10.42.19/shadow_auth/login]\n/backups/snapshot_2026.tar.gz (Status: 200) [Size: 482910]\n/robots.txt           (Status: 200) [Size: 64]\n===============================================================";
+
+    function resolveCommand(rawCmd) {
+        const c = rawCmd.trim();
+        const lower = c.toLowerCase();
+
+        if (!c) return null;
+        if (lower === "clear") return { type: "clear" };
+
+        if (lower === "help" || lower === "?") {
+            return {
+                text: "Kullanılabilir komutlar:\n  whoami                          Aktif kullanıcıyı gösterir\n  pwd                             Bulunduğun klasör yolunu gösterir\n  ls                              Klasördeki dosya ve klasörleri listeler\n  cd <klasör>                     Klasör değiştirir (örn: cd nohu, cd ..)\n  cat <dosya>                     Dosya içeriğini okur\n  nmap [-sP|-sV|-sC] 10.10.42.19  Port ve servis keşfi\n  gobuster dir -u http://10.10.42.19  Dizin taraması\n  clear                           Terminali temizler"
+            };
+        }
+
+        if (lower === "whoami") {
+            return { text: "kali@nohu-cyberhub" };
+        }
+
+        if (lower === "pwd") {
+            return { text: currentPath };
+        }
+
+        if (lower === "ls" || lower === "ls -la" || lower === "ll") {
+            const node = getNodeAt(currentPath);
+            if (!node || !node.children) return { text: "" };
+            const entries = Object.keys(node.children).map(name => {
+                const item = node.children[name];
+                return item.type === "dir" ? `${name}/` : name;
+            });
+            return { text: entries.join("   ") };
+        }
+
+        if (lower === "cd" || lower === "cd ~") {
+            currentPath = "/home/kali";
+            syncPromptUi();
+            return { text: "" };
+        }
+
+        if (lower.startsWith("cd ")) {
+            const arg = c.slice(3).trim();
+            if (arg === ".." || arg === "../") {
+                if (currentPath === "/home/kali/nohu") {
+                    currentPath = "/home/kali";
+                }
+                syncPromptUi();
+                return { text: "" };
+            }
+            const clean = arg.replace(/^\/+|\/+$/g, "");
+            if (currentPath === "/home/kali" && (clean === "nohu" || clean === "home/kali/nohu")) {
+                currentPath = "/home/kali/nohu";
+                syncPromptUi();
+                return { text: "" };
+            }
+            if (clean === "home/kali" || arg === "/home/kali") {
+                currentPath = "/home/kali";
+                syncPromptUi();
+                return { text: "" };
+            }
+            return { text: `cd: ${escapeHtml(arg)}: Böyle bir klasör bulunamadı`, err: true };
+        }
+
+        if (lower.startsWith("cat ")) {
+            const fileArg = c.slice(4).trim();
+            const node = getNodeAt(currentPath);
+            if (node && node.children && node.children[fileArg] && node.children[fileArg].type === "file") {
+                return { text: node.children[fileArg].content };
+            }
+            if (currentPath === "/home/kali" && (fileArg === "nohu/flag.txt" || fileArg === "./nohu/flag.txt")) {
+                return { text: FS["/home/kali"].children.nohu.children["flag.txt"].content };
+            }
+            return { text: `cat: ${escapeHtml(fileArg)}: Böyle bir dosya bulunamadı`, err: true };
+        }
+
+        if (lower.startsWith("nmap")) {
+            if (!c.includes("10.10.42.19")) {
+                return { text: "nmap: hedef belirtilmedi veya hatalı. Hedef IP: 10.10.42.19", err: true };
+            }
+            const hasSP = lower.includes(" -sp") || lower.includes(" -sn");
+            const hasSV = lower.includes("-sv");
+            const hasSC = lower.includes("-sc");
+            const hasA = lower.includes(" -a");
+
+            if (hasSP && !hasSV && !hasSC && !hasA) {
+                return { text: PING_OUT };
+            }
+            if (hasA || (hasSV && hasSC) || hasSC) {
+                return { text: SC_OUT };
+            }
+            if (hasSV) {
+                return { text: SV_OUT };
+            }
+            return {
+                text: "Starting Nmap 7.94SVN for 10.10.42.19\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n8080/tcp open  http-proxy\n\nİpucu: -sP, -sV veya -sC parametrelerini deneyebilirsin."
+            };
+        }
+
+        if (lower.startsWith("gobuster")) {
+            if (!lower.includes("dir")) {
+                return { text: "Kullanım: gobuster dir -u http://10.10.42.19", err: true };
+            }
+            if (!c.includes("10.10.42.19")) {
+                return { text: "Hata: hedef URL olarak http://10.10.42.19 girilmelidir.", err: true };
+            }
+            return { text: GOBUSTER_OUT };
+        }
+
+        return { text: `zsh: komut bulunamadı: ${escapeHtml(c.split(" ")[0])}. Yardım için 'help' yaz.`, err: true };
+    }
+
+    function handleTermKey(e) {
+        const inputEl = document.getElementById("cmdInput");
+        if (e.key === "Enter") {
+            const val = inputEl.value;
+            if (val.trim()) {
+                cmdHistory.push(val.trim());
+                histIndex = cmdHistory.length;
+            }
+            runCommand(val);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if (histIndex > 0) {
+                histIndex--;
+                inputEl.value = cmdHistory[histIndex];
+            }
+        } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (histIndex < cmdHistory.length - 1) {
+                histIndex++;
+                inputEl.value = cmdHistory[histIndex];
+            } else {
+                histIndex = cmdHistory.length;
+                inputEl.value = "";
+            }
+        }
+    }
+
+    function runCommand(rawCmd) {
+        const inputEl = document.getElementById("cmdInput");
+        const bodyEl = document.getElementById("termBody");
+        const inputLine = document.getElementById("activeInputLine");
+        const promptBefore = getPromptHtml();
+        const res = resolveCommand(rawCmd);
+        if (!res) return;
+
+        if (res.type === "clear") {
+            [...bodyEl.querySelectorAll(".term-line")].forEach(el => el.remove());
+            inputEl.value = "";
+            return;
+        }
+
+        const cmdEcho = document.createElement("div");
+        cmdEcho.className = "term-line";
+        cmdEcho.innerHTML = `${promptBefore} ${escapeHtml(rawCmd.trim())}`;
+        bodyEl.insertBefore(cmdEcho, inputLine);
+
+        if (res.text) {
+            const outEl = document.createElement("div");
+            outEl.className = "term-line";
+            outEl.style.color = res.err ? "#fca5a5" : "#e2e8f0";
+            outEl.textContent = res.text;
+            bodyEl.insertBefore(outEl, inputLine);
+        }
+
+        inputEl.value = "";
+        bodyEl.scrollTop = bodyEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    syncPromptUi();
+</script>
+</body>
+</html>

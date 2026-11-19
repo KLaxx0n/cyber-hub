@@ -171,6 +171,83 @@ MULTI_TASK_LABS = {
             }
         ]
     },
+    'red-hayalet-kapi-3': {
+        'pass_threshold': 50,
+        'target_endpoint': 'hayalet_kapi_3_target',
+        'target_label': 'Kali Terminali (10.10.42.19)',
+        'target_icon': '👻',
+        'target_title': 'Hedef Terminal / Keşif Konsolu',
+        'target_desc_before': 'Aşağıdaki bağlantıya tıklayarak simüle ',
+        'target_desc_after': ' ortamını yeni sekmede açın ve keşif komutlarını çalıştırın.',
+        'target_button_text': 'TERMİNALİ AÇ',
+        'target_is_download': False,
+        'quick_tips_title': 'Hızlı Keşif Komutları:',
+        'quick_tips': [
+            ('ls / cd / cat', 'Dosya sisteminde gezinme ve okuma'),
+            ('nmap -sV / -sC', 'Servis sürümü ve script taraması'),
+            ('gobuster dir -u', 'Web dizin / dosya keşfi'),
+        ],
+        'input_placeholder': 'Cevabınızı yazın...',
+        'solved_input_label': '✓ Doğru Cevap Kaydedildi',
+        'writeup_title_placeholder': 'Örn: Hayalet Kapı Lab 3 - Nmap & Gobuster Keşif Rehberi',
+        'writeup_content_placeholder': '1. Görev: cd nohu ve cat flag.txt ile bayrak okundu...\n2. Görev: nmap -sV ile 80/tcp servis sürümü tespit edildi...',
+        'case_sensitive': False,
+        'kicker': 'NØHU RED TEAM // LAB 03',
+        'icon_emoji': '👻',
+        'card_warning': {
+            'title': 'Gerekli Araç Bilgisi',
+            'text': 'Bu labı bitirebilmek için önce Nmap ve Gobuster araçlarının ne olduğunu, ne işe yaradığını ve temel parametrelerini (-sV, -sC, dir -u) öğrenip okumanız önerilir.'
+        },
+        'tasks': [
+            {
+                'id': 'q1',
+                'number': 1,
+                'title': 'nohu Klasöründeki Bayrak',
+                'question': "Klasörler arasından 'nohu' klasörüne girip içindeki dosyayı okuduğunda karşına çıkan FLAG{...} değeri nedir?",
+                'hint': 'Önce ls ve pwd ile konumunu kontrol et, cd nohu ile klasöre geç ve içindeki dosyayı cat ile oku.',
+                'points': 20,
+                'flag': 'FLAG{hayalet_kapi_nohu_flag_99}'
+            },
+            {
+                'id': 'q2',
+                'number': 2,
+                'title': 'Nmap: Web Servisi ve Sürümü',
+                'question': 'Nmap servis sürüm taraması çıktısına göre 80/tcp portunda çalışan web sunucusu ve sürümü nedir? (Örnek: nginx 1.24.0)',
+                'hint': 'Hedef IP üzerinde servis sürüm bilgisi üreten Nmap parametresini (-sV) dene.',
+                'points': 20,
+                'flag': 'nginx 1.24.0'
+            },
+            {
+                'id': 'q3',
+                'number': 3,
+                'title': 'Nmap: Script Taraması Başlığı',
+                'question': 'Nmap varsayılan script taramasında HTTP servisi için raporlanan başlık (http-title) nedir?',
+                'hint': 'Varsayılan script taraması (-sC) çıktısındaki http-title satırını incele.',
+                'points': 20,
+                'flag': 'Nohu Simulation Gateway'
+            },
+            {
+                'id': 'q4',
+                'number': 4,
+                'title': 'Gobuster: Gizli Yönetim Yolu',
+                'question': 'Gobuster dizin taramasında yönlendirme (302) döndüren gizli yol hangisidir?',
+                'hint': 'Hedef URL üzerinde dizin taraması çalıştır ve 302 durum koduna bak.',
+                'points': 20,
+                'flag': '/shadow_auth',
+                'accepted_flags': ['/shadow_auth', 'shadow_auth', '/shadow_auth/']
+            },
+            {
+                'id': 'q5',
+                'number': 5,
+                'title': 'Gobuster: Yedek Arşiv Dosyası',
+                'question': 'Gobuster dizin taramasında /backups/ altında listelenen arşiv dosyasının adı nedir?',
+                'hint': 'Dizin tarama çıktısındaki /backups/ ile başlayan satıra dikkat et.',
+                'points': 20,
+                'flag': 'snapshot_2026.tar.gz',
+                'accepted_flags': ['snapshot_2026.tar.gz', '/backups/snapshot_2026.tar.gz']
+            }
+        ]
+    },
     'blue-soc-olay-1': {
         'pass_threshold': 60,
         'target_endpoint': 'blue_soc_olay_1_target',
