@@ -387,3 +387,32 @@ class CyberEvent(db.Model):
             'Çalıştay': 'border-orange-600 bg-orange-950/80 text-orange-300',
         }
         return mapping.get(self.event_type, 'border-slate-700 bg-slate-900 text-slate-300')
+
+
+class UserFeedback(db.Model):
+    """Stores user feedback messages shown on the site and forwarded by email."""
+
+    __tablename__ = 'user_feedbacks'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    sender_name = db.Column(db.String(80), nullable=False)
+    sender_email = db.Column(db.String(120), nullable=True)
+    category = db.Column(db.String(32), default='Genel')
+    rating = db.Column(db.Integer, default=5)
+    message = db.Column(db.Text, nullable=False)
+    is_public = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    author = db.relationship('User', backref=db.backref('feedbacks', cascade='all, delete-orphan', lazy='dynamic'))
+
+    @property
+    def category_badge(self):
+        mapping = {
+            'Öneri': {'class': 'border-cyan-500/40 bg-cyan-950/80 text-cyan-300', 'icon': 'fa-solid fa-lightbulb'},
+            'Hata Bildirimi': {'class': 'border-red-500/40 bg-red-950/80 text-red-300', 'icon': 'fa-solid fa-bug'},
+            'Yeni Lab Talebi': {'class': 'border-purple-500/40 bg-purple-950/80 text-purple-300', 'icon': 'fa-solid fa-flask'},
+            'Teşekkür & Yorum': {'class': 'border-emerald-500/40 bg-emerald-950/80 text-emerald-300', 'icon': 'fa-solid fa-heart'},
+            'Genel': {'class': 'border-slate-600/60 bg-slate-900/90 text-slate-300', 'icon': 'fa-solid fa-comment-dots'},
+        }
+        return mapping.get(self.category, mapping['Genel'])

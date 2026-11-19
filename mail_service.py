@@ -1,5 +1,6 @@
 import os
 import json
+import html
 import urllib.request
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -359,3 +360,94 @@ def send_password_reset_email(to_email, username, reset_code):
         error_msg = str(e)
         print(f"[!] Şifre sıfırlama e-posta hatası: {error_msg}")
         return False, error_msg
+
+
+def send_feedback_notification_email(
+    sender_name,
+    sender_email,
+    category,
+    rating,
+    message,
+    target_email='cyberhubsecurity.tr@gmail.com',
+):
+    """Send user feedback notification email to the site's contact mailbox."""
+    safe_name = html.escape(sender_name or 'Ziyaretçi')
+    safe_email = html.escape(sender_email or 'Belirtilmedi')
+    safe_cat = html.escape(category or 'Genel')
+    safe_msg = html.escape(message or '').replace('\n', '<br>')
+    safe_rating = max(1, min(5, int(rating or 5)))
+    stars_text = '★' * safe_rating + '☆' * (5 - safe_rating)
+    subject = f"💬 NÖHÜ CyberHub Yeni Geri Bildirim [{category}] - {sender_name}"
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head><meta charset="utf-8"></head>
+    <body style="margin:0;padding:24px;background:#06090f;font-family:Arial,sans-serif;color:#e2e8f0;">
+        <div style="max-width:560px;margin:0 auto;background:#0f172a;border:1px solid #1e293b;border-radius:12px;overflow:hidden;">
+            <div style="background:#030712;padding:20px;border-bottom:1px solid #1e293b;border-top:3px solid #06b6d4;">
+                <div style="font-size:11px;color:#22d3ee;font-family:monospace;letter-spacing:1.5px;">[ NÖHÜ CYBERHUB GERİ BİLDİRİM ]</div>
+                <h2 style="margin:6px 0 0;color:#ffffff;font-size:18px;">Yeni Kullanıcı Geri Dönüşü</h2>
+            </div>
+            <div style="padding:22px;font-size:13px;line-height:1.6;">
+                <p style="margin:0 0 8px;"><strong>Gönderen:</strong> {safe_name}</p>
+                <p style="margin:0 0 8px;"><strong>Yanıt E-Postası:</strong> {safe_email}</p>
+                <p style="margin:0 0 8px;"><strong>Kategori:</strong> {safe_cat}</p>
+                <p style="margin:0 0 14px;"><strong>Değerlendirme:</strong> {stars_text} ({safe_rating}/5)</p>
+                <div style="padding:14px;background:#030712;border:1px solid #334155;border-radius:8px;color:#cbd5e1;">
+                    {safe_msg}
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    try:
+        brevo_key = os.environ.get('BREVO_API_KEY') or current_app.config.get('BREVO_API_KEY')
+        if brevo_key:
+            sent, api_msg = send_via_brevo_api(brevo_key, target_email, 'CyberHub Admin', subject, html_body)
+            if sent:
+                return True, api_msg
+
+        resend_key = os.environ.get('RESEND_API_KEY') or current_app.config.get('RESEND_API_KEY')
+        if resend_key:
+            sent, api_msg = send_via_resend_api(resend_key, target_email, subject, html_body)
+            if sent:
+                return True, api_msg
+
+        mail_username = current_app.config.get('MAIL_USERNAME', '').strip()
+        mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
+        mail_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
+        use_tls = current_app.config.get('MAIL_USE_TLS', True)
+
+        if not mail_username or not mail_password:
+            return False, "SMTP e-posta bilgileri yapılandırılmamış."
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"NÖHÜ CyberHub Bildirim <{mail_username}>"
+        msg['To'] = target_email
+        if sender_email and '@' in sender_email:
+            msg['Reply-To'] = sender_email
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+        last_err = None
+        for use_ssl in (True, False):
+            try:
+                if use_ssl:
+                    with smtplib.SMTP_SSL(mail_server, 465, timeout=5) as server:
+                        server.login(mail_username, mail_password)
+                        server.sendmail(mail_username, target_email, msg.as_string())
+                else:
+                    with smtplib.SMTP(mail_server, 587, timeout=5) as server:
+                        if use_tls:
+                            server.starttls()
+                        server.login(mail_username, mail_password)
+                        server.sendmail(mail_username, target_email, msg.as_string())
+                return True, "Geri bildirim e-postası gönderildi."
+            except Exception as err:
+                last_err = err
+        return False, str(last_err)
+    except Exception as e:
+        return False, str(e)

@@ -385,6 +385,76 @@
         </div>
     </div>
 
+    <!-- Geri Bildirim & İletişim Section -->
+    <section id="geri-bildirim" class="cyber-card p-5 sm:p-8 rounded-2xl border border-cyan-500/30 mb-8 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono mb-2">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>GERİ BİLDİRİM &amp; İLETİŞİM</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-white">Geri Dönüşünüz Bizim İçin Değerli</h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    Öneri, hata bildirimi veya yeni laboratuvar isteklerinizi doğrudan
+                    <a href="mailto:{{ support_email }}?subject=N%C3%96H%C3%9C%20CyberHub%20Geri%20Bildirim" class="text-cyan-300 hover:underline font-mono font-semibold break-all">{{ support_email }}</a>
+                    adresimize gönderebilir ya da formdan yazarak sitede paylaşabilirsiniz.
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2.5 w-full lg:w-auto shrink-0">
+                <a href="mailto:{{ support_email }}?subject=N%C3%96H%C3%9C%20CyberHub%20Geri%20Bildirim"
+                   class="justify-center px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs sm:text-sm font-mono inline-flex items-center gap-2 transition-colors">
+                    <i class="fa-regular fa-envelope text-cyan-400"></i>
+                    <span>E-Posta Gönder</span>
+                </a>
+                <a href="{{ url_for('feedback_page') }}"
+                   class="justify-center px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs sm:text-sm font-medium inline-flex items-center gap-2 transition-colors shadow-sm">
+                    <i class="fa-solid fa-comment-dots"></i>
+                    <span>Geri Bildirim Yaz ({{ feedback_count }})</span>
+                </a>
+            </div>
+        </div>
+
+        {% if recent_feedbacks %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 border-t border-white/10">
+            {% for fb in recent_feedbacks %}
+            <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800/90 space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-xs sm:text-sm font-bold text-white truncate">{{ fb.sender_name }}</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono border {{ fb.category_badge.class }}">
+                            {{ fb.category }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-[11px] text-amber-400 whitespace-nowrap">
+                            {% for s in range(1, 6) %}
+                                <i class="fa-solid fa-star {{ 'text-amber-400' if s <= (fb.rating or 5) else 'text-slate-700' }}"></i>
+                            {% endfor %}
+                        </span>
+                        {% if current_user and current_user.is_superadmin %}
+                        <form action="{{ url_for('admin_delete_feedback', feedback_id=fb.id) }}" method="POST" class="inline" onsubmit="return confirm('Bu geri bildirim mesajını kalıcı olarak silmek istiyor musunuz?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="return_to" value="index">
+                            <button type="submit" class="px-1.5 py-0.5 rounded bg-red-950/90 hover:bg-red-900 border border-red-800 text-red-300 text-[10px] font-mono inline-flex items-center gap-1 transition-colors" title="Root Yetkisiyle Sil">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Sil</span>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed break-words line-clamp-3">{{ fb.message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span>Henüz sitede paylaşılmış bir geri dönüş yok — ilk yorumu siz bırakabilirsiniz.</span>
+            <a href="{{ url_for('feedback_page') }}" class="text-cyan-400 hover:text-cyan-300 font-mono font-semibold shrink-0">Hemen Yaz &rarr;</a>
+        </div>
+        {% endif %}
+    </section>
+
 </div>
 {% endblock %}
 

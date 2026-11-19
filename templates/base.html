@@ -51,41 +51,44 @@
         <div class="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-6">
             <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
                 <!-- Brand / Logo -->
-                <div class="flex items-center space-x-2 min-w-0">
+                <div class="flex items-center space-x-2 min-w-0 shrink-0">
                     <a href="{{ url_for('index') }}" class="flex items-center space-x-2 group min-w-0">
                         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NÖHÜ Siber Güvenlik Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] group-hover:scale-105 transition-all duration-300 shrink-0">
                         <div class="leading-tight min-w-0">
-                            <div class="font-bold text-white text-xs sm:text-sm tracking-tight group-hover:text-cyan-300 transition-colors truncate">NÖHÜ Siber Güvenlik</div>
+                            <div class="font-bold text-white text-xs sm:text-sm tracking-tight group-hover:text-cyan-300 transition-colors whitespace-nowrap">NÖHÜ Siber Güvenlik</div>
                             <div class="text-[9px] text-slate-400 font-mono leading-none mt-0.5 hidden sm:block whitespace-nowrap">Eğitim & Lab Platformu</div>
                         </div>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden lg:flex items-center space-x-1 xl:space-x-1.5 text-xs font-medium shrink-0">
-                    <a href="{{ url_for('index') }}" class="text-slate-300 hover:text-white hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors whitespace-nowrap">
+                <div class="hidden xl:flex items-center space-x-0.5 2xl:space-x-1.5 text-[11px] 2xl:text-xs font-medium shrink-0">
+                    <a href="{{ url_for('index') }}" class="text-slate-300 hover:text-white hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors whitespace-nowrap">
                         Ana Sayfa
                     </a>
-                    <a href="{{ url_for('red_team') }}" class="text-slate-300 hover:text-red-400 hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                    <a href="{{ url_for('red_team') }}" class="text-slate-300 hover:text-red-400 hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
                         <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 shrink-0"></span>Red Team
                     </a>
-                    <a href="{{ url_for('blue_team') }}" class="text-slate-300 hover:text-blue-400 hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                    <a href="{{ url_for('blue_team') }}" class="text-slate-300 hover:text-blue-400 hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5 shrink-0"></span>Blue Team
                     </a>
-                    <a href="{{ url_for('purple_team') }}" class="text-slate-300 hover:text-purple-400 hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                    <a href="{{ url_for('purple_team') }}" class="text-slate-300 hover:text-purple-400 hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
                         <span class="w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5 shrink-0"></span>Purple Team
                     </a>
-                    <a href="{{ url_for('leaderboard') }}" class="text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors whitespace-nowrap">
+                    <a href="{{ url_for('leaderboard') }}" class="text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors whitespace-nowrap">
                         Sıralama
                     </a>
-                    <a href="{{ url_for('events_page') }}" class="text-slate-300 hover:text-emerald-400 hover:bg-slate-800/60 px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                    <a href="{{ url_for('events_page') }}" class="text-slate-300 hover:text-emerald-400 hover:bg-slate-800/60 px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
                         <i class="fa-regular fa-calendar-days text-emerald-400 mr-1.5 text-xs shrink-0"></i>Etkinlikler
                     </a>
-                    <a href="{{ url_for('biz_kimiz') }}" class="{% if request.endpoint == 'biz_kimiz' %}text-cyan-300 bg-cyan-950/60 border border-cyan-500/40{% else %}text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60{% endif %} px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                    <a href="{{ url_for('biz_kimiz') }}" class="{% if request.endpoint == 'biz_kimiz' %}text-cyan-300 bg-cyan-950/60 border border-cyan-500/40{% else %}text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60{% endif %} px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
                         <i class="fa-solid fa-users text-cyan-400 mr-1.5 text-xs shrink-0"></i>Biz Kimiz?
                     </a>
+                    <a href="{{ url_for('feedback_page') }}" class="{% if request.endpoint == 'feedback_page' %}text-cyan-300 bg-cyan-950/60 border border-cyan-500/40{% else %}text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60{% endif %} px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center whitespace-nowrap">
+                        <i class="fa-solid fa-comment-dots text-cyan-400 mr-1.5 text-xs shrink-0"></i>Geri Bildirim
+                    </a>
                     {% if current_user and current_user.is_team_leader %}
-                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-2 py-1.5 rounded-md transition-colors flex items-center border text-xs font-mono shadow-sm whitespace-nowrap shrink-0">
+                    <a href="{{ url_for('admin_panel') }}" class="{% if current_user.is_superadmin %}text-amber-300 hover:text-amber-200 bg-amber-950/40 hover:bg-amber-950/70 border-amber-500/40{% else %}text-sky-300 hover:text-sky-200 bg-sky-950/40 hover:bg-sky-950/70 border-sky-500/40{% endif %} px-1.5 2xl:px-2 py-1.5 rounded-md transition-colors flex items-center border text-[11px] 2xl:text-xs font-mono shadow-sm whitespace-nowrap shrink-0">
                         {% if current_user.is_superadmin %}
                             <i class="fa-solid fa-crown mr-1.5 text-amber-400 text-xs shrink-0"></i><span>Yönetim</span>
                         {% else %}
@@ -129,14 +132,14 @@
                         </a>
                     {% endif %}
                     <!-- Mobile Menu Toggle -->
-                    <button type="button" id="mobile-nav-toggle" aria-label="Menüyü Aç/Kapat" aria-expanded="false" aria-controls="mobile-nav-menu" class="lg:hidden w-9 h-9 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500/50 transition-colors shrink-0 flex items-center justify-center">
+                    <button type="button" id="mobile-nav-toggle" aria-label="Menüyü Aç/Kapat" aria-expanded="false" aria-controls="mobile-nav-menu" class="xl:hidden w-9 h-9 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500/50 transition-colors shrink-0 flex items-center justify-center">
                         <i id="mobile-nav-icon" class="fa-solid fa-bars text-sm"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Mobile Dropdown Navigation -->
-            <div id="mobile-nav-menu" class="hidden lg:hidden pb-3 pt-2 border-t border-white/10 space-y-1 text-xs font-medium max-h-[calc(100dvh-4rem)] overflow-y-auto">
+            <div id="mobile-nav-menu" class="hidden xl:hidden pb-3 pt-2 border-t border-white/10 space-y-1 text-xs font-medium max-h-[calc(100dvh-4rem)] overflow-y-auto">
                 {% if current_user %}
                 <div class="mb-2 p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2 font-mono">
                     <div class="flex flex-wrap items-center gap-1.5 min-w-0">
@@ -165,6 +168,9 @@
                 </a>
                 <a href="{{ url_for('biz_kimiz') }}" class="flex items-center px-3 py-2.5 rounded-md {% if request.endpoint == 'biz_kimiz' %}text-cyan-300 bg-cyan-950/60 border border-cyan-500/40{% else %}text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60{% endif %}">
                     <i class="fa-solid fa-users text-cyan-400 mr-2"></i>Biz Kimiz?
+                </a>
+                <a href="{{ url_for('feedback_page') }}" class="flex items-center px-3 py-2.5 rounded-md {% if request.endpoint == 'feedback_page' %}text-cyan-300 bg-cyan-950/60 border border-cyan-500/40{% else %}text-slate-300 hover:text-cyan-400 hover:bg-slate-800/60{% endif %}">
+                    <i class="fa-solid fa-comment-dots text-cyan-400 mr-2"></i>Geri Bildirim
                 </a>
                 {% if current_user %}
                 <a href="{{ url_for('dashboard') }}" class="flex items-center px-3 py-2.5 rounded-md {{ 'text-blue-300 bg-blue-950/40' if request.endpoint == 'dashboard' else 'text-slate-300 hover:text-blue-400 hover:bg-slate-800/60' }}">
@@ -230,7 +236,16 @@
                     Proje Ekibi: Sefa Gümüş, Aziz Mahmudlu, Halil İbrahim Çevik, Murat Saraç &bull;
                     <a href="{{ url_for('biz_kimiz') }}" class="text-cyan-400 hover:text-cyan-300 underline-offset-2 hover:underline font-medium">Biz Kimiz?</a>
                 </p>
-                <p class="text-slate-500 mt-0.5">&copy; 2026 NÖHÜ Siber Lab</p>
+                <p class="text-slate-400 mt-1 flex flex-wrap items-center justify-center md:justify-end gap-x-2 gap-y-1">
+                    <a href="mailto:{{ support_email }}" class="text-cyan-400 hover:text-cyan-300 font-mono break-all inline-flex items-center gap-1">
+                        <i class="fa-regular fa-envelope"></i>{{ support_email }}
+                    </a>
+                    <span class="text-slate-600 hidden sm:inline">&bull;</span>
+                    <a href="{{ url_for('feedback_page') }}" class="text-emerald-400 hover:text-emerald-300 underline-offset-2 hover:underline font-medium inline-flex items-center gap-1">
+                        <i class="fa-solid fa-comment-dots"></i>Geri Bildirim Gönder
+                    </a>
+                </p>
+                <p class="text-slate-500 mt-1">&copy; 2026 NÖHÜ Siber Lab</p>
             </div>
         </div>
     </footer>

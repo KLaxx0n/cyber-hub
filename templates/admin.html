@@ -388,6 +388,60 @@
         </div>
     </div>
 
+    <!-- Kullanıcı Geri Bildirimleri Yönetimi -->
+    <div id="admin-feedbacks" class="cyber-card p-5 sm:p-6 border-slate-800 rounded-xl shadow-md mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-cyan-400"></i>
+                    <span>Gelen Kullanıcı Geri Bildirimleri ({{ feedbacks|length }})</span>
+                </h2>
+                <p class="text-[11px] font-mono text-slate-400 mt-0.5">Hedef E-Posta: {{ support_email }}</p>
+            </div>
+            <a href="{{ url_for('feedback_page') }}" class="text-xs font-mono text-cyan-400 hover:text-cyan-300">
+                Herkese Açık Sayfaya Git &rarr;
+            </a>
+        </div>
+
+        {% if feedbacks %}
+        <div class="space-y-3">
+            {% for fb in feedbacks %}
+            <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div class="space-y-1.5 min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+                        <span class="font-bold text-white">{{ fb.sender_name }}</span>
+                        {% if fb.sender_email %}
+                        <span class="text-cyan-300 break-all">&lt;{{ fb.sender_email }}&gt;</span>
+                        {% endif %}
+                        <span class="px-2 py-0.5 rounded text-[10px] border {{ fb.category_badge.class }}">{{ fb.category }}</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] border {{ 'border-emerald-700 bg-emerald-950/70 text-emerald-300' if fb.is_public else 'border-slate-700 bg-slate-900 text-slate-400' }}">
+                            {{ 'Sitede Açık' if fb.is_public else 'Yalnızca Yönetici' }}
+                        </span>
+                        <span class="text-amber-400">{{ fb.rating or 5 }}/5 ★</span>
+                        <span class="text-slate-500">{{ fb.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300 whitespace-pre-line break-words">{{ fb.message }}</p>
+                </div>
+                {% if current_user.is_superadmin %}
+                <form action="{{ url_for('admin_delete_feedback', feedback_id=fb.id) }}" method="POST" class="shrink-0" onsubmit="return confirm('Bu geri bildirimi silmek istiyor musunuz?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                    <input type="hidden" name="return_to" value="admin">
+                    <button type="submit" class="px-2.5 py-1.5 rounded bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 text-xs font-mono inline-flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Sil</span>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-6 text-center text-xs font-mono text-slate-500">
+            Henüz gelen bir geri bildirim kaydı bulunmuyor.
+        </div>
+        {% endif %}
+    </div>
+
 </div>
 
 <!-- Realtime Client Filter Script -->

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Geri Bildirim & İletişim - NÖHÜ CyberHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+
+    <!-- Header & Direct Contact Card -->
+    <div class="cyber-card p-5 sm:p-8 border border-cyan-500/30 shadow-xl">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+            <div>
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-cyan-950/80 border border-cyan-700/70 text-cyan-300 text-[11px] sm:text-xs font-mono mb-3">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>GERİ BİLDİRİM &amp; İLETİŞİM MERKEZİ</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Görüşleriniz &amp; Önerileriniz</h1>
+                <p class="text-xs sm:text-sm text-slate-300 mt-2 max-w-2xl leading-relaxed">
+                    Platform deneyiminiz, yeni laboratuvar fikirleriniz, hata bildirimleriniz veya sorularınız için doğrudan e-posta gönderebilir ya da aşağıdaki form aracılığıyla sitede paylaşabilirsiniz.
+                </p>
+            </div>
+
+            <!-- Direct Email Action Box -->
+            <div class="p-4 sm:p-5 rounded-xl bg-slate-950/85 border border-cyan-500/35 w-full lg:w-auto shrink-0 space-y-3">
+                <div class="text-[11px] font-mono uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Doğrudan İletişim E-Postamız
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="mailto:{{ support_email }}?subject=N%C3%96H%C3%9C%20CyberHub%20Geri%20Bildirim"
+                       class="text-sm sm:text-base font-mono font-bold text-white hover:text-cyan-300 transition-colors break-all">
+                        {{ support_email }}
+                    </a>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="mailto:{{ support_email }}?subject=N%C3%96H%C3%9C%20CyberHub%20Geri%20Bildirim"
+                       class="flex-1 sm:flex-initial justify-center px-3.5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium inline-flex items-center gap-1.5 transition-colors whitespace-nowrap">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Mail Gönder</span>
+                    </a>
+                    <button type="button" id="copy-support-email-btn" onclick="copySupportEmail()"
+                            class="flex-1 sm:flex-initial justify-center px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-mono inline-flex items-center gap-1.5 transition-colors whitespace-nowrap">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="copy-support-email-label">Adresi Kopyala</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Split: Submission Form + Public Feedback Wall -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 sm:gap-8 items-start">
+
+        <!-- Feedback Submission Form -->
+        <div class="lg:col-span-2 cyber-card p-5 sm:p-6 border border-slate-800 shadow-lg">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+                <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-comment-medical text-cyan-400"></i>
+                    <span>Geri Bildirim Yaz</span>
+                </h2>
+                <span class="text-[11px] font-mono text-slate-400">Hızlı &amp; Kayıtlı</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('feedback_page') }}" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div>
+                    <label for="sender_name" class="block text-xs font-medium text-slate-300 mb-1">Adınız veya Kullanıcı Adınız *</label>
+                    <input type="text" id="sender_name" name="sender_name" required maxlength="80"
+                           value="{{ (form_data.sender_name if form_data else (current_user.username if current_user else '')) }}"
+                           placeholder="Örn: Ahmet Y. veya kullanici_adi"
+                           class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label for="sender_email" class="block text-xs font-medium text-slate-300 mb-1">
+                        E-Posta Adresiniz <span class="text-slate-500 font-normal">(İsteğe bağlı — sitede gizli kalır)</span>
+                    </label>
+                    <input type="email" id="sender_email" name="sender_email" maxlength="120"
+                           value="{{ (form_data.sender_email if form_data else (current_user.email if current_user else '')) }}"
+                           placeholder="Size dönüş yapmamızı isterseniz e-posta yazın"
+                           class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="category" class="block text-xs font-medium text-slate-300 mb-1">Konu / Kategori</label>
+                        <select id="category" name="category"
+                                class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500">
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if form_data and form_data.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="rating-input" class="block text-xs font-medium text-slate-300 mb-1">Değerlendirme</label>
+                        {% set selected_rating = (form_data.rating if form_data else 5) %}
+                        <input type="hidden" id="rating-input" name="rating" value="{{ selected_rating }}">
+                        <div class="flex items-center justify-between px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg" id="star-rating-picker" role="group" aria-label="Puan seçimi">
+                            {% for star in range(1, 6) %}
+                            <button type="button" data-star="{{ star }}" onclick="setFeedbackRating({{ star }})"
+                                    class="star-btn text-base transition-transform hover:scale-110 {{ 'text-amber-400' if star <= selected_rating else 'text-slate-600' }}"
+                                    aria-label="{{ star }} yıldız">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                            {% endfor %}
+                            <span id="star-rating-text" class="text-xs font-mono text-amber-300 ml-1">{{ selected_rating }}/5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="message" class="block text-xs font-medium text-slate-300 mb-1">Mesajınız / Geri Dönüşünüz *</label>
+                    <textarea id="message" name="message" rows="4" required minlength="5" maxlength="1500"
+                              placeholder="Site hakkında düşünceleriniz, yeni lab öneriniz veya karşılaştığınız bir hata..."
+                              class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500">{{ form_data.message if form_data else '' }}</textarea>
+                </div>
+
+                <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950/70 border border-slate-800 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" name="is_public" class="mt-0.5 rounded border-slate-600 text-cyan-500 focus:ring-cyan-500"
+                           {% if not form_data or form_data.is_public %}checked{% endif %}>
+                    <span>
+                        <strong class="text-white block">Sitede herkesle paylaş (Geri Dönüş Duvarı)</strong>
+                        <span class="text-[11px] text-slate-400">E-posta adresiniz kesinlikle gizli tutulur; yalnızca adınız ve mesajınız görünür.</span>
+                    </span>
+                </label>
+
+                <button type="submit" class="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-sm transition-all shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Geri Bildirimi Gönder</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Public Feedback Wall -->
+        <div id="geri-donusler" class="lg:col-span-3 cyber-card p-5 sm:p-6 border border-slate-800 shadow-lg">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-emerald-400"></i>
+                        <span>Kullanıcı Geri Dönüşleri</span>
+                    </h2>
+                    <p class="text-[11px] font-mono text-slate-400 mt-0.5">Öğrencilerimizden ve ziyaretçilerden gelen güncel yorumlar</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono">
+                    <span class="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-slate-300">
+                        {{ feedback_count }} Yorum
+                    </span>
+                    {% if feedback_count > 0 %}
+                    <span class="px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-700/50 text-amber-300 font-bold">
+                        <i class="fa-solid fa-star text-amber-400 mr-1"></i>{{ avg_rating }} / 5
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if feedbacks %}
+            <div class="space-y-3.5">
+                {% for fb in feedbacks %}
+                <div class="p-4 rounded-xl bg-slate-950/75 border border-slate-800/90 hover:border-cyan-500/35 transition-colors space-y-2.5">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-700/60 text-cyan-300 flex items-center justify-center font-bold font-mono text-xs shrink-0">
+                                {{ fb.sender_name[:2]|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="text-sm font-bold text-white break-words">{{ fb.sender_name }}</span>
+                                    {% if fb.author %}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono border {{ fb.author.role_badge.class }}">{{ fb.author.role_badge.short }}</span>
+                                    {% else %}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-700 bg-slate-900 text-slate-400">Ziyaretçi</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-500">
+                                    {{ fb.created_at.strftime('%d.%m.%Y %H:%M') }} UTC
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono border {{ fb.category_badge.class }}">
+                                <i class="{{ fb.category_badge.icon }}"></i>{{ fb.category }}
+                            </span>
+                            <span class="text-xs text-amber-400 font-mono whitespace-nowrap" title="{{ fb.rating }}/5">
+                                {% for s in range(1, 6) %}
+                                    <i class="fa-solid fa-star {{ 'text-amber-400' if s <= (fb.rating or 5) else 'text-slate-700' }}"></i>
+                                {% endfor %}
+                            </span>
+                            {% if current_user and current_user.is_superadmin %}
+                            <form action="{{ url_for('admin_delete_feedback', feedback_id=fb.id) }}" method="POST" class="inline" onsubmit="return confirm('Bu geri bildirim mesajını kalıcı olarak silmek istiyor musunuz?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="return_to" value="feedback">
+                                <button type="submit" class="px-2 py-0.5 rounded bg-red-950/90 hover:bg-red-900 border border-red-800 text-red-300 text-[11px] font-mono inline-flex items-center gap-1 transition-colors" title="Root Yetkisiyle Sil">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Sil</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-line break-words">{{ fb.message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-8 text-center rounded-xl bg-slate-950/60 border border-dashed border-slate-800 space-y-2">
+                <i class="fa-regular fa-comment-dots text-3xl text-cyan-400/70"></i>
+                <p class="text-sm font-semibold text-white">Henüz herkese açık geri bildirim paylaşılmamış.</p>
+                <p class="text-xs text-slate-400">İlk değerlendirmeyi soldaki formdan paylaşabilir veya <span class="text-cyan-300 font-mono">{{ support_email }}</span> adresimize yazabilirsiniz.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function setFeedbackRating(val) {
+        const input = document.getElementById('rating-input');
+        const label = document.getElementById('star-rating-text');
+        if (input) input.value = val;
+        if (label) label.textContent = `${val}/5`;
+        document.querySelectorAll('#star-rating-picker .star-btn').forEach(btn => {
+            const star = parseInt(btn.getAttribute('data-star'), 10);
+            btn.classList.toggle('text-amber-400', star <= val);
+            btn.classList.toggle('text-slate-600', star > val);
+        });
+    }
+
+    function copySupportEmail() {
+        const email = {{ support_email|tojson }};
+        const label = document.getElementById('copy-support-email-label');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(email).then(() => {
+                if (label) {
+                    label.textContent = 'Kopyalandı ✓';
+                    setTimeout(() => { label.textContent = 'Adresi Kopyala'; }, 2200);
+                }
+            }).catch(() => {});
+        }
+    }
+</script>
+{% endblock %}

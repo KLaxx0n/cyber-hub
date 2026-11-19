@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from models import db, Lab, User
+from models import db, Lab, User, UserFeedback
 from werkzeug.security import generate_password_hash
 
 def seed_database(app):

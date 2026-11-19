@@ -20,11 +20,13 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import func
 
 from config import Config
-from models import db, User, Lab, UserLabProgress, LabWriteup, CyberEvent
+from models import db, User, Lab, UserLabProgress, LabWriteup, CyberEvent, UserFeedback
 from seed_data import seed_database
-from mail_service import send_verification_email, send_password_reset_email
+from mail_service import send_verification_email, send_password_reset_email, send_feedback_notification_email
 from lab_configs import MULTI_TASK_LABS, get_public_tasks
 import team_config
+
+SUPPORT_EMAIL = 'cyberhubsecurity.tr@gmail.com'
 
 _team_config_mtime = None
 
@@ -57,9 +59,44 @@ limiter = Limiter(
 
 db.init_app(app)
 
+SUSPENDED_BLOCK_MSG = '🚨 Hesabınız askıya alınmıştır ve şu an giriş yapılamaz! Askıyı yalnızca Root (Süper Yönetici) kaldırabilir.'
+
+
+def _find_user_by_login(login_id, allow_email_prefix=False):
+    """Find a user by exact username/email first, optionally falling back to email prefix match."""
+    clean = (login_id or '').strip().lower()
+    if not clean:
+        return None
+    user = User.query.filter(
+        (func.lower(User.username) == clean) |
+        (func.lower(User.email) == clean)
+    ).first()
+    if user or not allow_email_prefix:
+        return user
+    return User.query.filter(func.lower(User.email).like(f"{clean}@%")).first()
+
+
+def _reject_suspended_user():
+    """Clear active session and block access for suspended accounts."""
+    session.clear()
+    if request.is_json or request.path.startswith('/api/'):
+        return jsonify({'success': False, 'message': SUSPENDED_BLOCK_MSG}), 403
+    flash(SUSPENDED_BLOCK_MSG, 'danger')
+    return redirect(url_for('login'))
+
 @app.before_request
 def ensure_permanent_session():
     session.permanent = True
+    if request.endpoint == 'static':
+        return None
+    uid = session.get('user_id')
+    if uid:
+        user = User.query.get(uid)
+        if not user:
+            session.clear()
+            return None
+        if user.is_suspended:
+            return _reject_suspended_user()
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
@@ -83,18 +120,32 @@ def is_safe_url(target):
 # Helper: Ayrılmış / Yasaklı Kullanıcı Adları
 RESERVED_USERNAMES = {'admin', 'administrator', 'root', 'system', 'superuser', 'founder', 'moderator', 'support', 'sefa_admin', 'aziz_red'}
 
+def _require_active_user(expired_msg='Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.'):
+    """Return active User for current session, or a Flask redirect/JSON response."""
+    if 'user_id' not in session:
+        msg = 'Bu sayfayı görüntülemek için lütfen önce giriş yapınız.'
+        if request.is_json or request.path.startswith('/api/'):
+            return None, (jsonify({'success': False, 'message': msg}), 401)
+        flash(msg, 'warning')
+        return None, redirect(url_for('login', next=request.url))
+    user = User.query.get(session['user_id'])
+    if not user:
+        session.clear()
+        if request.is_json or request.path.startswith('/api/'):
+            return None, (jsonify({'success': False, 'message': expired_msg}), 401)
+        flash(expired_msg, 'warning')
+        return None, redirect(url_for('login'))
+    if user.is_suspended:
+        return None, _reject_suspended_user()
+    return user, None
+
 # Helper: Login Required Decorator
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
-            return redirect(url_for('login', next=request.url))
-        user = User.query.get(session['user_id'])
-        if not user:
-            session.clear()
-            flash('Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.', 'warning')
-            return redirect(url_for('login'))
+        user, err_resp = _require_active_user()
+        if err_resp is not None:
+            return err_resp
         return f(*args, **kwargs)
     return decorated_function
 
@@ -102,14 +153,9 @@ def login_required(f):
 def lab_access_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
-            return redirect(url_for('login', next=request.url))
-        user = User.query.get(session['user_id'])
-        if not user:
-            session.clear()
-            flash('Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.', 'warning')
-            return redirect(url_for('login'))
+        user, err_resp = _require_active_user()
+        if err_resp is not None:
+            return err_resp
         if user.is_unregistered:
             msg = 'Laboratuvarlara erişim izniniz yok. Hesabınız "Kayıtsız" rolünde olduğu için yöneticinin rolünüzü "Öğrenci" olarak onaylaması gerekmektedir.'
             if request.is_json or request.path.startswith('/api/'):
@@ -123,14 +169,9 @@ def lab_access_required(f):
 def leader_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
-            return redirect(url_for('login', next=request.url))
-        user = User.query.get(session['user_id'])
-        if not user:
-            session.clear()
-            flash('Oturum geçersiz. Lütfen tekrar giriş yapınız.', 'warning')
-            return redirect(url_for('login'))
+        user, err_resp = _require_active_user('Oturum geçersiz. Lütfen tekrar giriş yapınız.')
+        if err_resp is not None:
+            return err_resp
         if not user.is_team_leader:
             flash('Bu sayfaya erişim yetkiniz bulunmamaktadır. Yalnızca Takım Liderleri ve Süper Yöneticiler görüntüleyebilir.', 'danger')
             return redirect(url_for('dashboard'))
@@ -141,34 +182,26 @@ def leader_required(f):
 def superadmin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Bu sayfayı görüntülemek için lütfen önce giriş yapınız.', 'warning')
-            return redirect(url_for('login', next=request.url))
-        user = User.query.get(session['user_id'])
-        if not user:
-            session.clear()
-            flash('Oturum geçersiz. Lütfen tekrar giriş yapınız.', 'warning')
-            return redirect(url_for('login'))
+        user, err_resp = _require_active_user('Oturum geçersiz. Lütfen tekrar giriş yapınız.')
+        if err_resp is not None:
+            return err_resp
         if not user.is_superadmin:
             flash('Bu kritik işlem için yetkiniz yetersiz. Yalnızca Süper Yönetici (Root) gerçekleştirebilir.', 'danger')
             return redirect(url_for('admin_panel'))
         return f(*args, **kwargs)
     return decorated_function
 
-# Kalıcı Oturum Denetimi (Kullanıcı hesaplarının kapanmaması için 365 gün kalıcı oturum)
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
-
 # Context Processor for Nav and Auth State
 @app.context_processor
 def inject_user():
     current_user = None
     if 'user_id' in session:
-        current_user = User.query.get(session['user_id'])
-        if not current_user:
+        user = User.query.get(session['user_id'])
+        if not user or user.is_suspended:
             session.clear()
-    return dict(current_user=current_user)
+        else:
+            current_user = user
+    return dict(current_user=current_user, support_email=SUPPORT_EMAIL)
 
 # HTTP Güvenlik Başlıkları (Security Headers)
 @app.after_request
@@ -227,10 +260,14 @@ def index():
     stats = _get_platform_stats()
     top_users = User.query.filter_by(is_verified=True).order_by(User.score.desc()).limit(5).all()
     team_ctx = _load_team_context()
+    recent_feedbacks = UserFeedback.query.filter_by(is_public=True).order_by(UserFeedback.created_at.desc()).limit(4).all()
+    feedback_count = UserFeedback.query.filter_by(is_public=True).count()
     return render_template('index.html',
                            **stats,
                            top_users=top_users,
-                           team_ctx=team_ctx)
+                           team_ctx=team_ctx,
+                           recent_feedbacks=recent_feedbacks,
+                           feedback_count=feedback_count)
 
 @app.route('/biz-kimiz')
 def biz_kimiz():
@@ -242,6 +279,90 @@ def biz_kimiz():
 def about():
     return redirect(url_for('biz_kimiz'))
 
+FEEDBACK_CATEGORIES = ('Öneri', 'Hata Bildirimi', 'Yeni Lab Talebi', 'Teşekkür & Yorum', 'Genel')
+
+@app.route('/geri-bildirim', methods=['GET', 'POST'])
+@limiter.limit("12 per minute")
+def feedback_page():
+    active_user = None
+    if 'user_id' in session:
+        active_user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        sender_name = request.form.get('sender_name', '').strip()
+        if not sender_name and active_user:
+            sender_name = active_user.username
+        sender_email = request.form.get('sender_email', '').strip().lower()
+        category = request.form.get('category', 'Genel').strip()
+        if category not in FEEDBACK_CATEGORIES:
+            category = 'Genel'
+        try:
+            rating = max(1, min(5, int(request.form.get('rating', 5))))
+        except (TypeError, ValueError):
+            rating = 5
+        message = request.form.get('message', '').strip()
+        is_public = request.form.get('is_public') == 'on'
+
+        form_data = {
+            'sender_name': sender_name,
+            'sender_email': sender_email,
+            'category': category,
+            'rating': rating,
+            'message': message,
+            'is_public': is_public,
+        }
+
+        if len(sender_name) < 2 or len(sender_name) > 80:
+            flash('Lütfen adınızı veya kullanıcı adınızı (2-80 karakter) giriniz.', 'danger')
+        elif sender_email and (len(sender_email) > 120 or '@' not in sender_email or '.' not in sender_email.split('@')[-1]):
+            flash('Lütfen geçerli bir e-posta adresi giriniz veya alanı boş bırakınız.', 'danger')
+        elif len(message) < 5 or len(message) > 1500:
+            flash('Geri bildirim mesajınız en az 5, en fazla 1500 karakter olmalıdır.', 'danger')
+        else:
+            fb = UserFeedback(
+                user_id=active_user.id if active_user else None,
+                sender_name=sender_name,
+                sender_email=sender_email or None,
+                category=category,
+                rating=rating,
+                message=message,
+                is_public=is_public,
+            )
+            db.session.add(fb)
+            db.session.commit()
+
+            mail_sent, _ = send_feedback_notification_email(
+                sender_name=sender_name,
+                sender_email=sender_email,
+                category=category,
+                rating=rating,
+                message=message,
+                target_email=SUPPORT_EMAIL,
+            )
+            if mail_sent:
+                flash(f'Geri bildiriminiz alındı ve {SUPPORT_EMAIL} adresimize iletildi. Teşekkür ederiz!', 'success')
+            else:
+                flash(f'Geri bildiriminiz platforma kaydedildi! Doğrudan e-posta atmak isterseniz {SUPPORT_EMAIL} adresini kullanabilirsiniz.', 'success')
+            return redirect(url_for('feedback_page') + '#geri-donusler')
+
+        feedbacks = UserFeedback.query.filter_by(is_public=True).order_by(UserFeedback.created_at.desc()).limit(50).all()
+        avg_rating = round(sum(f.rating or 5 for f in feedbacks) / len(feedbacks), 1) if feedbacks else 0
+        return render_template('feedback.html',
+                               feedbacks=feedbacks,
+                               feedback_count=len(feedbacks),
+                               avg_rating=avg_rating,
+                               categories=FEEDBACK_CATEGORIES,
+                               form_data=form_data)
+
+    feedbacks = UserFeedback.query.filter_by(is_public=True).order_by(UserFeedback.created_at.desc()).limit(50).all()
+    avg_rating = round(sum(f.rating or 5 for f in feedbacks) / len(feedbacks), 1) if feedbacks else 0
+    return render_template('feedback.html',
+                           feedbacks=feedbacks,
+                           feedback_count=len(feedbacks),
+                           avg_rating=avg_rating,
+                           categories=FEEDBACK_CATEGORIES,
+                           form_data=None)
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -249,7 +370,7 @@ def about():
 def register():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        if user:
+        if user and not user.is_suspended:
             return redirect(url_for('dashboard'))
         else:
             session.clear()
@@ -342,6 +463,9 @@ def resend_verification():
     if not user:
         flash('Kullanıcı bulunamadı.', 'danger')
         return redirect(url_for('register'))
+    if user.is_suspended:
+        flash(SUSPENDED_BLOCK_MSG, 'danger')
+        return redirect(url_for('login'))
     if user.is_verified:
         flash('Hesabınız zaten doğrulanmış. Giriş yapabilirsiniz.', 'info')
         return redirect(url_for('login'))
@@ -382,6 +506,10 @@ def verify():
             flash('Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('verify.html', email=email)
 
+        if user.is_suspended:
+            flash(SUSPENDED_BLOCK_MSG, 'danger')
+            return render_template('verify.html', email=email)
+
         if user.is_verified:
             flash('Hesabınız zaten onaylanmış! Giriş yapabilirsiniz.', 'success')
             return redirect(url_for('login'))
@@ -398,7 +526,6 @@ def verify():
             user.is_verified = True
             user.verification_code = None
             user.verification_code_expires_at = None
-            user.is_suspended = False
             user.failed_login_attempts = 0
             db.session.commit()
             
@@ -421,7 +548,7 @@ def verify():
 def login():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        if user:
+        if user and not user.is_suspended:
             return redirect(url_for('dashboard'))
         else:
             session.clear()
@@ -434,45 +561,35 @@ def login():
             flash('Lütfen kullanıcı adı/e-posta ve şifrenizi girin.', 'danger')
             return render_template('login.html', login_id=login_id)
 
-        clean_login = login_id.lower()
-        user = User.query.filter(
-            (func.lower(User.username) == clean_login) | 
-            (func.lower(User.email) == clean_login) |
-            (func.lower(User.email).like(f"{clean_login}@%"))
-        ).first()
+        user = _find_user_by_login(login_id, allow_email_prefix=True)
 
         if not user:
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('login.html', login_id=login_id)
 
-        # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ (Yalnızca Giriş Yap kısmında uygulanır)
+        # 1. HESAP ASKI VE GÜVENLİK KONTROLÜ (Askıya alınmış hesap Root askıyı kaldırana kadar giriş yapamaz)
         if user.is_suspended:
-            # Doğru şifre girildiğinde askıyı otomatik kaldır ve girişe izin ver
-            if user.check_password(password):
-                user.is_suspended = False
-                user.failed_login_attempts = 0
-                db.session.commit()
-            else:
-                flash('🚨 Bu hesap giriş denemeleri nedeniyle geçici olarak askıya alınmıştır. Kilidi açmak için doğru şifrenizi giriniz veya Şifremi Unuttum seçeneğini kullanınız.', 'danger')
-                return render_template('login.html', login_id=login_id)
+            flash(SUSPENDED_BLOCK_MSG, 'danger')
+            return render_template('login.html', login_id=login_id)
 
-        # 2. ŞİFRE DOĞRULAMA (SADECE GİRİŞ YAP EKRANINDA 3 KEZ HATALI GİRİLİRSE ASKIYA ALINIR)
+        # 2. ŞİFRE DOĞRULAMA (Giriş ekranında 3 kez hatalı girilirse hesap askıya alınır)
         if not user.check_password(password):
             user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
             if user.failed_login_attempts >= 3:
                 user.is_suspended = True
+                user.reset_token = None
+                user.reset_token_expires_at = None
                 db.session.commit()
-                flash('🚨 Şifrenizi 3 kez üst üste hatalı girdiniz! Hesabınız güvenlik için askıya alındı. Açmak için doğru şifrenizi giriniz veya Şifremi Unuttum ile şifrenizi sıfırlayınız.', 'danger')
+                flash('🚨 Şifrenizi 3 kez üst üste hatalı girdiniz! Hesabınız güvenlik için askıya alındı ve giriş kapatıldı. Askıyı yalnızca Root (Süper Yönetici) kaldırabilir.', 'danger')
             else:
                 remaining = 3 - user.failed_login_attempts
                 db.session.commit()
                 flash(f'Girdiğiniz şifre hatalı! Kalan giriş hakkınız: {remaining}.', 'danger')
             return render_template('login.html', login_id=login_id)
 
-        # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla
-        if (user.failed_login_attempts or 0) > 0 or user.is_suspended:
+        # 3. BAŞARILI GİRİŞ - Hatalı deneme sayacını sıfırla (yalnızca askıda olmayan hesaplar buraya ulaşır)
+        if (user.failed_login_attempts or 0) > 0:
             user.failed_login_attempts = 0
-            user.is_suspended = False
             db.session.commit()
 
         # E-posta doğrulama kaldırıldı: Hesap doğrulanmamışsa bile otomatik onayla
@@ -486,7 +603,6 @@ def login():
             user.is_founder = True
             user.is_leader = True
             user.is_verified = True
-            user.is_suspended = False
             user.failed_login_attempts = 0
             db.session.commit()
 
@@ -520,8 +636,10 @@ def login_2fa():
         return redirect(url_for('login'))
 
     user = User.query.get(pending_user_id)
-    if not user or not user.two_factor_enabled or not user.totp_secret:
-        session.pop('pending_2fa_user_id', None)
+    if not user or user.is_suspended or not user.two_factor_enabled or not user.totp_secret:
+        session.clear()
+        if user and user.is_suspended:
+            flash(SUSPENDED_BLOCK_MSG, 'danger')
         return redirect(url_for('login'))
 
     if request.method == 'POST':
@@ -677,14 +795,15 @@ def forgot_password():
             flash('Lütfen kullanıcı adı veya e-posta adresinizi giriniz.', 'danger')
             return render_template('forgot_password.html')
 
-        user = User.query.filter(
-            (func.lower(User.username) == login_id.lower()) | 
-            (func.lower(User.email) == login_id.lower())
-        ).first()
+        user = _find_user_by_login(login_id)
 
         if not user:
             flash('Bu kullanıcı adı veya e-posta ile kayıtlı bir hesap bulunamadı.', 'danger')
             return render_template('forgot_password.html', login_id=login_id)
+
+        if user.is_suspended:
+            flash(SUSPENDED_BLOCK_MSG, 'danger')
+            return redirect(url_for('login'))
 
         reset_code = generate_verification_code()
         user.reset_token = reset_code
@@ -693,7 +812,12 @@ def forgot_password():
 
         sent, mail_msg = send_password_reset_email(user.email, user.username, reset_code)
         if sent:
+            print(f"[+] (GELİŞTİRİCİ KONSOLU) Şifre sıfırlama e-postası gönderildi: {user.email}")
             flash(f"6 haneli şifre sıfırlama kodu {user.email} adresinize gönderildi.", 'success')
+        elif not app.debug:
+            print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
+            flash('E-posta şu an gönderilemedi. Korumalı hesaplar için lütfen yönetici ile iletişime geçiniz.', 'warning')
+            return redirect(url_for('login'))
         else:
             print(f"[*] (GELİŞTİRİCİ KONSOLU) Şifre Sıfırlama Kodu: {reset_code}")
             flash(f"Şifre sıfırlama kodunuz üretildi: [ {reset_code} ]", 'info')
@@ -717,14 +841,15 @@ def reset_password():
             flash('Lütfen tüm alanları eksiksiz doldurunuz.', 'danger')
             return render_template('reset_password.html', email=login_id)
 
-        user = User.query.filter(
-            (func.lower(User.username) == login_id.lower()) | 
-            (func.lower(User.email) == login_id.lower())
-        ).first()
+        user = _find_user_by_login(login_id)
 
         if not user:
             flash('Kullanıcı hesabı bulunamadı.', 'danger')
             return render_template('reset_password.html', email=login_id)
+
+        if user.is_suspended:
+            flash(SUSPENDED_BLOCK_MSG, 'danger')
+            return redirect(url_for('login'))
 
         # Kod kontrolü
         if not user.reset_token or user.reset_token.strip().upper() != code:
@@ -747,12 +872,11 @@ def reset_password():
             flash(pw_msg, 'danger')
             return render_template('reset_password.html', email=login_id)
 
-        # Şifreyi güncelle ve askıyı kaldır
+        # Şifreyi güncelle (askıya alma durumu yalnızca Root tarafından kaldırılabilir)
         user.set_password(new_password)
         user.reset_token = None
         user.reset_token_expires_at = None
         user.failed_login_attempts = 0
-        user.is_suspended = False
         db.session.commit()
 
         flash('🎉 Şifreniz başarıyla sıfırlandı! Yeni şifrenizle giriş yapabilirsiniz.', 'success')
@@ -831,6 +955,7 @@ def admin_panel():
     total_completed = UserLabProgress.query.filter_by(is_completed=True).count()
     total_score = sum(u.score for u in all_users)
     suspended_count = sum(1 for u in all_users if u.is_suspended)
+    feedbacks = UserFeedback.query.order_by(UserFeedback.created_at.desc()).all()
     
     return render_template('admin.html',
                            users=all_users,
@@ -845,7 +970,22 @@ def admin_panel():
                            student_count=student_count,
                            unregistered_count=unregistered_count,
                            total_completed=total_completed,
-                           total_score=total_score)
+                           total_score=total_score,
+                           feedbacks=feedbacks)
+
+@app.route('/admin/delete-feedback/<int:feedback_id>', methods=['POST'])
+@superadmin_required
+def admin_delete_feedback(feedback_id):
+    fb = UserFeedback.query.get_or_404(feedback_id)
+    db.session.delete(fb)
+    db.session.commit()
+    flash('Geri bildirim mesajı Root yetkisiyle silindi.', 'info')
+    return_to = request.form.get('return_to', 'admin')
+    if return_to == 'feedback':
+        return redirect(url_for('feedback_page') + '#geri-donusler')
+    if return_to == 'index':
+        return redirect(url_for('index') + '#geri-bildirim')
+    return redirect(url_for('admin_panel') + '#admin-feedbacks')
 
 @app.route('/admin/set-team/<int:user_id>', methods=['POST'])
 @leader_required
@@ -918,6 +1058,8 @@ def admin_toggle_suspend(user_id):
     else:
         target_user.is_suspended = True
         target_user.failed_login_attempts = 3
+        target_user.reset_token = None
+        target_user.reset_token_expires_at = None
         db.session.commit()
         flash(f"'{target_user.username}' hesabı Süper Yönetici tarafından askıya alındı.", 'warning')
 
