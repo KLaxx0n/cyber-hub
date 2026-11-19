@@ -1,6 +1,6 @@
 <!-- Shared PDF Guide Choice & Embedded Reader Modal -->
 <div id="pdf-guide-modal"
-     class="fixed inset-0 z-[140] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6"
+     class="fixed inset-0 z-[140] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-2.5 sm:p-6 overflow-y-auto"
      role="dialog"
      aria-modal="true"
      aria-labelledby="pdf-modal-title"
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Stage 2: Embedded PDF Reader (PDF.js Canvas + Native Iframe Fallback) -->
-    <div id="pdf-viewer-view" class="hidden cyber-card border border-cyan-700/70 rounded-2xl max-w-5xl w-full h-[90vh] bg-slate-950/95 shadow-[0_0_45px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden">
+    <div id="pdf-viewer-view" class="hidden cyber-card border border-cyan-700/70 rounded-xl sm:rounded-2xl max-w-5xl w-full h-[92dvh] sm:h-[90vh] bg-slate-950/95 shadow-[0_0_45px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden my-auto">
         <div class="px-4 py-2.5 border-b border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-2 font-mono text-xs shrink-0">
             <div class="flex items-center gap-2.5 min-w-0">
                 <button type="button" onclick="backToPdfChoice()"
@@ -111,7 +111,7 @@
             </div>
         </div>
 
-        <div id="pdf-canvas-scroll" class="flex-1 overflow-auto bg-[#0b1220] p-4 sm:p-6">
+        <div id="pdf-canvas-scroll" class="flex-1 overflow-auto bg-[#0b1220] p-2.5 sm:p-6">
             <div id="pdf-loading-state" class="py-16 text-center font-mono text-xs text-cyan-300">
                 <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i>
                 <span>PDF rehberi yükleniyor...</span>
@@ -174,7 +174,7 @@
         if (pageBadge) pageBadge.textContent = `${doc.numPages} Sayfa`;
         if (zoomLabel) zoomLabel.textContent = `${Math.round(currentZoom * 100)}%`;
 
-        const availWidth = Math.max(300, Math.min(scrollBox.clientWidth - 40, 860));
+        const availWidth = Math.max(220, Math.min(scrollBox.clientWidth - 20, 860));
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {

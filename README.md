@@ -2,7 +2,7 @@
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/KLaxx0n/cyber-hub)
 
-**Niğde Ömer Halisdemir Üniversitesi — Bilgi Teknolojileri Bölümü**  
+**Niğde Ömer Halisdemir Üniversitesi — Bilgi Teknolojileri Güvenliği Bölümü**  
 **Dönem Projesi & Teknik Dokümantasyon Uygulaması**
 
 ---

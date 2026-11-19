@@ -2,7 +2,7 @@
 title Siber Guvenlik Egitim Platformu (CyberHub)
 color 0b
 echo ================================================================
-echo    NIGDE OMER HALISDEMIR UNIVERSITESI - BILGI TEKNOLOJILERI
+echo    NIGDE OMER HALISDEMIR UNIVERSITESI - BILGI TEKNOLOJILERI GUVENLIGI
 echo       SIBER GUVENLIK EGITIM PLATFORMU (RED & BLUE TEAM HUB)
 echo ================================================================
 echo.

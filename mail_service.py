@@ -96,7 +96,7 @@ def send_verification_email(to_email, username, verification_code):
                                         Kimlik Doğrulama Servisi
                                     </h1>
                                     <p style="margin: 5px 0 0; font-size: 12px; color: #64748b;">
-                                        Bilgi Teknolojileri Bölümü &bull; Güvenlik Altyapısı
+                                        Bilgi Teknolojileri Güvenliği Bölümü &bull; Güvenlik Altyapısı
                                     </p>
                                 </td>
                             </tr>

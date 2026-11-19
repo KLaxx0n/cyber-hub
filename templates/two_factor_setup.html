@@ -40,12 +40,12 @@
                     
                     <div class="my-4 flex flex-col items-center justify-center">
                         <div class="p-3 bg-white rounded-xl shadow-lg border-2 border-cyan-500/60 inline-block">
-                            <img src="{{ qr_data_uri }}" alt="2FA QR Kodu" class="w-48 h-48 block">
+                            <img src="{{ qr_data_uri }}" alt="2FA QR Kodu" class="w-40 h-40 sm:w-48 sm:h-48 max-w-full block mx-auto">
                         </div>
                         
                         <div class="mt-3 text-center">
                             <span class="text-[11px] text-slate-500 block mb-1">Kameranız çalışmıyorsa manuel anahtar:</span>
-                            <code class="px-3 py-1.5 rounded bg-slate-950 border border-slate-700 text-cyan-300 font-mono text-xs select-all tracking-wider inline-block">
+                            <code class="px-3 py-1.5 rounded bg-slate-950 border border-slate-700 text-cyan-300 font-mono text-xs select-all tracking-normal sm:tracking-wider inline-block break-all max-w-full">
                                 {{ secret }}
                             </code>
                         </div>

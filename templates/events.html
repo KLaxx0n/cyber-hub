@@ -21,7 +21,7 @@
                 </p>
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
                 {% if current_user and current_user.is_team_leader %}
                 <button onclick="document.getElementById('addEventModal').classList.toggle('hidden')" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono flex items-center space-x-2 transition-all shadow-md">
                     <i class="fa-solid fa-plus"></i>
@@ -165,18 +165,18 @@
     <!-- Next Urgent Event Countdown Widget -->
     {% if countdown_event %}
     {% set next_ev = countdown_event %}
-    <div class="mb-10 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/30 border border-emerald-500/40 shadow-xl relative overflow-hidden">
+    <div class="mb-8 sm:mb-10 p-4 sm:p-6 md:p-8 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/30 border border-emerald-500/40 shadow-xl relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 opacity-10 text-emerald-400 text-9xl pointer-events-none">
             <i class="fa-solid fa-flag-checkered"></i>
         </div>
-        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-            <div class="max-w-2xl">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6 relative z-10">
+            <div class="max-w-2xl w-full">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold uppercase tracking-wider border {{ next_ev.badge_color }}">
                     <i class="fa-solid fa-bolt"></i> En Yakın Etkinlik: {{ next_ev.event_type }}
                 </span>
-                <h2 class="text-xl md:text-2xl font-bold text-white mt-2">{{ next_ev.title }}</h2>
+                <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-white mt-2">{{ next_ev.title }}</h2>
                 <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">{{ next_ev.description }}</p>
-                <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 mt-3">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-mono text-slate-400 mt-3">
                     <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-emerald-400"></i>{% if next_ev.end_date %}{{ next_ev.event_date.strftime('%d.%m.%Y') }} – {{ next_ev.end_date.strftime('%d.%m.%Y') }}{% else %}{{ next_ev.event_date.strftime('%d.%m.%Y - %H:%M') }}{% endif %}</span>
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-rose-400"></i>{{ next_ev.location }}</span>
                     {% if next_ev.organizer %}
@@ -191,24 +191,24 @@
             </div>
 
             <!-- Countdown Box -->
-            <div class="flex items-center gap-2 sm:gap-3 bg-slate-950/80 p-3.5 sm:p-4 rounded-xl border border-slate-800 shadow-inner text-center font-mono shrink-0" id="countdownContainer" data-target="{{ next_ev.event_date.isoformat() }}">
-                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
-                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-days">--</span>
+            <div class="grid grid-cols-4 gap-2 sm:flex sm:items-center sm:gap-3 bg-slate-950/80 p-2.5 sm:p-4 rounded-xl border border-slate-800 shadow-inner text-center font-mono w-full lg:w-auto lg:shrink-0" id="countdownContainer" data-target="{{ next_ev.event_date.isoformat() }}">
+                <div class="px-1.5 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 sm:min-w-[55px]">
+                    <span class="text-lg sm:text-2xl font-bold text-emerald-400" id="cd-days">--</span>
                     <span class="block text-[9px] uppercase tracking-wider text-slate-500">Gün</span>
                 </div>
-                <span class="text-slate-600 font-bold">:</span>
-                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
-                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-hours">--</span>
+                <span class="hidden sm:inline text-slate-600 font-bold">:</span>
+                <div class="px-1.5 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 sm:min-w-[55px]">
+                    <span class="text-lg sm:text-2xl font-bold text-emerald-400" id="cd-hours">--</span>
                     <span class="block text-[9px] uppercase tracking-wider text-slate-500">Saat</span>
                 </div>
-                <span class="text-slate-600 font-bold">:</span>
-                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
-                    <span class="text-xl sm:text-2xl font-bold text-emerald-400" id="cd-mins">--</span>
+                <span class="hidden sm:inline text-slate-600 font-bold">:</span>
+                <div class="px-1.5 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 sm:min-w-[55px]">
+                    <span class="text-lg sm:text-2xl font-bold text-emerald-400" id="cd-mins">--</span>
                     <span class="block text-[9px] uppercase tracking-wider text-slate-500">Dk</span>
                 </div>
-                <span class="text-slate-600 font-bold">:</span>
-                <div class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 min-w-[55px]">
-                    <span class="text-xl sm:text-2xl font-bold text-cyan-400" id="cd-secs">--</span>
+                <span class="hidden sm:inline text-slate-600 font-bold">:</span>
+                <div class="px-1.5 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 sm:min-w-[55px]">
+                    <span class="text-lg sm:text-2xl font-bold text-cyan-400" id="cd-secs">--</span>
                     <span class="block text-[9px] uppercase tracking-wider text-slate-500">Sn</span>
                 </div>
             </div>

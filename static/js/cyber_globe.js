@@ -144,8 +144,11 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // Başlangıçta yoğun 35 aktif saldırı hattı oluştur
-    for (let i = 0; i < 35; i++) {
+    const isMobileViewport = window.innerWidth < 640;
+    const maxActiveArcs = isMobileViewport ? 22 : 40;
+
+    // Başlangıçta aktif saldırı hatlarını oluştur
+    for (let i = 0; i < maxActiveArcs; i++) {
         activeArcs.push(createCyberArc());
     }
 
@@ -206,13 +209,12 @@ document.addEventListener('DOMContentLoaded', function () {
         controls.maxPolarAngle = Math.PI * 0.88;
     }
 
-    // Başlangıç Açısı: Türkiye ve Çevresini (NÖHÜ) Merkeze Al
-    globe.pointOfView({ lat: 38.0, lng: 35.0, altitude: 2.15 }, 1200);
+    // Başlangıç Açısı: Türkiye ve Çevresini (NÖHÜ) Merkeze Al (mobilde tam sığması için biraz daha uzak kamera)
+    globe.pointOfView({ lat: 38.0, lng: 35.0, altitude: isMobileViewport ? 2.45 : 2.15 }, 1200);
 
     // Yüksek Frekanslı Saldırı Döngüsü (Her 280ms'de yeni saldırılar ekle)
     setInterval(() => {
-        // Havuzda maksimum 42 aktif hat tut
-        while (activeArcs.length > 40) {
+        while (activeArcs.length > maxActiveArcs) {
             activeArcs.shift();
         }
         // Aynı anda 1 veya 2 yeni saldırı yayını ekle

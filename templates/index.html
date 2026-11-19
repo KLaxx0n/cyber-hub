@@ -3,54 +3,58 @@
 {% block title %}Ana Sayfa - NÖHÜ Siber Güvenlik Laboratuvarı{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
     <!-- Hero Section -->
-    <div class="cyber-card p-6 md:p-8 lg:p-10 shadow-xl mb-10 relative overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+    <div class="cyber-card p-5 sm:p-6 md:p-8 lg:p-10 shadow-xl mb-8 sm:mb-10 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             <!-- Sol Sütun: Başlık, Açıklama ve Modül Butonları -->
             <div class="lg:col-span-7 z-10">
-                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950/80 border border-blue-800 text-blue-300 text-xs font-mono mb-4">
-                    <i class="fa-solid fa-graduation-cap mr-1"></i>
-                    <span>NÖHÜ BİLGİ TEKNOLOJİLERİ BÖLÜMÜ PROJESİ</span>
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-blue-950/80 border border-blue-800 text-blue-300 text-[10px] sm:text-xs font-mono mb-4 leading-snug">
+                    <i class="fa-solid fa-graduation-cap mr-1 shrink-0"></i>
+                    <span>NÖHÜ BİLGİ TEKNOLOJİLERİ GÜVENLİĞİ BÖLÜMÜ PROJESİ</span>
                 </div>
 
-                <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                <h1 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
                     Siber Güvenlik Eğitim & Laboratuvar Portalı
                 </h1>
                 
-                <p class="mt-4 text-base text-slate-300 leading-relaxed max-w-2xl">
+                <p class="mt-3 sm:mt-4 text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
                     Bu platform, ofansif (Red Team) ve defansif (Blue Team) siber güvenlik konularında öğrencilerin pratik beceriler kazanması, zafiyet analizleri yapması ve güvenlik kurallarını uygulamalı olarak öğrenmesi amacıyla geliştirilmiştir.
                 </p>
 
-                <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ url_for('red_team') }}" class="px-5 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                        <i class="fa-solid fa-crosshairs"></i>
+                <div class="mt-6 sm:mt-8 grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
+                    <a href="{{ url_for('red_team') }}" class="px-3 sm:px-5 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-crosshairs shrink-0"></i>
                         <span>Red Team Modülü</span>
                     </a>
-                    <a href="{{ url_for('blue_team') }}" class="px-5 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                        <i class="fa-solid fa-shield-halved"></i>
+                    <a href="{{ url_for('blue_team') }}" class="px-3 sm:px-5 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-shield-halved shrink-0"></i>
                         <span>Blue Team Modülü</span>
                     </a>
-                    <a href="{{ url_for('purple_team') }}" class="px-5 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-sm flex items-center space-x-2 shadow-sm transition-colors">
-                        <i class="fa-solid fa-bolt"></i>
+                    <a href="{{ url_for('purple_team') }}" class="px-3 sm:px-5 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 shadow-sm transition-colors">
+                        <i class="fa-solid fa-bolt shrink-0"></i>
                         <span>Purple Team Modülü</span>
                     </a>
-                    <a href="{{ url_for('leaderboard') }}" class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm flex items-center space-x-2 transition-colors">
-                        <i class="fa-solid fa-list-ol text-slate-400"></i>
+                    <a href="{{ url_for('leaderboard') }}" class="px-3 sm:px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 transition-colors">
+                        <i class="fa-solid fa-list-ol text-slate-400 shrink-0"></i>
                         <span>Sıralama Tablosu</span>
                     </a>
-                    <a href="#hakkimizda" class="px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-cyan-300 border border-cyan-800/60 font-medium text-sm flex items-center space-x-2 transition-colors">
-                        <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                    <a href="{{ url_for('biz_kimiz') }}" class="px-3 sm:px-5 py-2.5 rounded-lg bg-cyan-900/50 hover:bg-cyan-800/60 text-cyan-200 border border-cyan-500/50 font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 transition-colors">
+                        <i class="fa-solid fa-users text-cyan-400 shrink-0"></i>
+                        <span>Biz Kimiz?</span>
+                    </a>
+                    <a href="#hakkimizda" class="px-3 sm:px-5 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 font-medium text-xs sm:text-sm flex items-center justify-center sm:justify-start space-x-2 transition-colors">
+                        <i class="fa-solid fa-circle-info text-slate-400 shrink-0"></i>
                         <span>Hakkımızda</span>
                     </a>
                 </div>
             </div>
 
             <!-- Sağ Sütun: Sadece 3D Siber Küre (Çerçevesiz, Tam Entegre) -->
-            <div class="lg:col-span-5 relative w-full flex items-center justify-center">
-                <div id="cyber-globe-viz" class="w-full h-[360px] sm:h-[420px] lg:h-[460px] cursor-grab active:cursor-grabbing select-none flex items-center justify-center"></div>
+            <div class="lg:col-span-5 relative w-full flex items-center justify-center overflow-hidden">
+                <div id="cyber-globe-viz" class="w-full h-[260px] sm:h-[360px] md:h-[420px] lg:h-[460px] cursor-grab active:cursor-grabbing select-none flex items-center justify-center"></div>
             </div>
 
         </div>
@@ -192,7 +196,7 @@
     </div>
 
     <!-- ========== HAKKIMIZDA BÖLÜMÜ (Projeye Özel & NÖHÜ Modeli) ========== -->
-    <section id="hakkimizda" class="cyber-card p-8 md:p-12 mb-10 scroll-mt-24 border-slate-800/80">
+    <section id="hakkimizda" class="cyber-card p-5 sm:p-8 md:p-12 mb-10 scroll-mt-24 border-slate-800/80">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             <!-- Sol Taraf: Metin, Başlık, Misyon & Vizyon -->
@@ -208,7 +212,7 @@
                 </div>
 
                 <p class="text-slate-300 text-sm md:text-base leading-relaxed">
-                    NÖHÜ Bilgi Teknolojileri Siber Güvenlik Portalı, öğrencilerin ofansif (Red Team) ve defansif (Blue Team) alanlarda uygulamalı deneyim kazanması için tasarlanmıştır. Gerçek zafiyet simülasyonları, adli bilişim incelemeleri ve bayrak avı görevleriyle teoriyi pratiğe döküyoruz.
+                    NÖHÜ Bilgi Teknolojileri Güvenliği Siber Güvenlik Portalı, öğrencilerin ofansif (Red Team) ve defansif (Blue Team) alanlarda uygulamalı deneyim kazanması için tasarlanmıştır. Gerçek zafiyet simülasyonları, adli bilişim incelemeleri ve bayrak avı görevleriyle teoriyi pratiğe döküyoruz.
                 </p>
 
                 <!-- Misyon & Vizyon Kartları -->
@@ -275,7 +279,7 @@
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-bolt"></i>
                     </div>
-                    <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                         <h3 class="text-base font-bold text-white">Purple Team & Malware</h3>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Yakında Gelecek</span>
                     </div>
@@ -288,6 +292,69 @@
                 </a>
             </div>
 
+        </div>
+    </section>
+
+    <!-- ========== BİZ KİMİZ? EKİP VİTRİNİ ========== -->
+    <section id="biz-kimiz" class="cyber-card p-5 sm:p-7 md:p-10 mb-10 scroll-mt-24 border border-cyan-500/20 relative overflow-hidden">
+        <div class="absolute -top-20 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7 relative z-10">
+            <div>
+                <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/85 border border-cyan-500/40 text-cyan-300 text-xs font-mono tracking-wider uppercase mb-3">
+                    <i class="fa-solid fa-users text-cyan-400"></i>
+                    <span>BİZ KİMİZ?</span>
+                </span>
+                <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                    NÖHÜ Bilgi Teknolojileri Güvenliği Ekibimiz
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl leading-relaxed">
+                    {{ team_ctx.academic.university }} • {{ team_ctx.academic.faculty }} • <span class="text-cyan-300 font-medium">{{ team_ctx.academic.department }}</span> öğrencileri olarak projemizi geliştiriyor ve birlikte neler üzerinde çalışıyoruz?
+                </p>
+            </div>
+            <a href="{{ url_for('biz_kimiz') }}" class="w-full md:w-auto justify-center px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs sm:text-sm font-medium inline-flex items-center gap-2 transition-colors shrink-0 shadow-sm">
+                <span>Tüm Ekibi & Detayları Gör</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+
+        {% set home_accent = {
+            'cyan': 'border-cyan-500/35 text-cyan-300 bg-cyan-950/80',
+            'indigo': 'border-indigo-500/40 text-indigo-300 bg-indigo-950/80',
+            'red': 'border-red-500/35 text-red-300 bg-red-950/80',
+            'sky': 'border-sky-500/35 text-sky-300 bg-sky-950/80',
+            'purple': 'border-purple-500/35 text-purple-300 bg-purple-950/80'
+        } %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+            {% for member in team_ctx.team_members %}
+            {% set badge_cls = home_accent.get(member.accent, home_accent['cyan']) %}
+            <a href="{{ url_for('biz_kimiz') }}#ekibimiz" class="team-card p-5 flex flex-col justify-between gap-4 group">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl overflow-hidden border {{ badge_cls }} flex items-center justify-center font-bold font-mono text-sm shrink-0">
+                            {% if member.photo_url %}
+                                <img src="{{ url_for('static', filename=member.photo_url) }}" alt="{{ member.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span>{{ member.initials }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-base font-bold text-white group-hover:text-cyan-300 transition-colors truncate">{{ member.name }}</h3>
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-mono border {{ badge_cls }}">
+                                {{ member.badge }}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed line-clamp-3">
+                        {{ member.role }} — {{ member.working_on[0] }}
+                    </p>
+                </div>
+                <div class="text-[11px] font-mono text-slate-400 border-t border-white/10 pt-2.5 truncate">
+                    <i class="fa-solid fa-graduation-cap text-cyan-400 mr-1.5"></i>{{ member.study }}
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </section>
 

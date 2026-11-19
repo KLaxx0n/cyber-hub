@@ -1,5 +1,6 @@
 import os
 import re
+import importlib
 import secrets
 import string
 import hmac
@@ -23,6 +24,21 @@ from models import db, User, Lab, UserLabProgress, LabWriteup, CyberEvent
 from seed_data import seed_database
 from mail_service import send_verification_email, send_password_reset_email
 from lab_configs import MULTI_TASK_LABS, get_public_tasks
+import team_config
+
+_team_config_mtime = None
+
+def _load_team_context():
+    global _team_config_mtime
+    cfg_path = getattr(team_config, '__file__', None)
+    if cfg_path and os.path.exists(cfg_path):
+        mtime = os.path.getmtime(cfg_path)
+        if _team_config_mtime is None:
+            _team_config_mtime = mtime
+        elif mtime != _team_config_mtime:
+            importlib.reload(team_config)
+            _team_config_mtime = mtime
+    return team_config.get_team_context()
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -192,25 +208,39 @@ def generate_verification_code():
 def health_check():
     return jsonify(status="healthy", service="cyber-hub"), 200
 
-@app.route('/')
-def index():
+def _get_platform_stats():
     total_users = User.query.filter_by(is_verified=True).count()
     red_labs = Lab.query.filter_by(category='red_team', is_published=True).count()
     blue_labs = Lab.query.filter_by(category='blue_team', is_published=True).count()
     purple_labs = Lab.query.filter_by(category='purple_team', is_published=True).count()
     total_labs = red_labs + blue_labs + purple_labs
+    return {
+        'total_users': total_users,
+        'total_labs': total_labs,
+        'red_labs': red_labs,
+        'blue_labs': blue_labs,
+        'purple_labs': purple_labs,
+    }
+
+@app.route('/')
+def index():
+    stats = _get_platform_stats()
     top_users = User.query.filter_by(is_verified=True).order_by(User.score.desc()).limit(5).all()
-    return render_template('index.html', 
-                           total_users=total_users, 
-                           total_labs=total_labs,
-                           red_labs=red_labs,
-                           blue_labs=blue_labs,
-                           purple_labs=purple_labs,
-                           top_users=top_users)
+    team_ctx = _load_team_context()
+    return render_template('index.html',
+                           **stats,
+                           top_users=top_users,
+                           team_ctx=team_ctx)
+
+@app.route('/biz-kimiz')
+def biz_kimiz():
+    stats = _get_platform_stats()
+    team_ctx = _load_team_context()
+    return render_template('biz_kimiz.html', **stats, **team_ctx)
 
 @app.route('/about')
 def about():
-    return redirect(url_for('index') + '#hakkimizda')
+    return redirect(url_for('biz_kimiz'))
 
 
 
