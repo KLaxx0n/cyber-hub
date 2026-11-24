@@ -23,9 +23,9 @@ def _strip_html_to_text(html_body):
 
 def _to_ascii_email(email_addr):
     """
-    IDN (Türkçe karakterli alan adı, örn: iletisim@nöhü-cyberhub.com.tr) içeren
+    IDN (Türkçe karakterli alan adı, örn: iletisim@ornek-alanadi.com.tr) içeren
     e-posta adreslerini SMTP protokolünün (RFC 5321/5322) kabul ettiği Punycode
-    (iletisim@xn--nh-cyberhub-sfb8g.com.tr) formatına dönüştürür.
+    (iletisim@xn--ornek-alanadi.com.tr) formatına dönüştürür.
     """
     if not email_addr or '@' not in email_addr:
         return email_addr
@@ -54,7 +54,7 @@ def _send_smtp_message(to_email, subject, html_body, plain_body=None, reply_to=N
     """
     raw_username = current_app.config.get('MAIL_USERNAME', '').strip()
     mail_password = current_app.config.get('MAIL_PASSWORD', '').strip()
-    raw_server = current_app.config.get('MAIL_SERVER', 'smtp.turkticaret.net').strip()
+    raw_server = current_app.config.get('MAIL_SERVER', 'smtp.example.com').strip()
     mail_port = int(current_app.config.get('MAIL_PORT', 587))
     use_tls = current_app.config.get('MAIL_USE_TLS', True)
     use_ssl = current_app.config.get('MAIL_USE_SSL', False)
@@ -94,7 +94,7 @@ def _send_smtp_message(to_email, subject, html_body, plain_body=None, reply_to=N
         attempts.append(('tls', mail_port))
         attempts.append(('ssl', 465))
 
-    # Kullanıcı adı hem Punycode (iletisim@xn--nh-cyberhub-sfb8g.com.tr) hem de UTF-8 olarak denenebilir
+    # Kullanıcı adı hem Punycode hem de UTF-8 olarak denenebilir
     login_candidates = [ascii_username]
     if raw_username != ascii_username:
         login_candidates.append(raw_username)
@@ -421,9 +421,11 @@ def send_feedback_notification_email(
     category,
     rating,
     message,
-    target_email='cyberhubsecurity.tr@gmail.com',
+    target_email=None,
 ):
     """Send user feedback notification email to the site's contact mailbox."""
+    if not target_email:
+        target_email = current_app.config.get('MAIL_DEFAULT_SENDER') or 'contact@example.com'
     safe_name = html.escape(sender_name or 'Ziyaretçi')
     safe_email = html.escape(sender_email or 'Belirtilmedi')
     safe_cat = html.escape(category or 'Genel')

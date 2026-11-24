@@ -2,7 +2,7 @@
 
 Fotoğraf eklemek için görselleri `static/img/team/` klasörüne aşağıdaki
 dosya adlarıyla bırakmanız yeterlidir; sistem dosyayı otomatik algılar:
-  - sefa.jpg
+  - dev.jpg
   - aziz.jpg
   - halil_ibrahim.jpg
   - murat.jpg
@@ -62,27 +62,26 @@ ACADEMIC_INFO = {
 
 RAW_TEAM_MEMBERS = [
     {
-        'id': 'sefa-gumus',
-        'name': 'Sefa Gümüş',
-        'role': 'Kurucu, Ekip Koordinatörü & Full-Stack Geliştirici',
-        'badge': 'Kurucu',
+        'id': 'core-developer',
+        'name': 'Full-Stack Geliştirici',
+        'role': 'Platform Geliştiricisi & Full-Stack Sorumlusu',
+        'badge': 'Geliştirici',
         'team_category': 'core',
         'accent': 'gold',
-        'initials': 'SG',
-        'avatar_icon': 'fa-solid fa-crown',
-        'photo_filename': 'sefa.jpg',
+        'initials': 'FS',
+        'avatar_icon': 'fa-solid fa-code',
+        'photo_filename': 'dev.jpg',
         'study': 'NÖHÜ • Bilgisayar ve Bilişim Bilimleri Fakültesi / Bilgi Teknolojileri Güvenliği Bölümü',
         'bio': (
-            'Projenin ekip koordinasyonunu ve yönetimini Aziz Mahmudlu ile birlikte üstlenen, platformu sıfırdan inşa eden '
-            'tam kapsamlı (Full-Stack) geliştirici. Sistem mimarisi, yönetim paneli, kullanıcı güvenliği, '
-            'arayüz tasarımı ve tüm modüllerin platforma entegrasyonunu yönetiyor.'
+            'Platformu sıfırdan inşa eden tam kapsamlı (Full-Stack) geliştirici. Sistem mimarisi, '
+            'yönetim paneli, kullanıcı güvenliği, arayüz tasarımı ve tüm modüllerin platforma entegrasyonunu yönetiyor.'
         ),
         'working_on': [
-            'Ortak ekip koordinasyonu, görev dağılımı ve proje sürecinin uçtan uca yönetimi',
             'Web sitesinin Frontend & Backend geliştirme süreci (Python/Flask, Veritabanı, Modern Dark UI)',
-            'Yönetim paneli, rol/yetki kontrolü, 2FA TOTP güvenliği ve canlı sıralama/etkinlik altyapısı'
+            'Yönetim paneli, rol/yetki kontrolü, 2FA TOTP güvenliği ve canlı sıralama/etkinlik altyapısı',
+            'Sistem mimarisi, güvenlik testleri ve modül entegrasyonları'
         ],
-        'skills': ['Ekip Koordinasyonu', 'Full-Stack', 'HTML5', 'Python / Flask', 'Sistem Mimarisi', 'UI/UX Tasarım'],
+        'skills': ['Full-Stack', 'HTML5', 'Python / Flask', 'Sistem Mimarisi', 'UI/UX Tasarım', 'Veritabanı'],
         'tier': 'core'
     },
     {
@@ -97,7 +96,7 @@ RAW_TEAM_MEMBERS = [
         'photo_filename': 'aziz.jpg',
         'study': 'NÖHÜ • Bilgisayar ve Bilişim Bilimleri Fakültesi / Bilgi Teknolojileri Güvenliği Bölümü',
         'bio': (
-            'Projenin ekip koordinasyonunu ve yönetimini Sefa Gümüş ile birlikte üstlenen, ofansif güvenlik (Red Team) '
+            'Projenin ekip koordinasyonunu üstlenen, ofansif güvenlik (Red Team) '
             'tarafını şekillendiren ve saldırı senaryolarını hazırlayan ekip arkadaşımız. Öğrencilerin web zafiyetlerini '
             'etik sınırlar içinde keşfedebileceği uygulamalı görevler kurguluyor.'
         ),

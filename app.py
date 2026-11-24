@@ -1,4 +1,5 @@
 import os
+import json
 import re
 import importlib
 import secrets
@@ -25,6 +26,8 @@ from seed_data import seed_database
 from mail_service import send_verification_email, send_password_reset_email, send_feedback_notification_email
 from lab_configs import MULTI_TASK_LABS, get_public_tasks
 import team_config
+
+ROOT_ONLY_LABS = {'blue-wireshark-1'}
 
 SUPPORT_EMAIL = 'iletisim@nöhü-cyberhub.com.tr'
 
@@ -118,7 +121,7 @@ def is_safe_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 # Helper: Ayrılmış / Yasaklı Kullanıcı Adları
-RESERVED_USERNAMES = {'admin', 'administrator', 'root', 'system', 'superuser', 'founder', 'moderator', 'support', 'sefa_admin', 'aziz_red'}
+RESERVED_USERNAMES = {'admin', 'administrator', 'root', 'system', 'superuser', 'founder', 'moderator', 'support', 'sys_admin', 'red_team_lead'}
 
 def _require_active_user(expired_msg='Oturum süreniz dolmuş veya hesap bulunamadı. Lütfen tekrar giriş yapınız.'):
     """Return active User for current session, or a Flask redirect/JSON response."""
@@ -424,7 +427,7 @@ def register():
         code = generate_verification_code()
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
-        is_root = (username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (email.lower() == 'gsefa5683@gmail.com')
+        is_root = (username.lower() in ['admin', 'root']) or (email.lower() == 'admin@cyberhub.local')
         # E-posta doğrulama kapatıldı: Tüm yeni kayıtlar anında aktif ve doğrulanmış başlar
         new_user = User(
             username=username,
@@ -598,7 +601,7 @@ def login():
             db.session.commit()
 
         # Root (Süper Yönetici) kullanıcıların rol ve yetkilerini garantiye al
-        if (user.username and user.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']) or (user.email and user.email.lower() == 'gsefa5683@gmail.com'):
+        if (user.username and user.username.lower() in ['admin', 'root']) or (user.email and user.email.lower() == 'admin@cyberhub.local'):
             user.role = 'root'
             user.is_founder = True
             user.is_leader = True
@@ -1160,7 +1163,18 @@ def admin_toggle_leader(user_id):
 
 def _render_team_labs(category, template_name):
     """Render published labs for a team category with user task progress and warnings."""
-    labs = Lab.query.filter_by(category=category, is_published=True).order_by(Lab.id.asc()).all()
+    current_u = User.query.get(session['user_id']) if 'user_id' in session else None
+    is_root = bool(current_u and (current_u.role == 'root' or current_u.is_superadmin))
+
+    all_labs = Lab.query.filter_by(category=category, is_published=True).order_by(Lab.id.asc()).all()
+    labs = []
+    for l in all_labs:
+        cfg = MULTI_TASK_LABS.get(l.slug, {})
+        if cfg.get('required_role') == 'root' or l.slug in ROOT_ONLY_LABS:
+            if not is_root:
+                continue
+        labs.append(l)
+
     user_completed_ids = []
     user_progress_map = {}
     if 'user_id' in session:
@@ -1200,7 +1214,8 @@ def _render_team_labs(category, template_name):
         task_counts=task_counts,
         lab_warnings=lab_warnings,
         lab_guides=lab_guides,
-        lab_videos=lab_videos
+        lab_videos=lab_videos,
+        root_only_labs=ROOT_ONLY_LABS
     )
 
 @app.route('/red-team')
@@ -1224,6 +1239,12 @@ def purple_team():
 def lab_detail(slug):
     lab = Lab.query.filter_by(slug=slug).first_or_404()
     user = User.query.get(session['user_id'])
+    cfg = MULTI_TASK_LABS.get(slug, {})
+    if cfg.get('required_role') == 'root' or slug in ROOT_ONLY_LABS:
+        is_root = bool(user and (user.role == 'root' or user.is_superadmin))
+        if not is_root:
+            flash('Bu laboratuvara yalnızca Root rolüne sahip yöneticiler erişebilir.', 'warning')
+            return redirect(url_for('red_team' if lab.category == 'red_team' else ('blue_team' if lab.category == 'blue_team' else 'purple_team')))
     if not lab.is_published and not user.is_superadmin:
         flash('Bu laboratuvar henüz yayına açılmamıştır.', 'warning')
         return redirect(url_for('red_team' if lab.category == 'red_team' else ('blue_team' if lab.category == 'blue_team' else 'purple_team')))
@@ -1276,6 +1297,12 @@ def _get_accessible_lab_or_redirect(slug, fallback_endpoint):
     """Return the Lab if published or current user is superadmin; otherwise redirect."""
     lab = Lab.query.filter_by(slug=slug).first_or_404()
     user = User.query.get(session['user_id'])
+    cfg = MULTI_TASK_LABS.get(slug, {})
+    if cfg.get('required_role') == 'root' or slug in ROOT_ONLY_LABS:
+        is_root = bool(user and (user.role == 'root' or user.is_superadmin))
+        if not is_root:
+            flash('Bu hedef kaynağa yalnızca Root rolüne sahip yöneticiler erişebilir.', 'warning')
+            return None, redirect(url_for(fallback_endpoint))
     if not lab.is_published and not user.is_superadmin:
         flash('Bu hedef kaynak henüz erişime açılmamıştır.', 'warning')
         return None, redirect(url_for(fallback_endpoint))
@@ -1343,6 +1370,31 @@ def blue_soc_olay_1_download(filename):
         return denied
     logs_dir = os.path.join(app.root_path, 'lab_assets', 'blue_soc_olay_1')
     return send_from_directory(logs_dir, filename, as_attachment=True, download_name=filename)
+
+@app.route('/lab/blue-wireshark-1/target')
+@lab_access_required
+def blue_wireshark_1_target():
+    _, denied = _get_accessible_lab_or_redirect('blue-wireshark-1', 'blue_team')
+    if denied:
+        return denied
+    packets_file = os.path.join(app.root_path, 'lab_assets', 'blue_wireshark', 'network_packets.json')
+    packets = []
+    if os.path.exists(packets_file):
+        with open(packets_file, 'r', encoding='utf-8') as f:
+            packets = json.load(f)
+    return render_template('labs/blue_wireshark_1_target.html', packets=packets)
+
+@app.route('/lab/blue-wireshark-1/download/<filename>')
+@lab_access_required
+def blue_wireshark_1_download(filename):
+    allowed = {'office_network_dump.pcap', 'paket_ozeti.txt', 'network_packets.json'}
+    if filename not in allowed:
+        return jsonify({'success': False, 'message': 'Dosya bulunamadı.'}), 404
+    _, denied = _get_accessible_lab_or_redirect('blue-wireshark-1', 'blue_team')
+    if denied:
+        return denied
+    assets_dir = os.path.join(app.root_path, 'lab_assets', 'blue_wireshark')
+    return send_from_directory(assets_dir, filename, as_attachment=True, download_name=filename)
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1609,6 +1661,11 @@ def submit_lab_task(slug):
     cfg = MULTI_TASK_LABS.get(slug)
     if not cfg:
         return jsonify({'success': False, 'message': 'Çoklu görev yapılandırması bulunamadı.'}), 404
+
+    if cfg.get('required_role') == 'root' or slug in ROOT_ONLY_LABS:
+        is_root = bool(user and (user.role == 'root' or user.is_superadmin))
+        if not is_root:
+            return jsonify({'success': False, 'message': 'Bu laboratuvara yalnızca Root rolüne sahip yöneticiler erişebilir.'}), 403
 
     data = request.get_json() or {}
     task_id = (data.get('task_id') or '').strip()

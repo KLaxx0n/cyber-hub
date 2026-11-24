@@ -188,6 +188,24 @@ def seed_database(app):
                 'is_published': True
             },
             {
+                'slug': 'blue-wireshark-1',
+                'title': 'Ağ Trafiği ve Paket Analizi (Mini-Wireshark)',
+                'category': 'blue_team',
+                'sub_category': 'Ağ Güvenliği & Paket Analizi',
+                'difficulty': 'Kolay',
+                'points': 100,
+                'time_limit_sec': 900,
+                'description': 'Gerçek bir ağ trafiği dökümünü (PCAP) inceleyerek açık metin parolaları, şüpheli DNS sorgularını, port taramalarını, gizli veri sızıntılarını ve ARP zehirlenmesini tespit edin.',
+                'scenario': 'Şirket ağında olağandışı hareketlilik şüphesiyle ağ trafiği izlemeye alınmıştır. İnceleme için yakalanan ağ paketleri Mini-Wireshark analiz konsoluna aktarılmıştır.',
+                'instructions': 'Mini-Wireshark Paket İnceleme Konsolunu yeni sekmede açın. Paketleri listeleyin, protokol filtrelerini (HTTP, DNS, TCP, ARP) kullanarak inceleyin ve 5 soruşturma görevini tamamlayın.',
+                'hint': 'Filtre çubuğuna protokol adlarını (http, dns, syn, arp) yazarak ilgili paketleri kolayca filtreleyebilirsiniz.',
+                'hint1': 'Açık metin parola için 6 nolu HTTP POST paketine, C2 için 8 nolu DNS paketine, port taraması için 10-13 nolu SYN paketlerine bakın.',
+                'hint2': 'Kritik İpucu (-10 Puan): Parola MaviTakim2026!, DNS c2-stealth-updater.darkweb-leak.xyz, IP 192.168.1.88, Flag FLAG{Agi_Izleyen_Kazanir_2026}, Sahte MAC 00:0c:29:88:fe:99.',
+                'flag': 'FLAG{blue_wireshark_packet_analysis_completed}',
+                'lab_type': 'multi_task',
+                'is_published': True
+            },
+            {
                 'slug': 'blue-log-analysis',
                 'title': 'Sunucu Log Analizi & Saldırı Tespiti',
                 'category': 'blue_team',
@@ -377,11 +395,11 @@ def seed_database(app):
             elif existing_ev.end_date is None and ohu_ev.get('end_date'):
                 existing_ev.end_date = ohu_ev['end_date']
 
-        # Predefined default user (Yalnızca Sefa_Gumus Süper Yönetici)
+        # Predefined default user (Süper Yönetici)
         users_data = [
             {
-                'username': 'Sefa_Gumus',
-                'email': 'gsefa5683@gmail.com',
+                'username': 'admin',
+                'email': 'admin@cyberhub.local',
                 'password_hash': generate_password_hash('Admin1234'),
                 'is_verified': True,
                 'score': 0,
@@ -409,16 +427,6 @@ def seed_database(app):
                 existing_user.is_founder = u_info['is_founder']
                 existing_user.is_suspended = False
                 existing_user.failed_login_attempts = 0
-
-        # Eski veya silinmiş test hesaplarını (KLaxx0n vb.) kalıcı olarak temizle
-        legacy_users = User.query.filter(
-            (User.username.in_(['KLaxx0n', 'klaxx0n'])) | 
-            (User.email.in_(['jacjsparrow07@gmail.com', 'jajcsparrow07@gmail.com']))
-        ).all()
-        for lu in legacy_users:
-            db.session.delete(lu)
-        if legacy_users:
-            print(f"[+] {len(legacy_users)} adet eski test hesabı temizlendi.")
 
         # Tüm mevcut ve yeni hesapları doğrudan onaylı/aktif duruma getir
         User.query.filter_by(is_verified=False).update({User.is_verified: True})

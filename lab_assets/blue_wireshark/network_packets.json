@@ -1,0 +1,241 @@
+[
+  {
+    "no": 1,
+    "time": "0.000000",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.1",
+    "protocol": "DNS",
+    "length": 74,
+    "info": "Standard query 0x2a14 A sirket-portal.local",
+    "color": "#e0f2fe",
+    "details": {
+      "Frame": "Frame 1: 74 bytes on wire (592 bits)",
+      "Ethernet II": "Src: Dell_42:1a:8b (00:14:22:42:1a:8b), Dst: Cisco_01:02:03 (00:1a:a1:01:02:03)",
+      "Internet Protocol Version 4": "Src: 192.168.1.45, Dst: 192.168.1.1",
+      "User Datagram Protocol": "Src Port: 53120, Dst Port: 53",
+      "Domain Name System (query)": "Queries: sirket-portal.local: type A, class IN"
+    },
+    "ascii_payload": "....*.sirket-portal.local....."
+  },
+  {
+    "no": 2,
+    "time": "0.004210",
+    "source": "192.168.1.1",
+    "destination": "192.168.1.45",
+    "protocol": "DNS",
+    "length": 90,
+    "info": "Standard query response 0x2a14 A sirket-portal.local A 192.168.1.100",
+    "color": "#e0f2fe",
+    "details": {
+      "Frame": "Frame 2: 90 bytes on wire",
+      "Ethernet II": "Src: Cisco_01:02:03 (00:1a:a1:01:02:03), Dst: Dell_42:1a:8b (00:14:22:42:1a:8b)",
+      "Internet Protocol Version 4": "Src: 192.168.1.1, Dst: 192.168.1.45",
+      "Domain Name System (response)": "Answers: sirket-portal.local: type A, class IN, addr 192.168.1.100"
+    },
+    "ascii_payload": "....*.sirket-portal.local....."
+  },
+  {
+    "no": 3,
+    "time": "0.012540",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 66,
+    "info": "51240 -> 80 [SYN] Seq=0 Win=64240 Len=0 MSS=1460",
+    "color": "#f3e8ff",
+    "details": {
+      "Frame": "Frame 3: 66 bytes on wire",
+      "Transmission Control Protocol": "Src Port: 51240, Dst Port: 80, Flags: [SYN], Seq: 0"
+    },
+    "ascii_payload": "SYN TCP Handshake Start"
+  },
+  {
+    "no": 4,
+    "time": "0.013120",
+    "source": "192.168.1.100",
+    "destination": "192.168.1.45",
+    "protocol": "TCP",
+    "length": 66,
+    "info": "80 -> 51240 [SYN, ACK] Seq=0 Ack=1 Win=65160",
+    "color": "#f3e8ff",
+    "details": {
+      "Frame": "Frame 4: 66 bytes on wire",
+      "Transmission Control Protocol": "Src Port: 80, Dst Port: 51240, Flags: [SYN, ACK]"
+    },
+    "ascii_payload": "SYN-ACK TCP Handshake"
+  },
+  {
+    "no": 5,
+    "time": "0.013200",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 54,
+    "info": "51240 -> 80 [ACK] Seq=1 Ack=1 Win=64240",
+    "color": "#f3e8ff",
+    "details": {
+      "Frame": "Frame 5: 54 bytes on wire",
+      "Transmission Control Protocol": "Src Port: 51240, Dst Port: 80, Flags: [ACK]"
+    },
+    "ascii_payload": "ACK Handshake Complete"
+  },
+  {
+    "no": 6,
+    "time": "0.045100",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.100",
+    "protocol": "HTTP",
+    "length": 420,
+    "info": "POST /giris.php HTTP/1.1 (application/x-www-form-urlencoded)",
+    "color": "#dcfce7",
+    "details": {
+      "Frame": "Frame 6: 420 bytes on wire",
+      "Hypertext Transfer Protocol": "POST /giris.php HTTP/1.1\\r\\nHost: sirket-portal.local\\r\\nUser-Agent: Mozilla/5.0\\r\\nContent-Type: application/x-www-form-urlencoded\\r\\nContent-Length: 48\\r\\n\\r\\n",
+      "HTML Form URL Encoded": "kullanici=ahmet.yilmaz&parola=MaviTakim2026!&beni_hatirla=1"
+    },
+    "ascii_payload": "POST /giris.php HTTP/1.1\\r\\nHost: sirket-portal.local\\r\\nContent-Type: application/x-www-form-urlencoded\\r\\n\\r\\nkullanici=ahmet.yilmaz&parola=MaviTakim2026!&beni_hatirla=1"
+  },
+  {
+    "no": 7,
+    "time": "0.051200",
+    "source": "192.168.1.100",
+    "destination": "192.168.1.45",
+    "protocol": "HTTP",
+    "length": 280,
+    "info": "HTTP/1.1 200 OK (text/html)",
+    "color": "#dcfce7",
+    "details": {
+      "Hypertext Transfer Protocol": "HTTP/1.1 200 OK\\r\\nSet-Cookie: PHPSESSID=9a8b7c6d5e4f; path=/\\r\\n\\r\\n<h1>Giris Basarili, Hosgeldiniz Ahmet Yilmaz</h1>"
+    },
+    "ascii_payload": "HTTP/1.1 200 OK\\r\\nSet-Cookie: PHPSESSID=9a8b7c6d5e4f\\r\\n\\r\\nGiris Basarili"
+  },
+  {
+    "no": 8,
+    "time": "1.240500",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.1",
+    "protocol": "DNS",
+    "length": 86,
+    "info": "Standard query 0x51c2 A c2-stealth-updater.darkweb-leak.xyz",
+    "color": "#e0f2fe",
+    "details": {
+      "Domain Name System (query)": "Queries: c2-stealth-updater.darkweb-leak.xyz: type A, class IN",
+      "Analysis Note": "ANOMALİ: Güvenlik filtrelerini aşmak üzere tasarlanmış şüpheli dinamik DNS / C2 alan adı!"
+    },
+    "ascii_payload": "....Q..c2-stealth-updater.darkweb-leak.xyz....."
+  },
+  {
+    "no": 9,
+    "time": "1.245800",
+    "source": "192.168.1.1",
+    "destination": "192.168.1.45",
+    "protocol": "DNS",
+    "length": 102,
+    "info": "Standard query response 0x51c2 A c2-stealth-updater.darkweb-leak.xyz A 45.33.32.156",
+    "color": "#e0f2fe",
+    "details": {
+      "Domain Name System (response)": "Answers: c2-stealth-updater.darkweb-leak.xyz: addr 45.33.32.156"
+    },
+    "ascii_payload": "....Q..c2-stealth-updater.darkweb-leak.xyz....E!. "
+  },
+  {
+    "no": 10,
+    "time": "2.100100",
+    "source": "192.168.1.88",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 60,
+    "info": "49152 -> 21 [SYN] Seq=0 Win=1024 Len=0",
+    "color": "#fef08a",
+    "details": {
+      "Analysis Note": "Port Taraması: 192.168.1.88 IP'si Port 21 (FTP) açığını kontrol ediyor."
+    },
+    "ascii_payload": "SCAN PORT 21"
+  },
+  {
+    "no": 11,
+    "time": "2.100500",
+    "source": "192.168.1.88",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 60,
+    "info": "49153 -> 22 [SYN] Seq=0 Win=1024 Len=0",
+    "color": "#fef08a",
+    "details": {
+      "Analysis Note": "Port Taraması: 192.168.1.88 IP'si Port 22 (SSH) açığını kontrol ediyor."
+    },
+    "ascii_payload": "SCAN PORT 22"
+  },
+  {
+    "no": 12,
+    "time": "2.100900",
+    "source": "192.168.1.88",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 60,
+    "info": "49154 -> 80 [SYN] Seq=0 Win=1024 Len=0",
+    "color": "#fef08a",
+    "details": {
+      "Analysis Note": "Port Taraması: 192.168.1.88 IP'si Port 80 (HTTP) açığını kontrol ediyor."
+    },
+    "ascii_payload": "SCAN PORT 80"
+  },
+  {
+    "no": 13,
+    "time": "2.101400",
+    "source": "192.168.1.88",
+    "destination": "192.168.1.100",
+    "protocol": "TCP",
+    "length": 60,
+    "info": "49155 -> 445 [SYN] Seq=0 Win=1024 Len=0",
+    "color": "#fef08a",
+    "details": {
+      "Analysis Note": "Port Taraması: 192.168.1.88 IP'si Port 445 (SMB) açığını kontrol ediyor."
+    },
+    "ascii_payload": "SCAN PORT 445"
+  },
+  {
+    "no": 14,
+    "time": "3.150000",
+    "source": "192.168.1.45",
+    "destination": "192.168.1.100",
+    "protocol": "HTTP",
+    "length": 340,
+    "info": "GET /dosyalar/gizli_kod.txt HTTP/1.1",
+    "color": "#dcfce7",
+    "details": {
+      "Hypertext Transfer Protocol": "GET /dosyalar/gizli_kod.txt HTTP/1.1\\r\\nHost: sirket-portal.local\\r\\nUser-Agent: curl/7.88.1"
+    },
+    "ascii_payload": "GET /dosyalar/gizli_kod.txt HTTP/1.1\\r\\nHost: sirket-portal.local"
+  },
+  {
+    "no": 15,
+    "time": "3.158200",
+    "source": "192.168.1.100",
+    "destination": "192.168.1.45",
+    "protocol": "HTTP",
+    "length": 312,
+    "info": "HTTP/1.1 200 OK (text/plain)",
+    "color": "#dcfce7",
+    "details": {
+      "File Content": "FLAG{Agi_Izleyen_Kazanir_2026}",
+      "Payload Detail": "Sunucu gizli dosya içeriğini iletti: FLAG{Agi_Izleyen_Kazanir_2026}"
+    },
+    "ascii_payload": "HTTP/1.1 200 OK\\r\\nContent-Type: text/plain\\r\\n\\r\\nFLAG{Agi_Izleyen_Kazanir_2026}\\n"
+  },
+  {
+    "no": 16,
+    "time": "4.010200",
+    "source": "00:0c:29:88:fe:99",
+    "destination": "ff:ff:ff:ff:ff:ff",
+    "protocol": "ARP",
+    "length": 42,
+    "info": "ARP Announce: 192.168.1.1 is at 00:0c:29:88:fe:99 (Sahte Gateway Yanıtı / Poisoning)",
+    "color": "#fee2e2",
+    "details": {
+      "Address Resolution Protocol (reply)": "Sender MAC: 00:0c:29:88:fe:99, Sender IP: 192.168.1.1",
+      "Güvenlik Analizi": "DİKKAT! Normal Gateway MAC adresi 00:1a:a1:01:02:03 iken, 00:0c:29:88:fe:99 MAC adresli saldırgan cihazı '192.168.1.1 benim' diyerek ARP Zehirlenmesi (Man-in-the-Middle) saldırısı başlatmıştır."
+    },
+    "ascii_payload": "ARP SPOOF: 192.168.1.1 IS AT 00:0c:29:88:fe:99"
+  }
+]

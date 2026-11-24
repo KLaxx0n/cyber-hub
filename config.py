@@ -7,8 +7,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 class Config:
-    # Kalıcı ve sabit gizli anahtar (Oturumların deploylarda düşmesini önler)
-    SECRET_KEY = os.environ.get('SECRET_KEY') or "94c7a6f23b12850d754162e24e1d90479b422116da3e58fa266850bbdb7a7407"
+    # Kalıcı ve sabit gizli anahtar
+    SECRET_KEY = os.environ.get('SECRET_KEY') or "dev-secret-key-change-in-production"
     
     # Oturumların Kapanmaması İçin Kalıcı Oturum Ayarları (1 Yıl)
     PERMANENT_SESSION_LIFETIME = timedelta(days=365)
@@ -40,15 +40,14 @@ class Config:
     # E-Posta / SMTP, IMAP/POP3 ve HTTP API Ayarları (Türkticaret.Net & Kurumsal Mail Uyumlu)
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
-    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.turkticaret.net')
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.example.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'iletisim@nöhü-cyberhub.com.tr'
-    MAIL_SENDER_NAME = os.environ.get('MAIL_SENDER_NAME', 'NÖHÜ Siber Güvenlik Lab')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
+    MAIL_SENDER_NAME = os.environ.get('MAIL_SENDER_NAME', 'CyberHub Lab')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or MAIL_USERNAME
     MAIL_ACCESS_PROTOCOL = os.environ.get('MAIL_ACCESS_PROTOCOL', 'IMAP')
-    MAIL_INCOMING_SERVER = os.environ.get('MAIL_INCOMING_SERVER', 'imap.turkticaret.net')
+    MAIL_INCOMING_SERVER = os.environ.get('MAIL_INCOMING_SERVER', 'imap.example.com')
     MAIL_INCOMING_PORT = int(os.environ.get('MAIL_INCOMING_PORT', 993))
-    import base64
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or base64.b64decode('M0gxXlFsbHYkTVJncmtPJA==').decode()
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')

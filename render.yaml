@@ -17,13 +17,13 @@ services:
           name: cyberhub-db
           property: connectionString
       - key: SECRET_KEY
-        value: "94c7a6f23b12850d754162e24e1d90479b422116da3e58fa266850bbdb7a7407"
+        generateValue: true
       - key: FLASK_DEBUG
         value: "False"
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: MAIL_SERVER
-        value: smtp.turkticaret.net
+        value: smtp.example.com
       - key: MAIL_PORT
         value: "587"
       - key: MAIL_USE_TLS
@@ -33,11 +33,11 @@ services:
       - key: MAIL_ACCESS_PROTOCOL
         value: IMAP
       - key: MAIL_INCOMING_SERVER
-        value: imap.turkticaret.net
+        value: imap.example.com
       - key: MAIL_INCOMING_PORT
         value: "993"
       - key: MAIL_USERNAME
-        value: iletisim@nöhü-cyberhub.com.tr
+        sync: false
       - key: MAIL_PASSWORD
         sync: false
       - key: BREVO_API_KEY

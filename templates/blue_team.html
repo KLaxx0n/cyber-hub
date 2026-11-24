@@ -68,9 +68,16 @@
                         </span>
                     {% endif %}
 
-                    <span class="text-xs font-mono font-bold text-amber-300 bg-amber-950/70 px-2.5 py-0.5 rounded border border-amber-700/80">
-                        +{{ lab.points }} Puan
-                    </span>
+                    <div class="flex items-center gap-1.5">
+                        {% if lab.slug in root_only_labs %}
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-purple-950/90 text-purple-300 border border-purple-700/80 font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-crown text-[10px] text-amber-400"></i>Sadece Root
+                        </span>
+                        {% endif %}
+                        <span class="text-xs font-mono font-bold text-amber-300 bg-amber-950/70 px-2.5 py-0.5 rounded border border-amber-700/80">
+                            +{{ lab.points }} Puan
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Sub-category -->

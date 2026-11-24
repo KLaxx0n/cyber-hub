@@ -1,0 +1,18 @@
+No   | Zaman     | Kaynak          | Hedef           | Protokol | Bilgi
+-------------------------------------------------------------------------------------
+1    | 0.000000  | 192.168.1.45    | 192.168.1.1     | DNS      | Standard query 0x2a14 A sirket-portal.local
+2    | 0.004210  | 192.168.1.1     | 192.168.1.45    | DNS      | Standard query response 0x2a14 A sirket-portal.local A 192.168.1.100
+3    | 0.012540  | 192.168.1.45    | 192.168.1.100   | TCP      | 51240 -> 80 [SYN] Seq=0 Win=64240 Len=0 MSS=1460
+4    | 0.013120  | 192.168.1.100   | 192.168.1.45    | TCP      | 80 -> 51240 [SYN, ACK] Seq=0 Ack=1 Win=65160
+5    | 0.013200  | 192.168.1.45    | 192.168.1.100   | TCP      | 51240 -> 80 [ACK] Seq=1 Ack=1 Win=64240
+6    | 0.045100  | 192.168.1.45    | 192.168.1.100   | HTTP     | POST /giris.php HTTP/1.1 (application/x-www-form-urlencoded)
+7    | 0.051200  | 192.168.1.100   | 192.168.1.45    | HTTP     | HTTP/1.1 200 OK (text/html)
+8    | 1.240500  | 192.168.1.45    | 192.168.1.1     | DNS      | Standard query 0x51c2 A c2-stealth-updater.darkweb-leak.xyz
+9    | 1.245800  | 192.168.1.1     | 192.168.1.45    | DNS      | Standard query response 0x51c2 A c2-stealth-updater.darkweb-leak.xyz A 45.33.32.156
+10   | 2.100100  | 192.168.1.88    | 192.168.1.100   | TCP      | 49152 -> 21 [SYN] Seq=0 Win=1024 Len=0
+11   | 2.100500  | 192.168.1.88    | 192.168.1.100   | TCP      | 49153 -> 22 [SYN] Seq=0 Win=1024 Len=0
+12   | 2.100900  | 192.168.1.88    | 192.168.1.100   | TCP      | 49154 -> 80 [SYN] Seq=0 Win=1024 Len=0
+13   | 2.101400  | 192.168.1.88    | 192.168.1.100   | TCP      | 49155 -> 445 [SYN] Seq=0 Win=1024 Len=0
+14   | 3.150000  | 192.168.1.45    | 192.168.1.100   | HTTP     | GET /dosyalar/gizli_kod.txt HTTP/1.1
+15   | 3.158200  | 192.168.1.100   | 192.168.1.45    | HTTP     | HTTP/1.1 200 OK (text/plain)
+16   | 4.010200  | 00:0c:29:88:fe:99 | ff:ff:ff:ff:ff:ff | ARP      | ARP Announce: 192.168.1.1 is at 00:0c:29:88:fe:99 (Sahte Gateway Yanıtı / Poisoning)

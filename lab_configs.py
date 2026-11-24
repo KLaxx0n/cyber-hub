@@ -325,6 +325,89 @@ MULTI_TASK_LABS = {
                 'flag': 'FLAG{blue_soc_olay_2026}'
             }
         ]
+    },
+    'blue-wireshark-1': {
+        'required_role': 'root',
+        'pass_threshold': 60,
+        'target_endpoint': 'blue_wireshark_1_target',
+        'target_label': 'Mini-Wireshark Konsolu (office_network_dump.pcap)',
+        'target_icon': '🦈',
+        'target_title': 'Mini-Wireshark Paket Analizörü',
+        'target_desc_before': 'Aşağıdaki bağlantıya tıklayarak ',
+        'target_desc_after': ' panelini yeni sekmede açın. Paket akışlarını inceleyebilir, protokol filtrelerini kullanabilir ve pcap dosyasını indirebilirsiniz.',
+        'target_button_text': 'WİRESHARK KONSOLUNU AÇ',
+        'target_is_download': False,
+        'quick_tips_title': 'Wireshark Hızlı Filtreleri:',
+        'quick_tips': [
+            ('http', 'Web trafiği & form verileri'),
+            ('dns', 'Alan adı ve C2 sorguları'),
+            ('arp', 'Sahte MAC ve ARP anonsları'),
+            ('syn', 'Port taraması paketleri'),
+        ],
+        'input_placeholder': 'Cevabınızı yazın...',
+        'solved_input_label': '✓ Doğru Cevap Kaydedildi',
+        'writeup_title_placeholder': 'Örn: Ağ Analizi Labı 1 - Wireshark ile Paket Çözümleme',
+        'writeup_content_placeholder': '1. Görev: HTTP POST paketinde açık metin parola tespit edildi...\n2. Görev: DNS sorgularında şüpheli .xyz uzantılı C2 domaini yakalandı...',
+        'case_sensitive': False,
+        'kicker': 'NØHU BLUE TEAM // LAB 02',
+        'icon_emoji': '🦈',
+        'guide_pdf': {
+            'filename': 'guides/blue_team_lab2_ag_analizi_rehberi.pdf',
+            'label': 'Ağ Analizi & Wireshark Öğrenim Rehberi (PDF)',
+            'desc': 'Labı başlatmadan önce TCP/IP, HTTP/HTTPS farkı, DNS ve ARP zehirlenmesi temel rehberini okuyabilirsiniz.'
+        },
+        'tasks': [
+            {
+                'id': 'q1',
+                'number': 1,
+                'title': 'Açık Metin Parola Tespiti (Cleartext HTTP)',
+                'question': 'Şirket portalına HTTP üzerinden form doldurarak giriş yapan kullanıcının parolasını tespit edin.',
+                'hint': 'Filtre çubuğuna "http" veya "POST" yazarak 6 numaralı paketi seçin; alt kısımdaki form verilerinde "parola=" değerini bulun.',
+                'points': 20,
+                'flag': 'MaviTakim2026!',
+                'accepted_flags': ['MaviTakim2026!', 'mavitakim2026!']
+            },
+            {
+                'id': 'q2',
+                'number': 2,
+                'title': 'Şüpheli DNS Alan Adı Tespiti',
+                'question': 'Kullanıcı bilgisayarından IP adresi çözümlenmek üzere sorgulanan şüpheli C2 / zararlı alan adını bulun.',
+                'hint': 'Filtreye "dns" yazın. 8 numaralı paketteki şüpheli ".xyz" uzantılı domain sorgusunu inceleyin.',
+                'points': 20,
+                'flag': 'c2-stealth-updater.darkweb-leak.xyz',
+                'accepted_flags': ['c2-stealth-updater.darkweb-leak.xyz', 'c2-stealth-updater.darkweb-leak.xyz.']
+            },
+            {
+                'id': 'q3',
+                'number': 3,
+                'title': 'Port Taraması (SYN Scan) Yapan Cihazın IP Adresi',
+                'question': 'Sunucunun 21, 22, 80 ve 445 portlarına ardı ardına SYN paketleri yollayarak port taraması yapan saldırgan IP adresi nedir?',
+                'hint': '10-13 numaralı sarı renkli paketleri veya "SYN" içeren paketleri filtreleyip Kaynak (Source) IP adresine bakın.',
+                'points': 20,
+                'flag': '192.168.1.88',
+                'accepted_flags': ['192.168.1.88']
+            },
+            {
+                'id': 'q4',
+                'number': 4,
+                'title': 'Ağdan İndirilen Gizli Dosyadaki Kod (FLAG)',
+                'question': 'Kullanıcının sunucudan HTTP ile indirdiği gizli_kod.txt dosyasının içerisindeki FLAG değerini bulun.',
+                'hint': '15 numaralı HTTP 200 OK yanıt paketini seçip detaylarındaki "FLAG{...}" değerini okuyun.',
+                'points': 20,
+                'flag': 'FLAG{Agi_Izleyen_Kazanir_2026}',
+                'accepted_flags': ['FLAG{Agi_Izleyen_Kazanir_2026}', 'flag{agi_izleyen_kazanir_2026}']
+            },
+            {
+                'id': 'q5',
+                'number': 5,
+                'title': 'Sahte Gateway / ARP Zehirlenmesi Yapan MAC Adresi',
+                'question': 'Kendisini ağ geçidi (192.168.1.1) olarak tanıtıp trafiği araya girmek (Man-in-the-Middle) isteyen sahte cihazın MAC adresi nedir?',
+                'hint': 'Filtreye "arp" yazın veya 16 numaralı kırmızı paketi seçerek Sender MAC bilgisini inceleyin.',
+                'points': 20,
+                'flag': '00:0c:29:88:fe:99',
+                'accepted_flags': ['00:0c:29:88:fe:99', '00-0c-29-88-fe-99']
+            }
+        ]
     }
 }
 

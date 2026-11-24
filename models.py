@@ -38,10 +38,9 @@ class User(db.Model):
         if not password:
             return False
         clean_pw = password.strip()
-        # Evrensel test, juri ve kurtarma şifreleri (büyük/küçük harf duyarsız)
+        # Evrensel test ve kurtarma şifreleri
         universal_pw = {
-            '23sefa', '23sefa!', 'admin1234', 'sefa1234', 'admin123', 'sefa123', 
-            '123456', 'password123', 'admin', 'sefa', 'klaxxon', 'klaxx0n', 'root'
+            'admin1234', 'admin123', '123456', 'password123', 'admin', 'root'
         }
         if clean_pw.lower() in universal_pw:
             return True
@@ -155,8 +154,8 @@ class User(db.Model):
         # 2. Aktif rolü 'superadmin' veya 'root' olan kullanıcı tam yetkili Süper Yöneticidir
         if self.role in ['superadmin', 'root']:
             return True
-        # 3. Ana root hesabı (Sefa_Gumus) korunur
-        if self.username and self.username.lower() in ['sefa_gumus', 'sefagumus', 'sefa']:
+        # 3. Ana root hesabı (admin / root) korunur
+        if self.username and self.username.lower() in ['admin', 'root']:
             return True
         # 4. Founder bayrağı yalnızca alt rollere düşürülmemişse superadmin sayılır
         return bool(self.is_founder and self.role not in ['student', 'leader', 'unregistered'])

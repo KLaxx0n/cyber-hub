@@ -1,6 +1,6 @@
 # Siber Güvenlik Eğitim Platformu (Red Team & Blue Team Hub)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/KLaxx0n/cyber-hub)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 **Niğde Ömer Halisdemir Üniversitesi — Bilgi Teknolojileri Güvenliği Bölümü**  
 **Dönem Projesi & Teknik Dokümantasyon Uygulaması**
@@ -10,7 +10,7 @@
 ## 👥 Proje Ekibi ve Rol Dağılımı
 
 1. **Aziz:** Proje Koordinatörü, Red Team, OWASP Top 10 ve Flag Hunting (Bayrak Avı) Mekanizması
-2. **Sefa (Full-Stack Uzmanı):** Web Sitesi Tasarımı (HTML, CSS Dark Mode), Backend (Python/Flask, Kayıt/Giriş, Regex Şifre Kontrolü, E-Posta Doğrulama Kodu) ve Sosyal Mühendislik Simülasyonu
+2. **Full-Stack Geliştirici:** Web Sitesi Tasarımı (HTML, CSS Dark Mode), Backend (Python/Flask, Kayıt/Giriş, Regex Şifre Kontrolü, E-Posta Doğrulama Kodu) ve Sosyal Mühendislik Simülasyonu
 3. **Blue Team Sorumlusu (Geçici):** Digital Forensics (Adli Bilişim & Hex Kurtarma), Savunma Kuralları ve Geri Sayım Sayacı (Timer)
 
 ---
@@ -47,7 +47,7 @@
 
 1. Proje dizinine girin:
    ```bash
-   cd C:\Users\gsefa\.gemini\antigravity\scratch\cyber-hub
+   cd cyber-hub
    ```
 2. Sunucuyu başlatın:
    ```bash

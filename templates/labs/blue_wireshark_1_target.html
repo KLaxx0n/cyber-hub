@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Wireshark Paket & Ağ Analiz Konsolu | NÖHÜ Blue Team</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #060a12;
+            color: #e2e8f0;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .log-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .log-scroll::-webkit-scrollbar-track {
+            background: #05080f;
+        }
+        .log-scroll::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        .log-scroll::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        tr.selected-row {
+            outline: 2px solid #38bdf8 !important;
+            background-color: rgba(56, 189, 248, 0.2) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Top Header -->
+    <header class="border-b border-sky-900/50 bg-[#080d18]/95 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-950 border border-sky-700/80 flex items-center justify-center text-sky-400 text-lg shadow-sm">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <div>
+                    <div class="text-[11px] font-mono text-sky-400 tracking-wider uppercase font-semibold">
+                        NØHÜ BLUE TEAM // LAB #02
+                    </div>
+                    <h1 class="text-base sm:text-lg font-bold text-white leading-tight">
+                        Mini-Wireshark: Ağ Trafiği & Paket İnceleme Konsolu
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-700 text-slate-300">
+                    <i class="fa-solid fa-file-waveform text-sky-400 mr-1.5"></i>office_network_dump.pcap
+                </span>
+                <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-700 text-slate-300">
+                    <i class="fa-regular fa-clock text-amber-400 mr-1.5"></i>Canlı Yakalama (16 Paket)
+                </span>
+                <a href="{{ url_for('blue_wireshark_1_download', filename='office_network_dump.pcap') }}"
+                   class="px-3 py-1.5 rounded-lg bg-sky-950/90 hover:bg-sky-900 border border-sky-700 text-sky-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>.PCAP İndir</span>
+                </a>
+                <a href="{{ url_for('blue_wireshark_1_download', filename='paket_ozeti.txt') }}"
+                   class="px-3 py-1.5 rounded-lg bg-sky-950/90 hover:bg-sky-900 border border-sky-700 text-sky-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Özet (TXT)</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1">
+
+        <!-- Telemetry Overview Strip -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 font-mono text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div class="text-slate-400 text-[11px]">Toplam Yakalanan</div>
+                <div class="text-lg font-bold text-white mt-0.5">16 Paket</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div class="text-slate-400 text-[11px]">HTTP Web Trafiği</div>
+                <div class="text-lg font-bold text-emerald-400 mt-0.5">4 Paket (Form &amp; GET)</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div class="text-slate-400 text-[11px]">DNS Alan Adı</div>
+                <div class="text-lg font-bold text-sky-400 mt-0.5">4 Paket (A Kaydı)</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div class="text-slate-400 text-[11px]">TCP &amp; SYN Taraması</div>
+                <div class="text-lg font-bold text-amber-400 mt-0.5">6 Paket (SYN/ACK)</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div class="text-slate-400 text-[11px]">ARP Anonsları</div>
+                <div class="text-lg font-bold text-rose-400 mt-0.5">2 Paket (Zehirlenme!)</div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 font-mono text-xs">
+            <div class="flex-1 flex items-center gap-2 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 focus-within:border-sky-500">
+                <i class="fa-solid fa-filter text-sky-400"></i>
+                <input type="text" id="filter-input" placeholder="Wireshark filtresi yazın (Örn: http, dns, arp, syn, 192.168.1.88, parola, flag)..."
+                       class="bg-transparent border-none outline-none text-white w-full placeholder-slate-500"
+                       onkeyup="applyFilter()">
+                <button type="button" onclick="clearFilter()" class="text-slate-400 hover:text-white px-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quick Filter Chips -->
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="setFilter('')" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">Tümü</button>
+                <button onclick="setFilter('http')" class="px-2.5 py-1.5 rounded-md bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 transition-colors">HTTP</button>
+                <button onclick="setFilter('dns')" class="px-2.5 py-1.5 rounded-md bg-sky-950/80 hover:bg-sky-900 border border-sky-700 text-sky-300 transition-colors">DNS</button>
+                <button onclick="setFilter('syn')" class="px-2.5 py-1.5 rounded-md bg-amber-950/80 hover:bg-amber-900 border border-amber-700 text-amber-300 transition-colors">SYN (Port Scan)</button>
+                <button onclick="setFilter('arp')" class="px-2.5 py-1.5 rounded-md bg-rose-950/80 hover:bg-rose-900 border border-rose-700 text-rose-300 transition-colors">ARP</button>
+            </div>
+        </div>
+
+        <!-- Upper: Packet Table -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-sm">
+            <div class="px-4 py-2.5 border-b border-slate-800 bg-slate-950/70 flex items-center justify-between font-mono text-xs text-slate-400">
+                <span class="flex items-center gap-2 text-white font-bold">
+                    <i class="fa-solid fa-list-check text-sky-400"></i>
+                    YAKALANAN AĞ PAKETLERİ (TIKLAYARAK DETAYLARI İNCELEYİN)
+                </span>
+                <span id="filtered-count" class="text-sky-400 font-semibold">16 / 16 paket gösteriliyor</span>
+            </div>
+
+            <div class="max-h-[340px] overflow-y-auto log-scroll">
+                <table class="w-full text-left font-mono text-xs border-collapse">
+                    <thead class="bg-slate-950 text-slate-400 sticky top-0 border-b border-slate-800 z-10">
+                        <tr>
+                            <th class="py-2.5 px-3 w-12 text-center">No.</th>
+                            <th class="py-2.5 px-3 w-24">Zaman</th>
+                            <th class="py-2.5 px-3 w-36">Kaynak (Source)</th>
+                            <th class="py-2.5 px-3 w-36">Hedef (Dest)</th>
+                            <th class="py-2.5 px-3 w-20">Protokol</th>
+                            <th class="py-2.5 px-3 w-16">Boyut</th>
+                            <th class="py-2.5 px-3">Bilgi (Info)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packet-tbody" class="divide-y divide-slate-800/60">
+                        {% for p in packets %}
+                        <tr id="pkt-row-{{ p.no }}"
+                            class="cursor-pointer transition-colors hover:bg-slate-800/80 {% if p.protocol == 'HTTP' %}bg-emerald-950/20 text-emerald-200{% elif p.protocol == 'DNS' %}bg-sky-950/20 text-sky-200{% elif p.protocol == 'ARP' %}bg-rose-950/20 text-rose-200{% elif 'SYN' in p.info %}bg-amber-950/20 text-amber-200{% else %}bg-slate-900/30 text-slate-300{% endif %}"
+                            onclick="selectPacket({{ p.no }})">
+                            <td class="py-2 px-3 text-center text-slate-400">{{ p.no }}</td>
+                            <td class="py-2 px-3 text-slate-400">{{ p.time }}</td>
+                            <td class="py-2 px-3 font-semibold">{{ p.source }}</td>
+                            <td class="py-2 px-3 font-semibold">{{ p.destination }}</td>
+                            <td class="py-2 px-3">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-bold {% if p.protocol == 'HTTP' %}bg-emerald-900/60 text-emerald-300 border border-emerald-700/60{% elif p.protocol == 'DNS' %}bg-sky-900/60 text-sky-300 border border-sky-700/60{% elif p.protocol == 'ARP' %}bg-rose-900/60 text-rose-300 border border-rose-700/60{% else %}bg-purple-900/60 text-purple-300 border border-purple-700/60{% endif %}">
+                                    {{ p.protocol }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-3 text-slate-400">{{ p.length }} B</td>
+                            <td class="py-2 px-3 truncate max-w-md">{{ p.info }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lower Split: Protocol Tree & Raw Payload -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            
+            <!-- Protocol Tree -->
+            <div class="rounded-xl border border-slate-800 bg-slate-900/70 p-4 font-mono text-xs flex flex-col">
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-white font-bold">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-sky-400"></i>
+                        PROTOKOL BAŞLIKLARI (FRAME TREE)
+                    </span>
+                    <span id="active-packet-badge" class="text-sky-400 text-[11px]">Paket #1 Seçili</span>
+                </div>
+                <div id="tree-container" class="space-y-2 max-h-[260px] overflow-y-auto log-scroll flex-1">
+                    <div class="text-slate-500 italic p-3">Detaylarını görmek için yukarıdan bir pakete tıklayın.</div>
+                </div>
+            </div>
+
+            <!-- Raw Stream / Payload -->
+            <div class="rounded-xl border border-slate-800 bg-[#070b14] p-4 font-mono text-xs flex flex-col">
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-white font-bold">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-terminal text-emerald-400"></i>
+                        ASCII / METİN AKIŞI (PAYLOAD DUMP)
+                    </span>
+                    <span class="text-emerald-400 text-[11px]">TCP/UDP Stream</span>
+                </div>
+                <pre id="payload-container" class="text-sky-300 whitespace-pre-wrap break-all max-h-[260px] overflow-y-auto log-scroll flex-1 font-mono text-[11px] leading-relaxed">
+// Paket içeriği burada görüntülenecektir.
+                </pre>
+            </div>
+
+        </div>
+
+        <!-- Notification Banner -->
+        <div class="p-4 rounded-xl bg-sky-950/40 border border-sky-800/60 flex items-start gap-3 text-xs text-sky-200">
+            <i class="fa-solid fa-circle-info text-sky-400 text-base mt-0.5"></i>
+            <div>
+                <span class="font-bold text-white">Nasıl Çözülür?</span>
+                Yukarıdaki filtreleri ve paket içeriklerini inceleyerek bulduğunuz <strong>Açık Parola</strong>, <strong>Zararlı Alan Adı</strong>, <strong>Saldırgan IP</strong>, <strong>FLAG</strong> ve <strong>Sahte MAC Adresi</strong> yanıtlarını ana platform sekmesindeki görev kutularına giriniz.
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const packetsData = {{ packets | tojson }};
+        let currentSelectedNo = null;
+
+        function selectPacket(no) {
+            currentSelectedNo = no;
+            document.querySelectorAll('#packet-tbody tr').forEach(r => r.classList.remove('selected-row'));
+            const row = document.getElementById('pkt-row-' + no);
+            if (row) row.classList.add('selected-row');
+
+            const p = packetsData.find(item => item.no === no);
+            if (!p) return;
+
+            document.getElementById('active-packet-badge').textContent = `Paket #${p.no} (${p.protocol}) Seçili`;
+
+            // Tree
+            const tree = document.getElementById('tree-container');
+            tree.innerHTML = '';
+            for (const [key, val] of Object.entries(p.details)) {
+                const box = document.createElement('div');
+                box.className = 'p-2.5 rounded-lg bg-slate-950 border border-slate-800';
+                box.innerHTML = `
+                    <div class="text-sky-400 font-bold mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-angle-right text-[10px]"></i>
+                        <span>${key}</span>
+                    </div>
+                    <div class="text-slate-300 text-[11px] break-all whitespace-pre-wrap">${val}</div>
+                `;
+                tree.appendChild(box);
+            }
+
+            // Payload
+            const payload = document.getElementById('payload-container');
+            payload.textContent = `[ Paket No: ${p.no} | Boyut: ${p.length} Byte | ${p.source} -> ${p.destination} ]\n\n${p.ascii_payload || '// Taşınan veri yükü (payload) yok.'}`;
+        }
+
+        function setFilter(val) {
+            document.getElementById('filter-input').value = val;
+            applyFilter();
+        }
+
+        function clearFilter() {
+            document.getElementById('filter-input').value = '';
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const query = document.getElementById('filter-input').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#packet-tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(r => {
+                const text = r.innerText.toLowerCase();
+                if (!query || text.includes(query)) {
+                    r.style.display = '';
+                    visibleCount++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            document.getElementById('filtered-count').textContent = `${visibleCount} / ${rows.length} paket gösteriliyor`;
+        }
+
+        // Auto select first packet
+        if (packetsData.length > 0) {
+            selectPacket(packetsData[0].no);
+        }
+    </script>
+</body>
+</html>
