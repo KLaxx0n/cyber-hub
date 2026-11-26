@@ -327,7 +327,6 @@ MULTI_TASK_LABS = {
         ]
     },
     'blue-wireshark-1': {
-        'required_role': 'root',
         'pass_threshold': 60,
         'target_endpoint': 'blue_wireshark_1_target',
         'target_label': 'Mini-Wireshark Konsolu (office_network_dump.pcap)',
