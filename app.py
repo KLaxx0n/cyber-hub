@@ -204,7 +204,8 @@ def inject_user():
             session.clear()
         else:
             current_user = user
-    return dict(current_user=current_user, support_email=SUPPORT_EMAIL)
+    flag_path = os.path.join(app.root_path, 'tmp', 'maintenance.flag')
+    return dict(current_user=current_user, support_email=SUPPORT_EMAIL, is_maintenance_mode=os.path.exists(flag_path))
 
 # HTTP Güvenlik Başlıkları (Security Headers)
 @app.after_request
@@ -977,6 +978,23 @@ def admin_panel():
                            total_completed=total_completed,
                            total_score=total_score,
                            feedbacks=feedbacks)
+
+@app.route('/admin/toggle-maintenance', methods=['POST'])
+@superadmin_required
+def admin_toggle_maintenance():
+    flag_path = os.path.join(app.root_path, 'tmp', 'maintenance.flag')
+    os.makedirs(os.path.dirname(flag_path), exist_ok=True)
+    if os.path.exists(flag_path):
+        try:
+            os.remove(flag_path)
+        except OSError:
+            pass
+        flash('Platform bakım modu KAPATILDI. Site tüm kullanıcılara açıldı.', 'success')
+    else:
+        with open(flag_path, 'w', encoding='utf-8') as f:
+            f.write(datetime.utcnow().isoformat())
+        flash('Platform bakım modu AKTİF edildi. Yalnızca Root yöneticileri erişebilir.', 'warning')
+    return redirect(url_for('admin_panel'))
 
 @app.route('/admin/delete-feedback/<int:feedback_id>', methods=['POST'])
 @superadmin_required

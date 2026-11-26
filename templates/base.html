@@ -42,7 +42,8 @@
 
     {% set is_root = current_user and current_user.is_superadmin %}
     {% set is_auth_route = request.endpoint in ['login', 'login_2fa', 'logout', 'verify', 'resend_verification', 'forgot_password', 'reset_password'] %}
-    {% set show_maintenance = not is_root and not is_auth_route %}
+    {% set maintenance_active = is_maintenance_mode if is_maintenance_mode is defined else true %}
+    {% set show_maintenance = maintenance_active and not is_root and not is_auth_route %}
 
     <!-- Interactive Cyber Network Background -->
     <div id="bg-container">
