@@ -13,7 +13,7 @@
             <p class="text-xs text-slate-400 mt-1">Laboratuvar ortamına katılmak için bilgilerinizi giriniz.</p>
         </div>
 
-        <form action="{{ url_for('register') }}" method="POST" class="space-y-4">
+        <form action="{{ url_for('register') }}" method="POST" id="register_form" class="space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1">Kullanıcı Adı</label>
@@ -21,7 +21,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-user text-xs"></i>
                     </span>
-                    <input type="text" name="username" value="{{ username or '' }}" required placeholder="NÖHÜ" 
+                    <input type="text" name="username" value="{{ username or '' }}" required placeholder="ornek_ogrenci" 
                         class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
             </div>
@@ -35,7 +35,7 @@
                     <input type="email" name="email" value="{{ email or '' }}" required placeholder="ogrenci@ohu.edu.tr" 
                         class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
-                <p class="text-[11px] text-slate-500 mt-1">Kayıt sonrası aktivasyon kodu bu adrese gönderilecektir.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Platform bilgilendirmeleri ve hesap güvenliği için geçerli bir e-posta adresi giriniz.</p>
             </div>
 
             <div>
@@ -69,13 +69,16 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                         <i class="fa-solid fa-check-double text-xs"></i>
                     </span>
-                    <input type="password" name="confirm_password" required placeholder="••••••••" 
+                    <input type="password" id="reg_confirm_password" name="confirm_password" required placeholder="••••••••" 
                         class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+                <div id="rule_match" class="text-slate-500 flex items-center text-xs mt-1.5 font-mono hidden">
+                    <i class="fa-regular fa-circle mr-2 text-[10px]"></i> <span id="rule_match_text">Şifreler eşleşiyor</span>
                 </div>
             </div>
 
-            <button type="submit" id="register_btn" disabled class="w-full py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm shadow-sm opacity-50 cursor-not-allowed hover:bg-blue-700 transition-colors">
-                Kayıt Ol & Onay Kodu Al
+            <button type="submit" id="register_btn" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm transition-colors cursor-pointer">
+                Kayıt Ol
             </button>
         </form>
 

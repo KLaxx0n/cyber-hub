@@ -9,20 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ----------------- 1. ŞİFRE KARMAŞIKLIK KONTROLÜ (REGEX) ----------------- */
 function initPasswordStrengthChecker() {
     const passwordInput = document.getElementById('reg_password');
+    const confirmInput = document.getElementById('reg_confirm_password');
     const ruleLength = document.getElementById('rule_length');
     const ruleLetter = document.getElementById('rule_letter');
     const ruleNumber = document.getElementById('rule_number');
-    const submitBtn = document.getElementById('register_btn');
+    const ruleMatch = document.getElementById('rule_match');
+    const ruleMatchText = document.getElementById('rule_match_text');
+    const form = document.getElementById('register_form');
 
     if (!passwordInput) return;
 
-    passwordInput.addEventListener('input', () => {
-        const val = passwordInput.value;
+    function checkPassword() {
+        const val = passwordInput.value || '';
+        const confirmVal = confirmInput ? (confirmInput.value || '') : '';
 
         // Min 6 chars
         const hasLength = val.length >= 6;
-        // Has Letter (a-zA-Z)
-        const hasLetter = /[A-Za-z]/.test(val);
+        // Has Letter (a-zA-ZçğıöşüÇĞİÖŞÜ)
+        const hasLetter = /[A-Za-zçğıöşüÇĞİÖŞÜ]/.test(val);
         // Has Number (0-9)
         const hasNumber = /\d/.test(val);
 
@@ -30,30 +34,64 @@ function initPasswordStrengthChecker() {
         updateRuleUI(ruleLetter, hasLetter);
         updateRuleUI(ruleNumber, hasNumber);
 
-        if (submitBtn) {
-            submitBtn.disabled = !(hasLength && hasLetter && hasNumber);
-            if (submitBtn.disabled) {
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (ruleMatch && confirmInput && confirmVal) {
+            ruleMatch.classList.remove('hidden');
+            const isMatch = val === confirmVal && val.length > 0;
+            updateRuleUI(ruleMatch, isMatch);
+            if (ruleMatchText) {
+                ruleMatchText.textContent = isMatch ? 'Şifreler eşleşiyor' : 'Şifreler eşleşmiyor';
             }
+        } else if (ruleMatch) {
+            ruleMatch.classList.add('hidden');
         }
-    });
+
+        return hasLength && hasLetter && hasNumber;
+    }
+
+    passwordInput.addEventListener('input', checkPassword);
+    passwordInput.addEventListener('change', checkPassword);
+    if (confirmInput) {
+        confirmInput.addEventListener('input', checkPassword);
+        confirmInput.addEventListener('change', checkPassword);
+    }
+
+    // Run check once on load in case browser autofills values
+    setTimeout(checkPassword, 300);
+
+    // Form submit validation
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            const isValid = checkPassword();
+            const confirmVal = confirmInput ? (confirmInput.value || '') : '';
+            if (!isValid) {
+                e.preventDefault();
+                passwordInput.focus();
+                alert('Lütfen şifre güvenlik kriterlerini (en az 6 karakter, en az bir harf ve bir rakam) sağlayınız.');
+                return false;
+            }
+            if (confirmInput && passwordInput.value !== confirmVal) {
+                e.preventDefault();
+                confirmInput.focus();
+                alert('Girilen şifreler birbiriyle uyuşmuyor.');
+                return false;
+            }
+        });
+    }
 
     function updateRuleUI(element, isValid) {
         if (!element) return;
         const icon = element.querySelector('i');
         if (isValid) {
-            element.classList.remove('text-gray-400', 'text-red-400');
+            element.classList.remove('text-slate-500', 'text-gray-400', 'text-red-400');
             element.classList.add('text-emerald-400');
             if (icon) {
-                icon.className = 'fa-solid fa-circle-check mr-2';
+                icon.className = 'fa-solid fa-circle-check mr-2 text-[10px]';
             }
         } else {
             element.classList.remove('text-emerald-400');
-            element.classList.add('text-gray-400');
+            element.classList.add('text-slate-500');
             if (icon) {
-                icon.className = 'fa-regular fa-circle mr-2';
+                icon.className = 'fa-regular fa-circle mr-2 text-[10px]';
             }
         }
     }

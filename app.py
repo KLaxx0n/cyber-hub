@@ -227,8 +227,8 @@ def ratelimit_handler(e):
 def validate_password_complexity(password):
     if len(password) < 6:
         return False, "Şifre en az 6 karakter uzunluğunda olmalıdır."
-    if not re.search(r'[A-Za-z]', password):
-        return False, "Şifre en az bir harf (a-z veya A-Z) içermelidir."
+    if not re.search(r'[A-Za-zçğıöşüÇĞİÖŞÜ]', password):
+        return False, "Şifre en az bir harf içermelidir."
     if not re.search(r'\d', password):
         return False, "Şifre en az bir rakam (0-9) içermelidir."
     return True, "Şifre kurallara uygundur."
@@ -389,8 +389,8 @@ def register():
             return render_template('register.html', username=username, email=email)
 
         # Validate username format
-        if len(username) < 3 or not re.match(r'^[a-zA-Z0-9_]+$', username):
-            flash('Kullanıcı adı en az 3 karakter olmalı ve yalnızca harf, rakam ve alt çizgi içerebilir.', 'danger')
+        if len(username) < 3 or not re.match(r'^[a-zA-Z0-9_çğıöşüÇĞİÖŞÜ\.\-]+$', username):
+            flash('Kullanıcı adı en az 3 karakter olmalı ve yalnızca harf, rakam, alt çizgi, nokta ve tire içerebilir.', 'danger')
             return render_template('register.html', username=username, email=email)
 
         # Check reserved usernames
@@ -408,7 +408,8 @@ def register():
             flash('Bu kullanıcı adı zaten kullanılmaktadır.', 'danger')
             return render_template('register.html', username=username, email=email)
 
-        if User.query.filter_by(email=email).first():
+        # Case-insensitive email uniqueness check
+        if User.query.filter(func.lower(User.email) == email.lower()).first():
             flash('Bu e-posta adresiyle zaten bir kayıt bulunmaktadır.', 'danger')
             return render_template('register.html', username=username, email=email)
 
@@ -449,6 +450,7 @@ def register():
         # Oturumu doğrudan aç ve kullanıcıyı panele yönlendir (bekleme ve kod engeli yok)
         session.clear()
         session['user_id'] = new_user.id
+        session['username'] = new_user.username
         session.permanent = True
         if is_root:
             flash(f'🎉 Kaydınız başarıyla tamamlandı! Hoş geldiniz, {new_user.username}.', 'success')
